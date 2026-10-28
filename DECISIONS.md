@@ -93,7 +93,15 @@ Format: `D-NNN · Title · Status · Date`
 - **Wave 1 environment check result (29 Oct 2026):**
   - Workspace: Hugging Face blocked (HTTP 403); PyPI and the PyTorch index also unreachable, so new Python packages cannot be installed and `uv.lock` cannot be generated there. GitHub reachable. Pre-installed: pandas, openpyxl, pydantic, scipy, scikit-learn, matplotlib, seaborn, pytest. Missing: spaCy, pandera, duckdb, pyarrow, rapidfuzz, statsmodels, pre-commit.
   - Laptop: Ollama in Docker works. Image `ollama/ollama@sha256:20d1bbfb…12d0b`, model `qwen2.5:3b` (ID `357c53fb659c`), 12.83 tokens/s on a one-sentence test. WSL2 limited to 8 CPUs / 24 GB.
-  - **Consequence:** sentiment and embedding models move to the laptop. The laptop becomes the reference environment for `uv lock`, `uv sync` and `make all`. Proposed split for Wave 1 (awaiting owner confirmation): profiling runs in the workspace with the pre-installed libraries; anything needing spaCy, pandera or models runs on the laptop.
+  - **Consequence:** sentiment and embedding models move to the laptop. The laptop becomes the reference environment for `uv lock`, `uv sync` and `make all`.
+- **Revision (29 Oct 2026, owner approved):** "Agents do not run directly on the laptop" is replaced by the working arrangement below.
+  - **Options considered:** (A) split by installed libraries; (B) owner runs everything and pastes output; (C) Claude runs commands on the laptop via the desktop-app bridge, scoped to one folder; (D) carry wheels and models into the workspace by hand; (E) swap to pre-installed libraries. C was chosen, then tested: the bridge shell is a Linux sandbox on the laptop that sees only `C:\PS-Kestral-Group` (2 CPUs, 3 GB, Python 3.10 with pandas/openpyxl) and has no PyPI, Hugging Face, GitHub, Docker or Ollama access. C therefore became a B/C hybrid.
+  - **Arrangement:**
+    - Claude writes code in the cloud workspace clone and pushes to the agent's branch.
+    - The owner runs anything needing installs, models or Docker in Windows PowerShell inside `C:\PS-Kestral-Group`, saving output to `logs\` (gitignored). Claude reads those logs through the bridge.
+    - Claude does not edit tracked files in the laptop folder, so `git pull` there never conflicts. Lock files generated on the laptop (`uv.lock`) are committed and pushed by the owner.
+    - Profiling and other pandas/openpyxl-only work runs in the cloud workspace.
+  - **Scope limits:** bridge access is limited to `C:\PS-Kestral-Group`. Claude runs no Docker commands; the owner runs `docker compose` for this project only.
 
 ### D-014 · Tech stack · Decided · 29 Oct 2026
 - See PLAN.md §5. Key reasons: `uv` for exact reproducibility; Parquet + DuckDB for typed, inspectable stages; pandera for declarative validation; cached model outputs committed so results reproduce without re-running models.
