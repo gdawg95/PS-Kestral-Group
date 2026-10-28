@@ -18,10 +18,19 @@ Format: `D-NNN · Title · Status · Date`
 - **Verification (to turn the assumption into evidence):** the joiner agent must prove for each site that (a) file date ranges don't overlap, (b) there are no unexpected gaps, (c) rows in = rows out, and (d) an exact-match duplicate check on dealership + date + department + score + comment finds nothing (or flags what it finds).
 - **Options considered:** assume no overlap (rejected — the brief says some sites keep a running workbook, so repeats are plausible); full fuzzy dedup (rejected — overkill for the timeframe).
 
-### D-003 · Drop all customer identifiers · Decided · 29 Oct 2026
-- **Decision:** Customer names, IDs, emails, phones, addresses and similar columns are dropped at first ingestion. No hashing. Rows are re-indexed with a project `feedback_id`.
-- **Why:** Customer identity is inconsistent across sites (some have no ID, some only first names) and no business question needs customer-level analysis. Dropping is simpler and a stronger privacy position than hashing.
-- **Still required:** free-text comments are redacted (names, emails, phone numbers, addresses) because PII can appear inside them.
+### D-003 · Keep only four content columns; drop everything else · Decided · 29 Oct 2026 (revised)
+- **Decision:** From each source file, keep only:
+  1. **Date** of service/feedback
+  2. **Department** (text)
+  3. **Rating / satisfaction** (numeric after Wave 3 scale mapping)
+  4. **Comment** (free text, redacted per D-026)
+
+  Every other column is dropped at first ingestion — customer names, IDs, DMS numbers, phones, emails, addresses, rego, and vehicle make/model. No hashing.
+- **Added by the pipeline (not from source columns):** `feedback_id` (new), `dealer_code` (from file name/sheet, matched to `dealerships.csv`), and lineage fields `source_file` + `source_row` so any record can be traced back to its spreadsheet.
+- **Implementation:** an **allowlist**, not a blocklist — any source column not mapped to one of the four in `mappings/columns.yaml` is dropped, so an unexpected PII column is excluded by default.
+- **Why:** these four columns answer all three business questions; no question needs customer-level or vehicle-level analysis; brand comes from `dealerships.csv`.
+- **Exception:** a row's customer-name and rego values may be read *transiently* during ingestion to redact those exact strings from that row's comment (D-026), then discarded. They are never written to any interim or clean file.
+- **Revision note:** earlier version used a drop-list of identifier columns; changed to an allowlist after the owner reviewed all 52 files.
 
 ### D-004 · Definition of negative feedback · Provisional · 29 Oct 2026
 - **Decision:** A record is negative if its **score is 1–2 on a 1–5 scale** (3 = neutral) **OR** its comment's sentiment is negative. The score is the minimum signal, because many customers leave no comment.
@@ -33,6 +42,20 @@ Format: `D-NNN · Title · Status · Date`
 
 ### D-006 · Coverage reported as a limitation (for now) · Provisional · 29 Oct 2026
 - **Decision:** Uneven feedback volumes per site are reported as a limitation. A feedback-per-transaction metric is computed from `monthly_revenue.csv` once data is consolidated; normalisation decision follows from that.
+
+### D-026 · Free-text redaction tokens · Decided · 29 Oct 2026
+- **Decision:** PII inside comments is replaced with typed tokens so the analysis keeps the signal that something was mentioned:
+  | Found in comment | Token |
+  |---|---|
+  | Vehicle registration number | `[REGO]` |
+  | Staff member's name | `[STAFF]` |
+  | Customer's own / other person's name | `[NAME]` |
+  | Phone number | `[PHONE]` |
+  | Email address | `[EMAIL]` |
+  | Street address | `[ADDRESS]` |
+- **Method:** (1) exact-match redaction of that row's own name/rego values (where the source has those columns); (2) regex for phones, emails, addresses and Australian rego formats; (3) spaCy NER for remaining person names.
+- **[STAFF] vs [NAME]:** an NER person name is tagged `[STAFF]` only when it appears in a staff context (e.g. "Dave in service", "my salesperson Priya"); otherwise `[NAME]`. Owner expects `[STAFF]` to be rare, so imprecision here is low-impact.
+- **Known risk:** rego regex can false-positive on model and part codes (e.g. RAV4, CX5, V8). The test suite must include these as must-*not*-redact cases.
 
 ## Outputs
 
@@ -66,6 +89,7 @@ Format: `D-NNN · Title · Status · Date`
 - **Decision:** Profiling, joining, cleaning, analysis and charts run in the Claude cloud workspace (a sandboxed Linux environment). The Ollama LLM step runs on the laptop.
 - **Data handling:** raw files are shared with the workspace. Justification: the brief states all data is fictional; identifier columns are dropped at first ingestion; only redacted text is passed to any model.
 - **Agents do not run directly on the laptop** — the cloud workspace is already isolated from personal files.
+- **Open risk:** the workspace network may block Hugging Face model downloads; the Wave 1 NLP environment check decides whether sentiment/embedding models also move to the laptop.
 
 ### D-014 · Tech stack · Decided · 29 Oct 2026
 - See PLAN.md §5. Key reasons: `uv` for exact reproducibility; Parquet + DuckDB for typed, inspectable stages; pandera for declarative validation; cached model outputs committed so results reproduce without re-running models.

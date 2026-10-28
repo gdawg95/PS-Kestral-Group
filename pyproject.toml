@@ -1,0 +1,52 @@
+[project]
+name = "kestrel-cx"
+version = "0.1.0"
+description = "Kestrel Motor Group: consolidate, de-identify and analyse dealership customer feedback"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "pandas>=2.2",
+    "pyarrow>=17",
+    "openpyxl>=3.1",
+    "python-calamine>=0.3",
+    "duckdb>=1.1",
+    "pydantic>=2.8",
+    "pandera>=0.20",
+    "pyyaml>=6.0",
+    "rapidfuzz>=3.9",
+    "spacy>=3.8,<3.9",
+    "scipy>=1.14",
+    "statsmodels>=0.14",
+    "scikit-learn>=1.5",
+    "matplotlib>=3.9",
+    "seaborn>=0.13",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "ruff>=0.6",
+    "pre-commit>=3.8",
+    "nbstripout>=0.7",
+]
+# Runs on the owner's laptop only: Hugging Face downloads are blocked in the
+# cloud workspace (see DECISIONS.md D-013).
+nlp = [
+    "torch>=2.4",
+    "transformers>=4.44",
+    "sentence-transformers>=3.1",
+    "bertopic>=0.16",
+    "requests>=2.32",
+]
+
+[tool.uv]
+default-groups = ["dev"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
