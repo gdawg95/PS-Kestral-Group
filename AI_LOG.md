@@ -54,5 +54,6 @@ Fill this in as you go. It becomes the "where AI got it wrong" section of the te
   - AI's first plan was a waterfall over 36 hours → reorganised into waves with checkpoints after the deadline moved to Friday 3pm.
 - **Where the owner pushed back and the AI held its position:** owner initially considered skipping duplicate checks; AI recommended a cheap verification step instead of an assumption (adopted as D-002).
 - **Checks performed:** owner reviewed each plan section and question in conversation.
-- **Verdict:** _to be completed by owner_
-- **Verified by:** _to be completed by owner_
+  
+Verdict: Plan established. Start Wave 1 so that further information can be discovered for other decisions.
+Verified by: S Gyaw
