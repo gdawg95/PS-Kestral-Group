@@ -1,0 +1,14 @@
+# Data: never commit raw or intermediate data (see DECISIONS.md D-015)
+data/raw/
+data/interim/
+data/clean/
+*.xlsx
+*.xls
+*.csv
+!reports/**/*.csv
+
+# Secrets and environments
+.env
+.venv/
+__pycache__/
+.ipynb_checkpoints/
