@@ -1,0 +1,272 @@
+# PLAN — Kestrel Motor Group: Data & AI Challenge
+
+**Owner:** gdawg95 (sole human contributor)
+**Repo:** https://github.com/gdawg95/PS-Kestral-Group (private until reviewers approve)
+**Code freeze:** Friday 30 Oct 2026, 3:00pm (then proofread and edit until COB)
+**Last updated:** Thursday 29 Oct 2026
+
+This is the single source of truth for the project. Every new conversation and every agent brief starts from this file and `DECISIONS.md`.
+
+---
+
+## 1. Goal
+
+Turn 52 inconsistent dealership feedback spreadsheets (Oct 2025 – Sep 2026) into one trusted, de-identified dataset, analyse the free text with open-source NLP, and answer three business questions for the Head of Customer Experience:
+
+1. What are the main drivers of negative feedback, and how do they vary across dealerships and departments?
+2. Has anything changed over the year?
+3. Where should Kestrel focus first, and roughly what is it worth?
+
+## 2. Non-negotiable outputs
+
+If time runs short, these are protected. Everything else can be cut.
+
+- [ ] One final cleaned, de-identified dataset
+- [ ] At least one trend identified (with evidence that it is real)
+- [ ] Basic NLP analysis of customer comments (sentiment + themes)
+- [ ] At least one recommendation for the business
+- [ ] Technical report for the reviewers
+
+## 3. Deliverables
+
+| # | Deliverable | Audience | Location |
+|---|---|---|---|
+| 1 | Clean dataset | Analysis pipeline | `data/clean/feedback_clean.parquet` (gitignored) |
+| 2 | Business report | Head of CX (non-technical) | `reports/business_report.md` |
+| 3 | Technical report | Reviewers | `README.md` |
+| 4 | Decisions log | Reviewers | `DECISIONS.md` |
+| 5 | AI usage log | Reviewers | `AI_LOG.md` |
+| 6 | Agent briefs and reports | Reviewers | `agents/briefs/`, `agents/reports/` |
+
+The business report links to the technical report so every claim can be traced to code.
+
+## 4. Phases
+
+1. **Ingestion and consolidation** — profile, map, join each site into one running sheet, consolidate.
+2. **Wrangling and cleaning** — PII removal, validation rules, standardisation, NLP (sentiment + themes).
+3. **Analysis** — drivers, trends, coverage, value estimate.
+4. **Reporting** — business report and technical report.
+5. **Documentation** — decisions, AI usage, verification evidence (runs continuously across all phases).
+
+## 5. Tech stack
+
+| Area | Tool | Reason |
+|---|---|---|
+| Language | Python 3.12 | Best data/NLP ecosystem; readable for reviewers |
+| Environment | `uv` + `pyproject.toml` + `uv.lock` | Exact, fast, reproducible installs |
+| Pipeline runner | `Makefile` | `make all` runs every stage in order |
+| Config | `config.yaml` | Paths, seeds, thresholds, model tags in one place |
+| Code hygiene | `pre-commit`, `ruff`, `nbstripout` | Consistent code; notebooks never leak data |
+| Tests | `pytest` | PII redaction, parsers, validation rules |
+| Reading files | `pandas`, `openpyxl`, `python-calamine` | .xlsx/.csv, multi-sheet workbooks |
+| Schema | `pydantic` | Canonical schema defined in code |
+| Mapping | `mappings/columns.yaml` | Human-approved source → canonical column map |
+| Storage | Parquet + DuckDB | Typed, fast, SQL without a server |
+| Validation | `pandera` | Declarative rules with pass/fail reports |
+| Fuzzy matching | `rapidfuzz` | Dealership names → codes; near-duplicate text |
+| Free-text PII | Regex + spaCy or Presidio | Local name/contact redaction |
+| Sentiment | Pretrained Hugging Face model (e.g. `cardiffnlp/twitter-roberta-base-sentiment-latest`) | Free, fast, deterministic |
+| Themes (discovery) | `sentence-transformers` + BERTopic | Local clustering to seed the theme list |
+| Themes (assignment) | Embedding similarity to approved themes | Fast, deterministic, covers all comments |
+| LLM (optional add-on) | Ollama in Docker, 3B model pinned by tag (e.g. Qwen 2.5 3B / Llama 3.2 3B) | Zero cost, runs on CPU, reproducible via `docker compose` |
+| Evaluation | `scikit-learn.metrics` | Precision/recall/F1, Cohen's kappa |
+| Statistics | `scipy`, `statsmodels` | Trend and before/after tests |
+| Charts | `matplotlib` + `seaborn` | Static PNGs for reports |
+| Version control | Git + GitHub (private) | Evidence trail; one branch per agent |
+| Pre-public check | `gitleaks` + PII scan | Nothing identifying in history |
+
+**Hardware:** Windows, i7 CPU, 60 GB RAM, no GPU. Docker Desktop via WSL2. Set `.wslconfig` to give WSL2 a fixed share (e.g. 16–24 GB memory, most CPU cores). Google Colab is **not** used.
+
+## 6. Reproducibility
+
+- `uv sync` → exact environment.
+- Place the challenge pack in `data/raw/` (not committed).
+- `make all` → ingest → validate → classify (cached) → analyse → figures.
+- `make test` → PII and rule tests.
+- `docker compose up` → pinned Ollama model for the optional LLM step.
+- Model outputs cached as JSONL keyed by hash(prompt + text + model) and **committed** (de-identified), so reviewers get identical results without re-running models. `make classify FRESH=1` re-runs.
+- `reports/run_manifest.json` records input file hashes, package versions, model tags, prompt versions, seeds, and row counts per stage.
+- Fixed random seeds everywhere (sampling, clustering, bootstrap).
+
+## 7. Repository structure
+
+```
+PS-Kestral-Group/
+├── data/
+│   ├── raw/          # challenge pack, read-only, gitignored
+│   ├── interim/      # per-stage Parquet, gitignored
+│   ├── clean/        # final de-identified dataset, gitignored
+│   └── llm_cache/    # de-identified model outputs, committed
+├── mappings/columns.yaml
+├── prompts/          # versioned prompt files
+├── src/              # one script per pipeline stage + pii.py
+├── tests/
+├── notebooks/        # exploration only, outputs stripped
+├── agents/
+│   ├── briefs/       # approved brief for every agent run
+│   └── reports/      # every agent's end-of-run report
+├── reports/
+│   ├── figures/
+│   ├── business_report.md
+│   └── run_manifest.json
+├── config.yaml
+├── docker-compose.yml
+├── Makefile
+├── pyproject.toml / uv.lock
+├── PLAN.md
+├── DECISIONS.md
+├── AI_LOG.md
+└── README.md         # technical report
+```
+
+## 8. Schedule (waves)
+
+Times are targets. Each wave ends at a human checkpoint; nothing downstream starts until it is signed off.
+
+### Wave 1 — Thursday morning: setup and profiling
+| Agent | Task | Output |
+|---|---|---|
+| Scaffold | Repo structure, `pyproject.toml`, Makefile, `.gitignore`, pre-commit, nbstripout, templates | Committed skeleton |
+| PII | `src/pii.py` + tests (drop identifier columns, redact free text) | Module + passing tests |
+| NLP environment check | Can sentiment/embedding models download and run in the workspace? Ollama container up on laptop? | One-line verdict per model |
+| Profilers ×3–4 | Inventory sheets, header rows, columns, date ranges, row counts, oddities per file | One profile JSON per file |
+| Research *(separate conversation)* | Industry benchmarks: automotive service retention, customer lifetime value, cost of a lost customer | Cited summary for Wave 5 |
+
+**Checkpoint 1 (you):** test commit proves raw data cannot be staged · compare 3 profiles against their source spreadsheets by eye · PII tests cover your tricky cases.
+
+### Wave 2 — Thursday midday: mapping and joining
+| Agent | Task | Output |
+|---|---|---|
+| Mapping | Draft `columns.yaml` from the profiles | Draft mapping |
+| Site joiners ×3 (VIC / NSW / QLD) | Join each site's files into one running sheet; prove date ranges don't overlap, no gaps, rows in = rows out; exact-match duplicate check | One sheet per site + reconciliation report |
+| Ingest | Build the consolidated dataset from the approved mapping; drop all customer identifiers; assign new `feedback_id` | `data/interim/consolidated.parquet` |
+
+**Checkpoint 2 (you):** approve every line of `columns.yaml` *before* joiners run · read each reconciliation table · any schema change needs your approval.
+
+### Wave 3 — Thursday afternoon: cleaning
+| Agent | Task | Output |
+|---|---|---|
+| DQ rules | pandera rules (reject / fix-and-flag / flag-and-keep) + report | `src/validate.py` + DQ report |
+| Dealership matching | Fuzzy-match names to official codes | Match table with confidence scores |
+| Dates and scales | Day-first date parsing; score-scale mapping to 1–5 equivalent | Standardised columns + edge-case list |
+| Theme discovery | BERTopic on redacted comments | Candidate themes |
+
+**Checkpoint 3 (you):** DQ waterfall makes sense · skim 5 example rows per rule · review every dealership match below the confidence threshold · look at 20 edge-case dates · name and merge themes into the final list.
+
+### Wave 4 — Thursday evening/overnight: NLP
+| Agent | Task | Output |
+|---|---|---|
+| Labelling prep | Random sample (~100–150), mixed across departments and scores; model labels hidden | Blank labelling sheet (**agent does not label**) |
+| Classifier | Sentiment + embedding theme assignment for all comments; cached | Classified dataset |
+| LLM (optional) | 20-comment pilot timed first; then negative/mixed comments + labelled sample, run overnight | LLM-classified subset |
+| Evaluation | Compare outputs with your labels | Metrics + failure-case list |
+
+**Checkpoint 4 (you):** commit the pass mark *before* labelling · label the sample yourself, blind · approve model tags and prompt version before full runs · confirm only redacted text is sent to any model · read ~20 failure cases.
+
+### Wave 5 — Friday morning: analysis and reports
+| Agent | Task |
+|---|---|
+| Drivers | Negative rate by theme × department × dealership, normalised by volume |
+| Trend | Monthly change, shown with and without the closed site |
+| Coverage | Feedback per transaction from `monthly_revenue.csv` |
+| Value model | Low/mid/high estimate using cited benchmarks |
+| Charts | Consistent figures for both reports |
+| Business report drafter | Draft only — you rewrite the recommendations |
+| Technical report drafter | Methods, DQ, AI verification, decisions, limitations |
+| Independent verifier | Fresh agent: clean clone, `make all`, check every report number against code |
+
+**Checkpoint 5 (you):** approve each chart before it enters a report · recompute 2–3 headline numbers yourself · read the verifier report · rewrite recommendations in your own voice.
+
+**Friday 3:00pm — code freeze.** Tag `v1.0`. Proofread and edit until COB.
+
+## 9. Human-in-the-loop controls
+
+### The control loop (every agent)
+1. **Brief** — orchestrator drafts, you approve, saved to `agents/briefs/<wave>_<agent>.md`.
+2. **Plan** — agent shows intended steps and files it will touch; waits for your OK.
+3. **Pilot** — bulk agents run on 2–3 files or 20 comments first; you check before scaling.
+4. **Run** — you approve tool use as it comes up; agent works on its own branch.
+5. **Report** — agent writes `agents/reports/<wave>_<agent>.md`: what it did, assumptions, unresolved issues, rows in/out.
+6. **Review** — you check against the brief's done-when criteria, record a verdict in `AI_LOG.md` (accepted / corrected / rejected + why).
+7. **Merge** — only after step 6. Nothing reaches `main` without you.
+
+### Hard gates (always block)
+| # | Gate |
+|---|---|
+| G1 | Pilot before scaling any bulk agent |
+| G2 | Approve each agent's plan before it acts |
+| G3 | No change to the canonical schema or `columns.yaml` without approval |
+| G4 | Confirm data is redacted before it goes to any model or leaves the workspace |
+| G5 | Review before every merge to `main` |
+| G7 | You set every threshold (match confidence, negative definition, NLP pass mark) and commit it before results come in |
+| G9 | Approve every chart before it enters a report |
+
+### Stop rules
+- Row counts don't reconcile → no merge.
+- Agent goes outside its brief (touches other files, changes the schema) → reject and re-brief; don't patch.
+- NLP misses the pass mark → apply the planned fallback; don't move the bar.
+- Checkpoint slips by more than ~2 hours → cut from the list in section 10.
+
+### Agent rules
+- One branch (or worktree) per agent; the orchestrator merges.
+- Only ingestion agents touch `data/raw/`. Everything downstream reads redacted data.
+- The agent that produces something never grades it.
+
+## 10. Cut list (in order)
+
+1. Streamlit dashboard
+2. Quarto rendering
+3. Docker for the whole pipeline (keep only for Ollama)
+4. CI workflow
+5. LLM step (fall back to sentiment + embedding themes only)
+6. Baseline model comparison
+7. Statistical tests beyond one trend check
+8. Themes beyond the top ~8
+
+## 11. Orchestrator role
+
+The master agent coordinates; it does not do the work.
+
+- Keeps this file current (task status, dependencies, checkpoint state).
+- Writes each agent brief using the template below.
+- Owns the contracts between agents: canonical schema, folder conventions, file names.
+- Adds an `AI_LOG.md` entry after each agent run, leaving "Verified by" for the owner.
+- Flags slipping checkpoints and proposes cuts from section 10.
+
+### Agent brief template
+```
+# Brief: <wave>_<agent>
+Goal:            <one sentence>
+Inputs:          <exact paths>
+Outputs:         <exact paths and formats>
+Allowed to touch: <paths>     Not allowed: <paths>
+Decisions that apply: <DECISIONS.md IDs>
+Steps:           <numbered>
+Pilot:           <what runs first, on what subset>
+Done when:       <checklist, incl. row-count reconciliation>
+Report back:     what you did · assumptions · unresolved · rows in/out
+```
+
+### Handoff template for each new conversation
+```
+Project: Kestrel CX challenge. Read PLAN.md and DECISIONS.md first.
+Phase/wave: <n>
+Goal for this conversation: <...>
+Inputs: <paths>
+Decisions that apply: <IDs>
+Done when: <...>
+Write outputs to: <paths>
+End by giving me an AI_LOG.md entry for this conversation.
+```
+
+## 12. Deferred decisions (to revisit)
+
+| Decision | When |
+|---|---|
+| Duplicate check result | After Wave 2 |
+| Score-scale mappings for non-1–5 sites | After profiling |
+| Trend evidence threshold | After basic EDA |
+| NLP pass mark | Before hand-labelling (Wave 4) |
+| Final theme list | After theme discovery (Wave 3) |
+| LLM in or out (pilot timing vs cut-off) | Wave 4 pilot |
+| Value benchmarks and assumptions | Wave 5 |
