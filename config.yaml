@@ -1,0 +1,33 @@
+# Single source for paths, seeds, thresholds and model versions.
+# Thresholds marked TBD are set and committed by the owner before results come in (gate G7).
+
+paths:
+  raw: data/raw
+  interim: data/interim
+  clean: data/clean
+  llm_cache: data/llm_cache
+  profiles: reports/profiles
+  figures: reports/figures
+  mappings: mappings/columns.yaml
+  dealerships: data/raw/reference/dealerships.csv
+  revenue: data/raw/reference/monthly_revenue.csv
+
+seed: 42
+
+models:
+  spacy: en_core_web_sm          # PII name detection (D-026)
+  sentiment: cardiffnlp/twitter-roberta-base-sentiment-latest   # laptop only (D-013)
+  embeddings: sentence-transformers/all-MiniLM-L6-v2            # laptop only (D-013)
+  llm:
+    name: qwen2.5:3b
+    ollama_model_id: 357c53fb659c
+    image: ollama/ollama@sha256:20d1bbfbabe1c97ba4b16301f08a20d8484bcf77047742a3cb71c613d8e12d0b
+    host: http://localhost:11434
+    timing_check: "12.83 tokens/s on CPU, 29 Oct 2026 (one-sentence test)"
+
+thresholds:
+  negative_score_max_1to5: 2        # D-004 (provisional)
+  dealer_match_min_confidence: TBD  # Wave 3
+  nlp_pass_mark: TBD                # D-022, before hand-labelling
+  trend_evidence: TBD               # D-021
+  llm_max_projected_hours: 2        # D-011 cut-off rule
