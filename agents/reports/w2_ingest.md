@@ -1,147 +1,211 @@
-# Report: w2_ingest (pilot stage)
+# Report: w2_ingest
 **Brief:** agents/briefs/w2_ingest.md
 **Branch:** `w1-wrapup`
 **Date:** 29 Oct 2026
 
-Steps 1, 2 and 5 of the brief are done and the G1 pilot has run. Steps 3 and 4 —
-the per-dealer joins across all 51 files and the whole-corpus leak check — are
-waiting on the owner checking the pilot's reconciliation rows, which is what gate
-G1 asks for.
+All five steps are done. 7,159 rows from 51 files across 24 dealerships, the row
+budget closing exactly, three of the four D-002 proofs passing and the fourth
+producing a finding for the owner. **D-019 is answered but not closed** — the
+duplicate check ran and found something specific; what to do about it is the
+owner's call.
 
 ## What I did
 
-- Revised `mappings/columns.yaml` after the owner's review: the four changes they
-  asked for and their answers to all eight questions in `mappings/QUESTIONS.md`.
-  Recorded as D-036 – D-045.
-- Wrote `src/ingest.py`. Everything is driven by the mapping; there are no
-  per-file branches in the code, so a new quirk is a mapping change.
-- Wrote `tests/test_ingest.py` — 51 test functions, 112 cases, synthetic frames
-  only. One test per rule the owner decided, including the two the brief names
-  explicitly: the Geelong reversal applies to the 2025 sheet only, and no column
-  outside the allowlist reaches the output.
-- Wrote `scripts/trend_evidence.py` → `reports/trend_evidence.md`, because the
-  owner chose to set `thresholds.trend_evidence` after seeing the volumes (D-044).
-- Ran the pilot on the five awkward dealers → `reports/reconciliation.md`.
-- Corrected two things in the mapping that turned out to be wrong (below).
+- Revised `mappings/columns.yaml` after the owner's review — their four changes and
+  their answers to all eight questions (D-036 – D-045) — and they approved it at
+  Checkpoint 2.
+- Wrote `src/ingest.py`, driven entirely by the mapping. No per-file branches in the
+  code: a new quirk is a mapping change.
+- Wrote `tests/test_ingest.py` — 197 cases on synthetic frames, one per rule the
+  owner decided.
+- Ran the pilot on five awkward dealers, the owner checked it (D-046), then ran the
+  full ingestion.
+- Added steps 3 and 4: the four join proofs and the leak check, both written into
+  `reports/reconciliation.md`.
+- Wrote `mappings/departments.yaml` + `scripts/check_departments.py` and
+  `agents/briefs/w3_validate.md`, so Wave 3 has a mapping to approve and a brief to
+  sign off rather than starting from PLAN.md's four-agent sketch.
+- Wrote `scripts/trend_evidence.py` → `reports/trend_evidence.md`, because the owner
+  chose to set the trend threshold after seeing the volumes (D-044).
 
-## Rows in / out — the pilot
-
-Six dealer codes, because North QLD is two dealerships in one file.
+## Rows in / out
 
 | Stage | Rows | Note |
 |---|---:|---|
-| Read from the 17 worksheets in scope | 1,884 | |
-| Dropped, with a reason each | −3 | 1 blank, 2 summary/note |
+| Read from the 80 worksheets in scope | 7,137 | 7,162 profiled − 51 excluded sheets + 26 blank/Total rows the profiler had netted out |
+| Dropped, with a reason each | −43 | below |
 | Toowoomba pivot source rows | −6 | counts, not feedback |
 | Rows those counts expand into | +71 | D-032 #1 |
-| **Written to the dataset** | **1,946** | arithmetic closes |
+| **Written to the dataset** | **7,159** | **= `row_budget.rows_out_expected`, exactly** |
 
-| Dealer | Rows | Expected from the mapping | Agrees |
-|---|---:|---:|---|
-| VIC02 Ringwood | 454 | 100 + 113 + 115 + 127 = 455 source, −2 junk = 453 | see note |
-| VIC06 Geelong | 304 | 304 | yes |
-| NSW04 Liverpool | 311 | 82 + 73 + 71 + 85 = 311 | yes |
-| QLD06 Toowoomba | 321 | 250 + 71 expanded = 321 | yes |
-| QLD07 Rockhampton | 202 | 202 | yes |
-| QLD08 Townsville | 354 | 354 | yes |
+| Drop reason | Rows | Where |
+|---|---:|---|
+| `summary_or_note` | 16 | Frankston's 12 monthly totals, Shepparton's closure note, Ringwood's template note, Southport's "asdf", Toowoomba's "Grand Total" |
+| `blank` | 14 | Frankston 12, Ringwood Q1 1, Shepparton 1 |
+| `no_rating` | 10 | Tamworth — real comments, blank rating (D-031) |
+| `test_row` | 3 | Southport (D-037) |
 
-**The Ringwood note.** The mapping's `expected_rows` come from the Wave 1
-profiles, which had already excluded blank rows but not note rows. Ringwood Q1's
-profiled 113 is 34 + 79; ingestion reads 35 + 79, drops the blank row the
-profiler had already netted out and the "*** NEW TEMPLATE FROM FEB" note, and
-writes 33 + 79 = 112. So 100 + 112 + 115 + 127 = 454. The two numbers describe
-the same rows; they differ because the profiler and the ingest count blank rows
-at different points. This is the same mismatch that produced the row-budget
-correction in D-039, and it is why the reconciliation reports rows read, rows
-dropped and rows out separately for every worksheet rather than one total.
+All 24 dealerships are present. Shepparton's data ends 30 Mar 2026, matching its
+closure. Penrith's June 2026 is absent, as D-029 says it must be.
+
+## The four join proofs (D-002)
+
+| Proof | Result |
+|---|---|
+| (a) no two files of one dealership cover the same dates | **PASS** |
+| (b) no unexpected month gaps | **PASS** — the only gap is Penrith June 2026, explained by D-029 |
+| (c) rows read = rows out + dropped, worksheet by worksheet | **PASS** for all 80 |
+| (d) exact-match duplicate check | **9 groups — a finding, see below** |
+
+### (d) The Springwood duplicates — D-019's answer
+
+9 pairs of rows share dealership, date, department, rating **and** comment text. All
+18 are in `Springwood feedback.xlsx`, and **every single pair sits on consecutive
+spreadsheet rows**. One pair repeats a 463-character comment.
+
+Adjacency in all nine is what makes this conclusive. Two customers giving the same
+score for the same department on the same day would land anywhere in a 310-row
+sheet; they would not land next to each other nine times out of nine. And nobody
+writes the same 463 characters twice.
+
+A further **85 rows across 16 dealerships** match on everything but have no comment
+at all. Those are not duplicates in any meaningful sense — two customers rating
+Service 5 on the same busy Saturday produce them honestly — and they are reported,
+not touched. Only 60% of those groups are on consecutive rows, against Springwood's
+9 out of 9, which is the measurable difference between coincidence and double entry.
+
+**And 63 more rows are identical by construction, not by error.** They came out of
+the Toowoomba pivot: a cell saying nine people gave Service a 5 in October becomes
+nine rows with the same date, the same score and no comment (D-032 #1). The first
+version of this check lumped them in with the coincidences, which put that figure at
+148 and made Toowoomba look like the worst offender in the pack when it is an
+artefact of the expansion we chose. They are now counted on their own line.
+
+**Nothing was de-duplicated.** Dropping 9 rows moves Springwood's published mean, so
+it goes to the owner as Q1 of `agents/briefs/w3_validate.md`. D-019 is answered —
+the check has run and the answer is specific — but it stays open until the owner
+decides.
+
+## Leak check (D-033)
+
+| Pattern | Comments still containing it |
+|---|---:|
+| Phone number | 0 |
+| Email address | 0 |
+| Street address | 0 |
+| Registration plate | 0 |
+| A name from a staff column | 0 |
+
+Of 5,362 redacted comments. Redaction applied `[STAFF]` 740 times, `[NAME]` 558,
+`[REGO]` 479, `[PHONE]` 156, `[EMAIL]` 58.
+
+The raw first-name counter fired on 100 comments, which would be a misleading number
+to publish. Sifting it with the same capitalisation test D-026 uses to promote names:
+**98 of the 100 are ordinary English words that happen to also be a first name
+somewhere in the pack, and 2 are probably real misses** — 0.04% of comments. Both are
+in `IPS_feedback_log.xlsx`, rows 35 and 40, named in the reconciliation so the owner
+can look them up. That is the residual risk D-026 predicted, quantified.
+
+`[STAFF]` at 740 against the PII pilot's 728 is the expected direction: the pilot
+report predicted the full run would be slightly higher because the complete staff
+roster is only available when every file is in scope.
 
 ## Checks I ran
 
 | Check | Command | Result |
 |---|---|---|
-| Mapping agrees with the profiles | `python scripts/check_mapping.py` | 52/52 files, every sheet, header row, row count and column |
-| The new `department_map` check actually fires | broke `S: Sales` → `S: Salesx` on purpose | caught it, then restored |
-| Test suite | `python -m pytest -q` | see the run log below |
-| Schema of the pilot output | `schema.validate_frame` inside the run | no problems; nothing outside the allowlist |
-| Geelong reversal | pilot output | 2025 raw mean 2.40 → 3.60; 2026 unchanged at 3.82. D-030 predicted exactly those numbers |
-| 10-point conversion | pilot output | the full table, 1→1, 2→1, 3→2, 4→2, 5→3, 6→3, 7→4, 8→4, 9→5, 10→5 |
-| Ringwood's mid-sheet split | pilot output | 33 rows out-of-5 dated 3–31 Jan; 79 rows out-of-10 dated 2 Feb – 31 Mar. The template changed on a month boundary, which is independent support for the owner's confirmation |
-| North QLD split | pilot output | 202 / 354 exactly as asserted |
-| Southport's four junk rows | run the row filter against the real sheet | rows 23, 167, 196 as `test_row`, row 192 as `summary_or_note` — what the owner decided, no more, no less |
-| Liverpool Q3 | pilot output | 85 rows, all inside Jul–Sep 2026, range assertion passed |
-| Redaction | pilot output | `[NAME]` 134, `[STAFF]` 124, `[REGO]` 115, `[PHONE]` 44, `[EMAIL]` 18 |
+| Mapping vs profiles | `python scripts/check_mapping.py` | 52/52 files, every sheet, header row, row count and column |
+| Department mapping vs data | `python scripts/check_departments.py` | 16 values, 16 entries, counts match; Service 4,909 · Sales 1,544 · Parts 706 |
+| Lint | `python -m ruff check .` | all checks passed |
+| Tests | `python -m pytest -q` | 197 passed, 2 skipped |
+| Schema of the output | `validate_frame` inside the run | no problems; nothing outside the allowlist |
+| Row budget | the run's own identity | 7,159 = the mapping's `rows_out_expected` |
+| Geelong reversal | pilot, then the owner's read of the source | 2025 raw mean 2.40 → 3.60 exactly as D-030 states; 2026 untouched. **The owner confirmed from the spreadsheet that rows scored 1 carry praise** (D-046) — the reversal is evidence-backed, not inferred |
+| 10-point conversion | pilot output | the whole D-020 table, value for value |
+| Ringwood's mid-sheet split | pilot output | 33 rows out-of-5 dated 3–31 Jan, 79 out-of-10 dated 2 Feb – 31 Mar: the template changed on a month boundary |
+| North QLD split | full run | 202 Rockhampton / 354 Townsville, as asserted |
+| Data guardrail | `git add -f data/interim/consolidated.parquet` | refused, exit 1 — tested against the real dataset, not a dummy file |
 
-## Two corrections to the mapping the owner approved
+## Four bugs found, and how
 
-Both were found while checking the answers, not by the owner's review.
+Three of the four were found by checking something nobody had asked about. All four
+are in `AI_LOG.md` summary rows 12–18.
 
-1. **Both Wollongong CSVs are Windows-1252, not UTF-8** (D-043). The mapping said
-   UTF-8. Reading them as UTF-8 raises `UnicodeDecodeError` on a curly
-   apostrophe inside the comment column, so Wollongong's 285 rows would have
-   been lost — or, worse, forced through and silently corrupted in the text the
-   NLP reads.
-2. **The row budget subtracted the blank and "Total" rows twice** (D-039). They
-   were never inside the 7,162 profiled rows. The published identity now closes:
-   7,162 − 51 − 7 + 71 − 16 = 7,159, and a test asserts it.
+1. **A real complaint was being deleted as a spreadsheet subtotal.** Essendon Parts
+   row 11 — "counter service is glacial. waited 50 mins.", scored 2. My
+   `summary_or_note` regex had lost the word-boundary anchor the Wave 1 profiler
+   had, so `count` matched the start of "**count**er", and because Essendon puts its
+   comment in the second column the comment was inside the scanned range. A negative
+   row, silently gone — the worst kind of loss for the negative-feedback question.
+   **Found because the row budget came out at 7,158 instead of 7,159.** One row. The
+   budget existing is the only reason this was caught; the pilot would never have
+   shown it, because Essendon was not in the pilot.
+2. **307 comments were stored as `""` rather than null.** An empty string is truthy
+   to every `notna()` downstream: it inflated the comment total in the leak check
+   and invented five duplicate groups whose "identical comment text" was two blanks.
+3. **Both Wollongong CSVs are Windows-1252, not UTF-8** (D-043) — found while
+   counting blank rows, by decoding every CSV byte by byte.
+4. **The row budget double-subtracted the blank and "Total" rows** (D-039).
+
+And one caught by the test suite rather than by me: tightening the regex to fix (1)
+stopped it matching "Grand Total", because `total` anchored at the start of a string
+does not match a string beginning "Grand". The existing test failed immediately.
 
 ## Assumptions
 
-- **The name roster is built from the worksheets in scope, not always all 52.**
-  For the full run that is every file. For the pilot it is the 17 pilot
-  worksheets, so a staff name that appears only in, say, Bendigo's staff column
-  would not have been redacted out of a Ringwood comment in this pilot run. Staff
-  names are site-specific, so the practical loss is near zero, but the full run's
-  token counts will be slightly higher than the pilot's for this reason.
-- **Trailing empty rows are trimmed before counting.** openpyxl's read-only mode
-  reports a sheet's used range, which can run past the data. Those rows are not
-  source rows and are not counted as drops.
-- **`classify_junk` only looks at the first three cells** for note and test
-  keywords, never the comment. A customer who writes "total cost came in under
-  the quote" keeps their feedback; there is a test for exactly that.
-- **Bendigo's letter codes are expanded into `department_raw`** (D-036). This is
-  the only place ingestion rewrites a source value, it is the owner's explicit
-  instruction, and a test asserts no other layout does it.
+- **`classify_junk` never scans the comment column.** A customer may open with
+  "Total cost came in over the quote" or "Counter service is glacial"; both are now
+  regression tests, along with five other words that merely start with a keyword.
+- **Comments are stripped of surrounding whitespace** so that "no comment" is always
+  null. Redaction already rewrites the text, so this is within scope.
+- **Trailing empty rows are trimmed before counting**, because openpyxl reports a
+  sheet's used range, which can run past the data.
+- **Bendigo's letter codes are expanded into `department_raw`** (D-036) — the only
+  place ingestion rewrites a source value, on the owner's instruction, with a test
+  asserting no other layout does it.
+- **The name roster is built from the files in scope.** For this run that is all of
+  them, so the figures above are the full-corpus ones.
 
 ## Unresolved
 
-- **Steps 3 and 4 have not run.** The per-dealer joins with the four D-002 proofs
-  (non-overlapping file date ranges, no unexpected month gaps, rows in = rows out
-  + dropped, exact-match duplicate check) and the whole-corpus leak check are
-  written into the brief but not yet implemented. They need the full run, which
-  needs the owner's sign-off on this pilot. **D-019 is still open** until the
-  duplicate check runs.
-- **`reports/trend_evidence.md` covers 6 of 24 dealerships.** Its headline — the
-  rating standard deviation is 1.42, so a month-on-month change off two
-  10-response months carries ±0.64 of noise — is unlikely to move much with the
-  other 18, but the threshold should be set on the full table.
-- **The full dataset does not exist yet.** `data/interim/consolidated.parquet`
-  currently holds the pilot's 1,946 rows, not the expected 7,159. Anything
-  downstream that reads it now would read a sixth of the data.
-- **`config.yaml` still holds two `TBD` thresholds** (`nlp_pass_mark`,
-  `trend_evidence`). `dealer_match_min_confidence` can be retired (D-034).
-- **`make ingest` is still untested** — there is no `make` on the laptop. The
-  pilot was run as `python -m src.ingest --dealers ...`; `scripts/run.ps1` is the
-  tested path.
+- **D-019 is answered, not closed.** The owner must decide the 9 Springwood pairs.
+  It is Q1 of the Wave 3 brief.
+- **`mappings/departments.yaml` is a draft.** Every per-department number in both
+  reports depends on it, so it needs Checkpoint 3 approval before Wave 3 fills the
+  `department` column. Three things in it want a look: "Workshop" → Service (311
+  rows, and its mean is 0.35 above plain "Service"), whether to carry a
+  new-versus-used cut of Sales (326 rows at 11 of 24 sites), and the case variants.
+- **Two comments may still contain a name** — `IPS_feedback_log.xlsx` rows 35 and
+  40. Worth two minutes before anything is published.
+- **`config.yaml` still holds two `TBD` thresholds.** `trend_evidence` now has its
+  evidence (`reports/trend_evidence.md`, all 24 dealerships: rating SD 1.44, so a
+  month-on-month change off two 10-response months carries ±0.64 of noise — the
+  "10 rows, 0.5 stars" option would call noise a trend). `nlp_pass_mark` is still
+  open and is needed before Wave 4's hand-labelling, not before Wave 3.
+  `dealer_match_min_confidence` should be retired, not set (D-034).
+- **`make` is still unavailable on the laptop**, so `make all` — the command the
+  Wave 5 verifier runs — has only been exercised as `scripts/run.ps1`. Its `lint`
+  target was broken until today and is now fixed; the rest is still untested as
+  `make`.
+- **`README.md` is still two lines**, and it is deliverable #3 (D-007).
 
 ## Done-when criteria
 
-- [x] Owner approved `mappings/columns.yaml` (Checkpoint 2) — 29 Oct 2026, after
-      the four changes and eight answers were applied
-- [ ] Pilot reconciliation checked by the owner ← **this is the next thing**
-- [ ] All 24 dealers present; rows in = rows out + dropped for every file
-      *(6 of 24 so far, and the identity closes for those)*
-- [ ] Duplicate check run and result recorded (closes D-019)
-- [ ] Leak check counts in the reconciliation report *(token counts are there;
-      the leak counter — known names still present — is not)*
-- [x] Tests pass on the laptop
-- [ ] Report written to `agents/reports/w2_ingest.md` ← this file, but it covers
-      the pilot only and must be rewritten after the full run
+- [x] Owner approved `mappings/columns.yaml` (Checkpoint 2)
+- [x] Pilot reconciliation checked by the owner (D-046)
+- [x] All 24 dealers present; rows in = rows out + dropped for every file
+- [x] Duplicate check run and result recorded — **D-019 stays open pending the
+      owner's decision on the 9 Springwood pairs**
+- [x] Leak check counts in the reconciliation report
+- [x] Tests pass on the laptop (197 passed, 2 skipped)
+- [x] Report written to `agents/reports/w2_ingest.md`
 
 ## Report back
 
-Rows in 1,884 → rows out 1,946 across six dealer codes, arithmetic closing, with
-every drop reasoned and the three riskiest conversions in the pack (Geelong's
-reversal, Ringwood's mid-sheet 10-point switch, Liverpool's month-first quarter)
-each verified against the number the owner's decision predicted. Two mapping
-errors found and fixed. Waiting on the owner's check of the pilot rows before the
-remaining 18 dealerships are ingested.
+7,137 rows read → 7,159 written across 24 dealerships, hitting the approved row
+budget exactly, with every drop reasoned and three of four join proofs passing. The
+fourth found 9 double-entered pairs in Springwood, all on consecutive rows, which is
+now the owner's decision. Redaction leaves no phone, email, address, plate or staff
+name in 5,362 comments and two probable name misses, both located. Four bugs found
+and fixed, one of them a real negative comment that was disappearing silently and
+was caught only because the row budget was one short.

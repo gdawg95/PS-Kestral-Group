@@ -148,8 +148,14 @@ Three specific cases:
   two. Ingestion trims them.
 
 *Treatment:* the department is kept exactly as the site wrote it, and a separate
-step maps all 19 spellings onto Service / Sales / Parts. Keeping both means the
+step maps the spellings onto Service / Sales / Parts. Keeping both means the
 mapping can be audited and corrected without re-reading the spreadsheets.
+
+*Note on the count.* 19 spellings occur in the source files. The consolidated
+dataset holds **16**, because Bendigo's three letter codes were expanded to words
+at the owner's instruction and the 317 stray spaces were trimmed. The 16 → 3
+mapping is in `mappings/departments.yaml` with the row count and mean rating for
+each, and the split is Service 4,909 · Sales 1,544 · Parts 706.
 
 ## 5. What a column is called
 

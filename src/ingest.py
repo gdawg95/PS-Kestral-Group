@@ -81,12 +81,16 @@ MONTHS = {
     )
 }
 
+# The trailing \b is not optional. Without it `count` matches the start of a real
+# complaint - "counter service is glacial" - and the row is deleted as a summary.
+# That happened: Essendon Parts row 11, a score of 2, found on the full run.
+# tests/test_ingest.py keeps that exact row as a regression case.
 SUMMARY_ROW = re.compile(
-    r"^\s*(total|grand total|average|avg|mean|count|summary|note|notes|nps|overall|site closed"
-    r"|\*\*\*)",
+    r"^\s*(grand total|total|average|avg|mean|count|summary|note|notes|nps"
+    r"|overall|site closed|\*\*\*)\b",
     re.I,
 )
-TEST_ROW = re.compile(r"^\s*(test\b|testing\b|asdf\b)", re.I)
+TEST_ROW = re.compile(r"^\s*(test|testing|asdf)\b", re.I)
 
 
 # --------------------------------------------------------------- pure helpers
@@ -189,20 +193,34 @@ def parse_month_pivot(text: str) -> dt.date | None:
     return dt.date(year, month, 15)
 
 
-def classify_junk(cells: list[Any], layout: dict) -> str | None:
-    """'blank', 'summary_or_note', 'test_row', or None for a real feedback row."""
+def classify_junk(cells: list[Any], layout: dict, comment_index: int | None = None) -> str | None:
+    """'blank', 'summary_or_note', 'test_row', or None for a real feedback row.
+
+    The keyword test never looks at the comment column. A customer is free to open
+    their feedback with "Total cost came in over the quote" or "Counter service is
+    glacial", and Essendon puts its comment in the second column, so scanning the
+    leading cells blind would read a complaint as a spreadsheet subtotal.
+    """
     values = [c for c in cells if c is not None and str(c).strip() != ""]
     if not values:
         return "blank"
     allowed = set(layout.get("drop_rows") or []) | {"blank", "summary_or_note", "test_row"}
-    head = [str(c).strip() for c in cells[:3] if c is not None and str(c).strip()]
+    head = [
+        str(c).strip()
+        for j, c in enumerate(cells[:3])
+        if j != comment_index and c is not None and str(c).strip()
+    ]
     for text in head:
         if TEST_ROW.match(text) and "test_row" in allowed:
             return "test_row"
         if SUMMARY_ROW.match(text) and "summary_or_note" in allowed:
             return "summary_or_note"
-    # a row whose only content is one long note in the first cell
-    if len(values) == 1 and isinstance(values[0], str) and len(values[0].strip()) > 20:
+    # A note someone typed into the sheet: the first cell holds prose and nothing
+    # else in the row is filled. A feedback row always carries a rating as well.
+    only_first = len(values) == 1 and cells[0] is not None and str(cells[0]).strip() == str(
+        values[0]
+    ).strip()
+    if only_first and isinstance(values[0], str) and len(values[0].strip()) > 20:
         if "summary_or_note" in allowed:
             return "summary_or_note"
     return None
@@ -276,6 +294,8 @@ class Reconciliation:
         self.notes: list[str] = []
         self.pivot_source_rows = 0      # counts rows that leave the arithmetic
         self.pivot_expanded_rows = 0    # the feedback rows they become
+        self.pivot_keys: set[str] = set()
+        self.names: tuple[set[str], set[str]] = (set(), set())  # in memory only (D-003)
 
     def drop(self, key: str, reason: str, n: int = 1) -> None:
         self.drops.setdefault(key, Counter())[reason] += n
@@ -386,11 +406,14 @@ def ingest_sheet(
         return _expand_pivot(layout, header, body, fname, sheet_key, code, rec, key)
 
     # --- 2. rows that are not feedback -------------------------------------
+    cols_now = (layout.get("columns") or {}).items()
+    comment_col = next((c for c, r in cols_now if r == "comment"), None)
+    comment_index = header.index(comment_col) if comment_col in header else None
     named = _named_junk(layout, header, key)
     _verify_named_junk(layout, header, body, key)
     kept: list[tuple[int, list[Any]]] = []
     for row_no, cells in body:
-        reason = named.get(row_no) or classify_junk(cells, layout)
+        reason = named.get(row_no) or classify_junk(cells, layout, comment_index)
         if reason:
             rec.drop(key, reason)
         else:
@@ -474,7 +497,10 @@ def ingest_sheet(
                 "rating_raw": _text(clean["rating"].iloc[pos]),
                 "rating_scale": scale,
                 "rating_1to5": mapped[pos],
-                "comment": clean["comment"].iloc[pos],
+                # _text() so "no comment" is always None, never "" or whitespace:
+                # an empty string counts as a comment to every `notna()` downstream,
+                # which inflated the comment total and invented duplicate groups.
+                "comment": _text(clean["comment"].iloc[pos]),
                 "source_file": fname,
                 "source_sheet": base or None,
                 "source_row": row_no,
@@ -654,9 +680,196 @@ def _expand_pivot(
     if expected is not None and len(out_rows) != expected:
         raise ValueError(f"{key}: pivot expanded to {len(out_rows)} rows, expected {expected}")
     rec.rows_out[key] = len(out_rows)
+    rec.pivot_keys.add(key)
     rec.pivot_source_rows += len(body) - sum(rec.drops.get(key, Counter()).values())
     rec.pivot_expanded_rows += len(out_rows)
     return pd.DataFrame(out_rows, columns=list(schema.COLUMNS))
+
+
+# ------------------------------------------- step 3: the four D-002 join proofs
+
+
+# Gaps the pack is known to have. Anything else is reported as a finding.
+EXPECTED_GAPS = {
+    ("NSW02", "2026-06"): (
+        "D-029 - the Jun 26 sheet is a copy of Jul 26; real June data not supplied"
+    ),
+    ("QLD06", "2025-10"): "D-038 - Toowoomba Q4 2025 Sales was never supplied (Service/Parts only)",
+}
+# Dealerships whose data legitimately stops early.
+CLOSED = {"VIC09": "2026-03"}  # Shepparton closed 31 Mar 2026 (D-005)
+
+
+def prove_no_file_overlap(df: pd.DataFrame) -> list[tuple[str, str]]:
+    """(a) Within a dealership, two source files must not cover the same dates.
+
+    An overlap means the same feedback has probably been counted twice from two
+    files - which is exactly what happened with Chermside FINAL / FINAL v2 (D-027)
+    and Penrith's duplicated June sheet (D-029).
+    """
+    findings = []
+    for code, g in df.groupby("dealer_code", observed=True):
+        spans = (
+            g.groupby("source_file")["feedback_date"]
+            .agg(["min", "max"])
+            .sort_values("min")
+            .reset_index()
+        )
+        for i in range(len(spans) - 1):
+            a, b = spans.iloc[i], spans.iloc[i + 1]
+            if b["min"] <= a["max"]:
+                findings.append(
+                    (
+                        code,
+                        f"{a['source_file']} ({a['min']:%Y-%m-%d}..{a['max']:%Y-%m-%d}) overlaps "
+                        f"{b['source_file']} ({b['min']:%Y-%m-%d}..{b['max']:%Y-%m-%d})",
+                    )
+                )
+    return findings
+
+
+def prove_no_unexpected_month_gaps(df: pd.DataFrame) -> list[tuple[str, str]]:
+    """(b) Every month between a dealership's first and last must have rows."""
+    findings = []
+    for code, g in df.groupby("dealer_code", observed=True):
+        months = set(g["feedback_date"].dt.to_period("M").astype(str))
+        first = min(months)
+        last = CLOSED.get(code, max(months))
+        want = pd.period_range(first, last, freq="M").astype(str)
+        for m in want:
+            if m in months:
+                continue
+            reason = EXPECTED_GAPS.get((code, m))
+            tail = f" - expected: {reason}" if reason else ""
+            findings.append((code, f"{m} has no rows{tail}"))
+    return findings
+
+
+def prove_rows_balance(df: pd.DataFrame, rec: Reconciliation) -> list[str]:
+    """(c) rows read = rows out + rows dropped, worksheet by worksheet."""
+    findings = []
+    for key, read in rec.rows_read.items():
+        out = rec.rows_out.get(key, 0)
+        dropped = sum(rec.drops.get(key, Counter()).values())
+        if key in rec.pivot_keys:
+            continue  # counts in, feedback rows out: checked by expected_rows instead
+        if read != out + dropped:
+            findings.append(f"{key}: read {read} != out {out} + dropped {dropped}")
+    return findings
+
+
+def duplicate_check(df: pd.DataFrame) -> dict[str, int | pd.DataFrame]:
+    """(d) Exact matches on dealer + date + department + rating + comment (D-019).
+
+    Split in two, because the two halves mean different things:
+      - with a comment: two identical pieces of free text on the same day at the same
+        dealership. Almost certainly the same feedback entered twice.
+      - without a comment: two ratings of the same score, department and day. Nothing
+        distinguishes them and nothing should - a busy Saturday produces these honestly.
+        Counted and reported, never dropped.
+
+    Rows expanded from the Toowoomba pivot are counted separately again. A pivot cell
+    saying "9 people gave Service a 5 in October" becomes nine rows that are identical
+    by construction: no date, no comment and the same score. Leaving them in the
+    coincidence bucket inflated it from 85 to 148 and made Toowoomba look like the
+    worst offender in the pack when it is an artefact of the expansion (D-032 #1).
+    """
+    keys = ["dealer_code", "feedback_date", "department_raw", "rating_1to5", "comment"]
+    dup = df[df.duplicated(subset=keys, keep=False)]
+    with_text = dup[dup["comment"].notna() & (dup["comment"].astype("string").str.len() > 0)]
+    rest = dup[~dup.index.isin(with_text.index)]
+    from_pivot = rest[rest["from_summary"]]
+    without = rest[~rest["from_summary"]]
+    groups = (
+        with_text.groupby(keys, dropna=False, observed=True)
+        .agg(
+            copies=("feedback_id", "size"),
+            files=("source_file", lambda s: " | ".join(sorted(set(s)))),
+        )
+        .reset_index()
+        .sort_values("copies", ascending=False)
+        if len(with_text)
+        else pd.DataFrame()
+    )
+    return {
+        "rows_with_identical_comment": len(with_text),
+        "groups_with_identical_comment": len(groups),
+        "rows_identical_but_no_comment": len(without),
+        "dealers_identical_but_no_comment": int(without["dealer_code"].nunique()),
+        "rows_identical_from_pivot": len(from_pivot),
+        "groups": groups,
+    }
+
+
+# ------------------------------------------------ step 4: the leak check (D-033)
+
+
+def leak_check(df: pd.DataFrame, staff: set[str], known: set[str]) -> dict[str, Any]:
+    """Count PII still present in the redacted comment column. Counts only, no text.
+
+    This is the number that says whether the redaction is good enough to publish,
+    so it is counted after redaction rather than asserted beforehand.
+    """
+    from src.pii import ADDRESS, EMAIL, PHONE, REGO_SHAPE
+
+    text = df["comment"].dropna().astype(str)
+    out = {
+        "comments": int(len(text)),
+        "phone_patterns": int(text.str.contains(PHONE).sum()),
+        "email_patterns": int(text.str.contains(EMAIL).sum()),
+        "address_patterns": int(text.str.contains(ADDRESS).sum()),
+        "plate_patterns": int(text.str.contains(REGO_SHAPE).sum()),
+    }
+    for label, names in (("staff_names", staff), ("known_first_names", known)):
+        if not names:
+            out[label] = 0
+            continue
+        pattern = r"\b(?:" + "|".join(re.escape(n) for n in sorted(names)) + r")\b"
+        out[label] = int(text.str.contains(pattern, case=True, regex=True).sum())
+    out.update(_sift_name_hits(df, known))
+    return out
+
+
+def _sift_name_hits(df: pd.DataFrame, known: set[str]) -> dict[str, Any]:
+    """Split the name matches into ordinary words and names probably really missed.
+
+    A raw count over a list of first names is almost all false positives, because
+    plenty of first names are also ordinary words. The same test D-026 uses for
+    promoting names separates them: a token that appears mostly in lower case
+    across the whole corpus is a word, not a name that slipped through.
+
+    Returns counts, plus the source file and row of each probable real miss, so the
+    owner can look them up. No name and no comment text is returned.
+    """
+    if not known:
+        return {"name_hits_ordinary_words": 0, "name_hits_likely_real": 0, "likely_real_rows": []}
+
+    rows = df[df["comment"].notna()]
+    texts = rows["comment"].astype(str).tolist()
+    pattern = re.compile(r"\b(?:" + "|".join(re.escape(n) for n in sorted(known)) + r")\b")
+    joined = " ".join(texts)
+
+    cap_share: dict[str, float] = {}
+    for token in {m.group(0) for t in texts for m in pattern.finditer(t)}:
+        occ = [x.group(0) for x in re.finditer(r"\b" + re.escape(token) + r"\b", joined, re.I)]
+        cap_share[token] = sum(o[:1].isupper() for o in occ) / len(occ) if occ else 0.0
+
+    ordinary = likely = 0
+    where: list[str] = []
+    for (_, row), text in zip(rows.iterrows(), texts, strict=True):
+        tokens = {m.group(0) for m in pattern.finditer(text)}
+        if not tokens:
+            continue
+        if any(cap_share.get(t, 0) >= 0.6 for t in tokens):
+            likely += 1
+            where.append(f"{row['source_file']} row {row['source_row']}")
+        else:
+            ordinary += 1
+    return {
+        "name_hits_ordinary_words": ordinary,
+        "name_hits_likely_real": likely,
+        "likely_real_rows": where,
+    }
 
 
 # ----------------------------------------------------------------- the driver
@@ -673,6 +886,7 @@ def ingest(
     comments = _all_comments(mapping, scope)
     candidates = person_candidates(comments) if use_ner else Counter()
     extra = (promote_names(comments, candidates) - staff) if use_ner else set()
+    rec.names = (staff, known)
     rec.notes.append(
         f"name lists built in memory from {len(scope)} worksheets: {len(staff)} staff first "
         f"names, {len(known)} known first names, {len(extra)} promoted by the corpus pass "
@@ -738,6 +952,143 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     print("schema: OK")
     return 0
+
+
+def _proof_section(df: pd.DataFrame, rec: Reconciliation) -> list[str]:
+    """Steps 3 and 4 of the brief: the four D-002 join proofs, then the leak check."""
+    overlaps = prove_no_file_overlap(df)
+    gaps = prove_no_unexpected_month_gaps(df)
+    balance = prove_rows_balance(df, rec)
+    dups = duplicate_check(df)
+    unexpected_gaps = [g for g in gaps if "expected:" not in g[1]]
+
+    lines = [
+        "",
+        "## The four join proofs (D-002)",
+        "",
+        "| Proof | Result |",
+        "|---|---|",
+        f"| (a) no two files of one dealership cover the same dates | "
+        f"{'PASS' if not overlaps else f'**{len(overlaps)} overlap(s)**'} |",
+        f"| (b) no unexpected month gaps | "
+        f"{'PASS' if not unexpected_gaps else f'**{len(unexpected_gaps)} unexplained gap(s)**'} |",
+        f"| (c) rows read = rows out + dropped, worksheet by worksheet | "
+        f"{'PASS' if not balance else f'**{len(balance)} worksheet(s) do not balance**'} |",
+        f"| (d) exact-match duplicate check (closes D-019) | "
+        f"{dups['groups_with_identical_comment']} group(s) with identical comment text |",
+        "",
+    ]
+    for label, items in (
+        ("Overlapping files", [f"{c}: {t}" for c, t in overlaps]),
+        ("Month gaps", [f"{c}: {t}" for c, t in gaps]),
+        ("Worksheets that do not balance", balance),
+    ):
+        if items:
+            lines += [f"**{label}**", ""]
+            lines += [f"- {i}" for i in items]
+            lines.append("")
+
+    lines += [
+        "### (d) Duplicates, in detail",
+        "",
+        "Two kinds, and they mean different things.",
+        "",
+        f"- **{dups['rows_with_identical_comment']} rows** share a dealership, date, "
+        f"department, rating *and* comment text, in "
+        f"{dups['groups_with_identical_comment']} group(s). Identical free text on the "
+        "same day at the same dealership is almost certainly one piece of feedback "
+        "entered twice.",
+        f"- **{dups['rows_identical_but_no_comment']} rows**, across "
+        f"{dups['dealers_identical_but_no_comment']} dealerships, match on everything "
+        "but have no comment. Nothing distinguishes them and nothing should: two "
+        "customers rating Service 5 on the same busy Saturday produce this honestly. "
+        "Counted, reported, never dropped.",
+        f"- **{dups['rows_identical_from_pivot']} further rows** came out of the "
+        "Toowoomba pivot and are identical by construction — a cell saying nine people "
+        "gave Service a 5 in October becomes nine rows with the same date, score and no "
+        "comment (D-032 #1). Counting these as coincidences would have put the middle "
+        f"figure at {dups['rows_identical_but_no_comment'] + dups['rows_identical_from_pivot']} "
+        "and made Toowoomba look like the worst offender in the pack.",
+        "",
+        "Nothing is de-duplicated automatically. Removing a row changes a dealership's "
+        "published score, so it needs the owner's decision (D-019).",
+        "",
+    ]
+    if len(dups["groups"]):
+        lines += [
+            "| Dealer | Date | Department | Rating | Copies | Source file(s) |",
+            "|---|---|---|---:|---:|---|",
+        ]
+        for _, r in dups["groups"].head(20).iterrows():
+            lines.append(
+                f"| {r['dealer_code']} | {r['feedback_date']:%Y-%m-%d} | "
+                f"{r['department_raw']} | {r['rating_1to5']} | {r['copies']} | {r['files']} |"
+            )
+        lines.append("")
+
+    staff, known = rec.names
+    leak = leak_check(df, staff, known)
+    lines += [
+        "## Leak check: PII still present after redaction (D-033)",
+        "",
+        "Counts only — no comment text is reproduced here or anywhere in `reports/`.",
+        "",
+        "| Pattern | Comments still containing it | Share |",
+        "|---|---:|---:|",
+    ]
+    n = leak["comments"] or 1
+    for label, key in (
+        ("Phone number", "phone_patterns"),
+        ("Email address", "email_patterns"),
+        ("Street address", "address_patterns"),
+        ("Registration plate", "plate_patterns"),
+        ("A name from a staff column", "staff_names"),
+        ("A first name seen in any name column", "known_first_names"),
+    ):
+        lines.append(f"| {label} | {leak[key]} | {leak[key] / n * 100:.1f}% |")
+    total_hits = leak["name_hits_ordinary_words"] + leak["name_hits_likely_real"]
+    lines += [
+        "",
+        f"Out of {leak['comments']:,} redacted comments.",
+        "",
+        "### What the name row actually means",
+        "",
+        "A raw count against a list of first names is mostly false positives, because",
+        "plenty of first names are also ordinary English words. Separating them with the",
+        "same test D-026 uses to promote names — a token that appears mostly in lower case",
+        "across the corpus is a word, not a name that slipped through:",
+        "",
+        "| | Comments |",
+        "|---|---:|",
+        f"| Matched a name from a name column | {total_hits} |",
+        f"| …of those, ordinary words that are also someone's name | "
+        f"{leak['name_hits_ordinary_words']} |",
+        f"| **…of those, probably a real missed name** | "
+        f"**{leak['name_hits_likely_real']}** |",
+        "",
+        f"So the residual leak is **{leak['name_hits_likely_real']} of "
+        f"{leak['comments']:,} comments "
+        f"({leak['name_hits_likely_real'] / (leak['comments'] or 1) * 100:.2f}%)**, not "
+        f"{total_hits}. This is the residual risk D-026 described: a name used once, in a "
+        "case the corpus pass could not confirm. The owner's read of samples is the "
+        "backstop.",
+        "",
+    ]
+    if leak["likely_real_rows"]:
+        lines += [
+            "**Rows to check by hand** (lineage only — no name or comment text is "
+            "reproduced):",
+            "",
+        ]
+        lines += [f"- {w}" for w in leak["likely_real_rows"][:20]]
+        lines += [
+            "",
+            "If any is a real name, add it to the `extra_names` list for the run and "
+            "re-ingest; the redaction is deterministic, so the count must then fall to the "
+            "number of genuine remaining misses.",
+            "",
+        ]
+    return lines
 
 
 def write_reconciliation(
@@ -814,6 +1165,8 @@ def write_reconciliation(
     ]
     for token, n in sorted(rec.tokens.items(), key=lambda kv: -kv[1]):
         lines.append(f"| `{token}` | {n} |")
+
+    lines += _proof_section(df, rec)
 
     lines += ["", "## Notes", ""]
     lines += [f"- {n}" for n in rec.notes]

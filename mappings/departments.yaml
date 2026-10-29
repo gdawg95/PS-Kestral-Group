@@ -1,0 +1,114 @@
+# ============================================================================
+# departments.yaml - the 16 department spellings -> Service / Sales / Parts
+# ============================================================================
+# STATUS: DRAFT, awaiting the owner's approval. Wave 3 fills schema.department
+#         from this file; Wave 2 wrote department_raw exactly as each site
+#         spelled it (D-035). Nothing departmental is reported until this is
+#         approved, because every per-department number depends on it (gate G3).
+#
+# Built from the consolidated dataset on 29 Oct 2026, not from guesswork:
+# these are the 16 values that actually occur in 7,159 rows, with their counts.
+# The source pack holds 19 spellings; three of them (SV / S / P) were already
+# expanded at ingestion on the owner's instruction (D-036), and surrounding
+# whitespace was stripped - 317 cells carried a stray space (D-045 register).
+#
+# VERIFY IT: `uv run python scripts/check_departments.py` asserts that every
+#            department_raw value in the dataset has exactly one entry here and
+#            that no entry is unused.
+# ============================================================================
+
+version: 1
+status: draft - awaiting owner approval
+drafted: 2026-10-29
+built_from: data/interim/consolidated.parquet (7,159 rows, 29 Oct 2026)
+
+# ---------------------------------------------------------------------------
+# THE MAPPING. `rows` and `mean` are what the data says, for review only -
+# the pipeline reads `to:` and nothing else.
+# ---------------------------------------------------------------------------
+mapping:
+
+  # --- Service: 4,909 rows across 6 spellings -----------------------------
+  Service:        {to: Service, rows: 3300, dealers: 24, mean: 3.51}
+  SERVICE:        {to: Service, rows: 350,  dealers: 10, mean: 3.64}
+  "Service Dept": {to: Service, rows: 334,  dealers: 10, mean: 3.65}
+  service:        {to: Service, rows: 317,  dealers: 10, mean: 3.69}
+  Workshop:       {to: Service, rows: 311,  dealers: 10, mean: 3.86}
+  Svc:            {to: Service, rows: 297,  dealers: 10, mean: 3.56}
+
+  # --- Sales: 1,544 rows across 6 spellings -------------------------------
+  Sales:          {to: Sales, rows: 1108, dealers: 23, mean: 4.22}
+  sales:          {to: Sales, rows: 110,  dealers: 10, mean: 4.30}
+  "New Cars":     {to: Sales, rows: 107,  dealers: 9,  mean: 4.58, subtype: new}
+  "Used Cars":    {to: Sales, rows: 104,  dealers: 10, mean: 4.34, subtype: used}
+  "Sales - Used": {to: Sales, rows: 60,   dealers: 1,  mean: 4.27, subtype: used}
+  "Sales - New":  {to: Sales, rows: 55,   dealers: 1,  mean: 4.22, subtype: new}
+
+  # --- Parts: 706 rows across 4 spellings ---------------------------------
+  Parts:                 {to: Parts, rows: 508, dealers: 23, mean: 3.95}
+  "parts counter":       {to: Parts, rows: 68,  dealers: 10, mean: 3.94}
+  "Parts & Accessories": {to: Parts, rows: 66,  dealers: 10, mean: 3.92}
+  "P&A":                 {to: Parts, rows: 64,  dealers: 10, mean: 4.05}
+
+totals:
+  Service: 4909
+  Sales: 1544
+  Parts: 706
+  all: 7159
+
+# ---------------------------------------------------------------------------
+# THINGS FOR THE OWNER TO LOOK AT. None of them is ambiguous enough to block,
+# but all three change what the report can say.
+# ---------------------------------------------------------------------------
+for_owner_review:
+
+  workshop_is_service:
+    question: >
+      Is "Workshop" the service department, or a separate function at the sites
+      that use it?
+    evidence: >
+      311 rows across 10 dealerships. Its mean of 3.86 is the highest of the six
+      Service spellings, against 3.51 for plain "Service" - a 0.35 gap. In a
+      dealership "workshop" normally means the service bays, and no site uses
+      both "Workshop" and "Service Dept" as if they were different things.
+    proposal: map to Service.
+    if_wrong: >
+      Service's mean rises slightly and a 311-row category appears that the other
+      14 dealerships cannot report, so cross-site comparison breaks.
+
+  new_used_split_is_available_for_half_the_group:
+    question: >
+      Should the report carry a new-versus-used cut of Sales as a secondary view?
+    evidence: >
+      326 rows carry the distinction - "New Cars" / "Used Cars" at 10 sites and
+      Penrith's "Sales - New" / "Sales - Used" (D-028). New averages 4.58 and
+      4.22, used 4.34 and 4.27. That is 21% of all Sales rows, and the 11 sites
+      that record it are a self-selected group, so a group-wide claim is not
+      available either way.
+    proposal: >
+      Keep the single Sales department for every headline number, and carry the
+      subtype in this file so the cut can be produced on request. It is recorded
+      as `subtype:` above and costs nothing to keep.
+    if_ignored: a real distinction that 11 sites bothered to record is thrown away.
+
+  case_and_spelling_carry_no_meaning:
+    question: Is "SERVICE" ever a different thing from "Service" at the same site?
+    evidence: >
+      No site uses two spellings of the same department in a way that looks
+      deliberate; the variants track who typed the row, not what happened. The
+      10-dealership figure against most variants is the same group of sites whose
+      logs were kept by several people.
+    proposal: fold case and spelling variants together, as above.
+
+# ---------------------------------------------------------------------------
+# WHAT THIS DOES NOT DECIDE
+# ---------------------------------------------------------------------------
+not_in_scope:
+  - >
+    Whether Service's low mean (3.51, against Sales 4.22 and Parts 3.95) is a
+    real performance gap or a volume effect. Service is 69% of all feedback, so
+    it dominates every group-level average. That is a Wave 5 analysis question,
+    not a mapping question.
+  - >
+    Toowoomba's Q4 2025 has no Sales rows at all (D-038). Its Sales figures start
+    in January 2026 and the report needs the footnote, not a mapping entry.

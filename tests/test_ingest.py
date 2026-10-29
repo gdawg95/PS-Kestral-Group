@@ -19,11 +19,14 @@ from src.ingest import (
     _site_to_code,
     _verify_named_junk,
     classify_junk,
+    duplicate_check,
     load_mapping,
     midpoint,
     month_from_label,
     parse_date,
     parse_month_pivot,
+    prove_no_file_overlap,
+    prove_no_unexpected_month_gaps,
     sheet_base_and_start,
     slice_table,
     to_1to5,
@@ -300,6 +303,83 @@ def test_a_real_comment_that_mentions_a_total_is_not_a_summary_row():
     assert classify_junk(cells, layout) is None
 
 
+def test_essendon_row_11_is_feedback_not_a_subtotal():
+    """Regression: this real complaint was deleted as a summary row on the full run.
+
+    "counter service is glacial" starts with `count`, which the summary keyword list
+    contains. Without a word boundary the regex matched it, and because Essendon puts
+    its comment in the second column the comment was inside the scanned range. A
+    negative row — a score of 2 — disappeared silently, which is the worst kind of
+    data loss for the negative-feedback question. Found 29 Oct 2026 by the row budget
+    coming out one short.
+    """
+    layout = {"drop_rows": ["blank", "summary_or_note", "test_row"]}
+    cells = [
+        "22/01/2026",
+        "Sarah",
+        "counter service is glacial. waited 50 mins.",
+        2,
+        "Called cust back",
+    ]
+    assert classify_junk(cells, layout, comment_index=2) is None
+    # and it must survive even if the comment column is not excluded from the scan
+    assert classify_junk(cells, layout) is None
+
+
+@pytest.mark.parametrize(
+    "opening",
+    [
+        "counter service is glacial. waited 50 mins.",
+        "Counted three phone calls before anyone answered.",
+        "Totally rapt with the service, honestly.",
+        "Noted a scratch on the bonnet when I collected it.",
+        "Averagely happy, nothing special.",
+        "Overall a solid experience.",
+        "Summarising: slow, but they got there.",
+    ],
+)
+def test_words_that_merely_start_with_a_summary_keyword_are_not_notes(opening):
+    """`total`, `count`, `note`, `average`, `overall`, `summary` as word prefixes."""
+    layout = {"drop_rows": ["blank", "summary_or_note", "test_row"]}
+    assert classify_junk(["01/02/2026", "Service", 3, opening], layout, 3) is None
+    # the same words as whole words in a leading cell still mark a note
+    assert classify_junk([opening.split()[0].rstrip(".,:"), None, None], layout, 3) in (
+        "summary_or_note",
+        None,
+    )
+
+
+def test_a_genuine_total_row_is_still_caught():
+    layout = {"drop_rows": ["blank", "summary_or_note"]}
+    assert classify_junk(["Total Oct 2025", None, 3.74, "34 responses"], layout, 3) == (
+        "summary_or_note"
+    )
+    assert classify_junk(["Count of responses", None, None], layout, 3) == "summary_or_note"
+
+
+def test_no_comment_is_none_never_an_empty_string():
+    """Regression: 307 rows carried "" instead of None.
+
+    An empty string is truthy to `notna()`, so it counted as a comment everywhere
+    downstream — it inflated the comment total in the leak check and invented five
+    duplicate groups whose "identical comment text" was two blanks.
+    """
+    from src.ingest import _text
+
+    for blank in (None, "", "   ", "\t\n", float("nan")):
+        assert _text(blank) is None
+    assert _text("  real feedback  ") == "real feedback"
+
+
+def test_a_long_note_only_counts_when_it_is_the_first_cell_and_alone():
+    layout = {"drop_rows": ["blank", "summary_or_note"]}
+    note = ["Site closed 31/3/26. Any further feedback goes to Bendigo. - Trish", None, None, None]
+    assert classify_junk(note, layout, 3) == "summary_or_note"
+    # a comment-only row is NOT a note: it is a row with no rating, dropped as such
+    comment_only = [None, None, None, "They were lovely, could not have been more helpful."]
+    assert classify_junk(comment_only, layout, 3) is None
+
+
 def test_southports_four_junk_rows_are_named_individually():
     layout = load_mapping()["layouts"]["southport"]
     named = _named_junk(layout, ["Date", "Department", "Rating", "Comments"], "southport")
@@ -427,6 +507,151 @@ def test_slice_table_pads_short_rows_to_the_header_width():
     header, body = slice_table(rows, {"header_row": 1}, None)
     assert len(body[0][1]) == len(header) == 4
     assert body[0][1][3] is None
+
+
+# ----------------------------------------------------- the four D-002 join proofs
+
+
+def _frame(rows: list[dict]) -> pd.DataFrame:
+    """A minimal schema-shaped frame for the proof functions."""
+    base = {c: None for c in schema.COLUMNS}
+    base.update(
+        department_raw="Service",
+        rating_raw="4",
+        rating_scale="1-5",
+        rating_1to5=4,
+        source_row=2,
+        from_summary=False,
+        date_corrected=False,
+        date_approx=False,
+    )
+    out = pd.DataFrame([{**base, **r} for r in rows], columns=list(schema.COLUMNS))
+    out["feedback_date"] = pd.to_datetime(out["feedback_date"])
+    return out
+
+
+def test_overlapping_source_files_are_caught():
+    """Chermside FINAL / FINAL v2 is what this proof exists to catch (D-027)."""
+    df = _frame(
+        [
+            {"dealer_code": "QLD01", "feedback_date": "2026-01-05", "source_file": "a.xlsx"},
+            {"dealer_code": "QLD01", "feedback_date": "2026-03-20", "source_file": "a.xlsx"},
+            {"dealer_code": "QLD01", "feedback_date": "2026-02-10", "source_file": "b.xlsx"},
+        ]
+    )
+    findings = prove_no_file_overlap(df)
+    assert len(findings) == 1
+    assert findings[0][0] == "QLD01"
+    assert "a.xlsx" in findings[0][1] and "b.xlsx" in findings[0][1]
+
+
+def test_files_that_sit_side_by_side_are_not_an_overlap():
+    df = _frame(
+        [
+            {"dealer_code": "NSW01", "feedback_date": "2025-10-31", "source_file": "oct.xlsx"},
+            {"dealer_code": "NSW01", "feedback_date": "2025-11-01", "source_file": "nov.xlsx"},
+        ]
+    )
+    assert prove_no_file_overlap(df) == []
+
+
+def test_one_dealers_overlap_is_not_blamed_on_another():
+    df = _frame(
+        [
+            {"dealer_code": "NSW01", "feedback_date": "2026-01-05", "source_file": "a.xlsx"},
+            {"dealer_code": "NSW02", "feedback_date": "2026-01-05", "source_file": "b.xlsx"},
+        ]
+    )
+    assert prove_no_file_overlap(df) == []
+
+
+def test_a_missing_month_is_reported_and_the_known_ones_are_explained():
+    rows = [
+        {"dealer_code": "NSW02", "feedback_date": f"2026-0{m}-15", "source_file": "p.xlsx"}
+        for m in (4, 5, 7)  # June missing: D-029
+    ]
+    findings = prove_no_unexpected_month_gaps(_frame(rows))
+    assert len(findings) == 1
+    assert findings[0][0] == "NSW02"
+    assert "2026-06" in findings[0][1]
+    assert "expected:" in findings[0][1]  # the gap is explained, not a surprise
+
+
+def test_an_unexplained_gap_is_not_explained_away():
+    rows = [
+        {"dealer_code": "VIC01", "feedback_date": f"2026-0{m}-15", "source_file": "d.xlsx"}
+        for m in (1, 2, 4)
+    ]
+    findings = prove_no_unexpected_month_gaps(_frame(rows))
+    assert len(findings) == 1
+    assert "2026-03" in findings[0][1]
+    assert "expected:" not in findings[0][1]
+
+
+def test_a_closed_site_is_not_expected_to_report_after_it_closed():
+    """Shepparton shut on 31 Mar 2026; the months after are not gaps (D-005)."""
+    rows = [
+        {"dealer_code": "VIC09", "feedback_date": d, "source_file": "s.xlsx"}
+        for d in ("2025-10-06", "2025-11-10", "2025-12-10",
+                  "2026-01-10", "2026-02-10", "2026-03-10")
+    ]
+    assert prove_no_unexpected_month_gaps(_frame(rows)) == []
+
+
+def test_duplicates_split_by_whether_there_is_a_comment():
+    """Identical text is a double entry; identical blanks are two honest customers."""
+    df = _frame(
+        [
+            {"dealer_code": "QLD02", "feedback_date": "2026-01-05", "comment": "same words",
+             "feedback_id": "F000001", "source_file": "s.xlsx"},
+            {"dealer_code": "QLD02", "feedback_date": "2026-01-05", "comment": "same words",
+             "feedback_id": "F000002", "source_file": "s.xlsx"},
+            {"dealer_code": "QLD02", "feedback_date": "2026-02-05", "comment": None,
+             "feedback_id": "F000003", "source_file": "s.xlsx"},
+            {"dealer_code": "QLD02", "feedback_date": "2026-02-05", "comment": None,
+             "feedback_id": "F000004", "source_file": "s.xlsx"},
+            {"dealer_code": "QLD02", "feedback_date": "2026-03-05", "comment": "unique",
+             "feedback_id": "F000005", "source_file": "s.xlsx"},
+        ]
+    )
+    result = duplicate_check(df)
+    assert result["rows_with_identical_comment"] == 2
+    assert result["groups_with_identical_comment"] == 1
+    assert result["rows_identical_but_no_comment"] == 2
+    assert result["rows_identical_from_pivot"] == 0
+
+
+def test_pivot_expanded_rows_are_not_counted_as_coincidental_duplicates():
+    """A pivot cell of 3 becomes 3 identical rows by construction, not by error.
+
+    Regression: counting them with the honest coincidences put the figure at 148
+    instead of 85 and made Toowoomba look like the worst offender in the pack.
+    """
+    df = _frame(
+        [
+            {"dealer_code": "QLD06", "feedback_date": "2025-10-15", "comment": None,
+             "feedback_id": f"F00000{i}", "source_file": "t.xlsx", "from_summary": True}
+            for i in (1, 2, 3)
+        ]
+    )
+    result = duplicate_check(df)
+    assert result["rows_identical_from_pivot"] == 3
+    assert result["rows_identical_but_no_comment"] == 0
+    assert result["rows_with_identical_comment"] == 0
+
+
+def test_the_duplicate_check_never_removes_anything():
+    """It reports. Removing a row changes a published score, so the owner decides."""
+    df = _frame(
+        [
+            {"dealer_code": "QLD02", "feedback_date": "2026-01-05", "comment": "x",
+             "feedback_id": f"F00000{i}", "source_file": "s.xlsx"}
+            for i in (1, 2)
+        ]
+    )
+    before = len(df)
+    duplicate_check(df)
+    assert len(df) == before
 
 
 # --------------------------------------------------------- the mapping's own arithmetic

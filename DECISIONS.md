@@ -229,6 +229,15 @@ Source: `agents/reports/w1_profilers.md` (15 findings). Wave 2 ingestion applies
 - **Decision:** `reports/formatting_changes.md` — 13 kinds of inconsistency across 52 files and 84 worksheets, each located by dealership, with counts and the treatment applied, written to be lifted into the client report. No comment, name, phone, email or plate value is quoted in it.
 - **Why it is worth its own document:** the inconsistency is itself a finding for Kestrel. 19 spellings of 3 departments, 8 ways of writing a date and 7 rating scales across 24 dealerships is the absence of a group standard, not 24 separate quirks. Three of the inconsistencies — Geelong's reversed scale, Ringwood's mid-sheet change to a 10-point scale and Liverpool's one month-first quarter — would have moved a published dealership score with nothing appearing broken.
 
+### D-046 · Gate G1 passed: the owner checked the pilot and confirmed the Geelong reversal from the data · Decided · 29 Oct 2026
+- **What the owner checked**, from `reports/reconciliation.md` and the spreadsheets themselves:
+  1. **Geelong 2025 — "rating of 1 are praises so the reversal is right."** This is the important one. Until now D-030 rested on a sheet title ("1 = Excellent, 5 = Poor"), which is one person's note, plus the AI's reading of which comments carried which scores. The owner has now read rows scored 1 in the source workbook and confirmed they are praise. **The reversal is evidence-backed, not inferred.** Geelong's 2025 mean moves 2.40 → 3.60 and the 2026 sheet is untouched at 3.82; without the reversal Geelong would show a false +1.4 jump between years.
+  2. **The three dropped rows are correct** — "non informative to the analysis". They are Ringwood Q1's blank row and its "*** NEW TEMPLATE FROM FEB" note, and Toowoomba's "Grand Total" row.
+  3. **Rockhampton's low mean (3.52, the lowest of the six pilot dealers) is plausible** — "it seems to be a weakest site thus far from the small sample size. I think more information will be revealed by the full ingestion." So the 202 / 354 split is accepted as correct and the low score is treated as a finding to confirm on the full dataset, not as a symptom of a split error.
+- **Decision:** gate G1 is passed. The remaining 18 dealerships are ingested on the same code and the same mapping.
+- **Carried forward to Wave 5:** Rockhampton (QLD07) is a candidate for the weakest-performing site. It must be re-checked against all 24 dealerships before it appears in either report, and against the volume floor in `thresholds.trend_evidence`, since 202 rows across 12 months is a median of 17 a month.
+- **What this does not cover:** the owner checked the pilot's six dealer codes. The 18 dealerships ingested afterwards were not individually reviewed; the evidence for those is the reconciliation's arithmetic, the four D-002 join proofs and the test suite, not a human read of each file.
+
 ## Outputs
 
 ### D-007 · Two reports · Decided · 29 Oct 2026
