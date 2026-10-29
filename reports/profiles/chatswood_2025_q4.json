@@ -1,0 +1,113 @@
+{
+  "file": "chatswood_2025_q4.csv",
+  "type": "csv",
+  "bytes": 7927,
+  "sha256": "7db17f0a2b68fec1ca07a9bf86eac1cd6456101b1929df3ae51ecf6abc390005",
+  "bom": false,
+  "encoding": "utf-8-sig",
+  "delimiter": ";",
+  "sheets": [
+    {
+      "name": null,
+      "state": "n/a (csv)",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 69,
+        "cols": 5
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 5 text cells, followed by data",
+      "data_rows": 68,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 45,
+          "types": {
+            "date text": 68
+          },
+          "date_formats": {
+            "%d/%m/%Y": 68
+          },
+          "date_min": "2025-10-01",
+          "date_max": "2025-12-31",
+          "unparseable": 0,
+          "ambiguous_day_month": 21,
+          "length": {
+            "min": 10,
+            "median": 10,
+            "max": 10
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Dept",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 3,
+          "types": {
+            "text": 68
+          },
+          "values": {
+            "Service": 42,
+            "Sales": 14,
+            "Parts": 12
+          }
+        },
+        {
+          "name": "Score",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "numeric text": 68
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 38,
+            "4": 14,
+            "2": 7,
+            "1": 5,
+            "3": 4
+          }
+        },
+        {
+          "name": "Comment",
+          "proposed_role": "comment",
+          "null_pct": 23.5,
+          "n_distinct": 52,
+          "types": {
+            "text": 52
+          },
+          "length": {
+            "min": 18,
+            "median": 102,
+            "max": 409
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Vehicle",
+          "proposed_role": "vehicle",
+          "null_pct": 5.9,
+          "n_distinct": 9,
+          "types": {
+            "text": 64
+          },
+          "length": {
+            "min": 2,
+            "median": 8,
+            "max": 10
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": []
+    }
+  ],
+  "data_rows_total": 68,
+  "oddities": []
+}

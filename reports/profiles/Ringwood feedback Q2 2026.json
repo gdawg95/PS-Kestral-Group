@@ -1,0 +1,154 @@
+{
+  "file": "Ringwood feedback Q2 2026.xlsx",
+  "type": "xlsx",
+  "bytes": 13914,
+  "sha256": "b8b3a22e1ccb9f19107c5b363412740f3d7c5ac54c390b42255f8750faea9d22",
+  "sheets": [
+    {
+      "name": "Feedback",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 116,
+        "cols": 7
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 7 text cells, followed by data",
+      "data_rows": 115,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 57,
+          "types": {
+            "date text": 115
+          },
+          "date_formats": {
+            "%d/%m/%Y": 115
+          },
+          "date_min": "2026-04-01",
+          "date_max": "2026-06-30",
+          "unparseable": 0,
+          "ambiguous_day_month": 35,
+          "length": {
+            "min": 10,
+            "median": 10,
+            "max": 10
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Department",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 14,
+          "types": {
+            "text": 115
+          },
+          "values": {
+            "SERVICE": 20,
+            "service": 17,
+            "Workshop": 15,
+            "Service": 12,
+            "Service Dept": 9,
+            "Svc": 8,
+            "New Cars": 7,
+            "Sales": 6,
+            "Used Cars": 6,
+            "sales": 5,
+            "Parts": 3,
+            "Parts & Accessories": 3,
+            "P&A": 2,
+            "parts counter": 2
+          }
+        },
+        {
+          "name": "Model",
+          "proposed_role": "vehicle",
+          "null_pct": 8.7,
+          "n_distinct": 10,
+          "types": {
+            "text": 105
+          },
+          "length": {
+            "min": 2,
+            "median": 5,
+            "max": 12
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Score (out of 10)",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 10,
+          "types": {
+            "number": 115
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 10,
+          "values": {
+            "10": 26,
+            "9": 23,
+            "1": 13,
+            "7": 13,
+            "8": 9,
+            "6": 8,
+            "2": 8,
+            "3": 8,
+            "4": 4,
+            "5": 3
+          }
+        },
+        {
+          "name": "Customer comments",
+          "proposed_role": "comment",
+          "null_pct": 26.1,
+          "n_distinct": 85,
+          "types": {
+            "text": 85
+          },
+          "length": {
+            "min": 18,
+            "median": 102,
+            "max": 251
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Follow up (Y/N)",
+          "proposed_role": "other",
+          "null_pct": 60.9,
+          "n_distinct": 2,
+          "types": {
+            "text": 45
+          },
+          "values": {
+            "N": 25,
+            "Y": 20
+          }
+        },
+        {
+          "name": "Staff",
+          "proposed_role": "other",
+          "null_pct": 0.0,
+          "n_distinct": 6,
+          "types": {
+            "text": 115
+          },
+          "length": {
+            "min": 3,
+            "median": 3,
+            "max": 4
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": []
+    }
+  ],
+  "data_rows_total": 115,
+  "oddities": []
+}

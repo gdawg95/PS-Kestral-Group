@@ -1,0 +1,263 @@
+{
+  "file": "Frankston_CX_tracker.xlsx",
+  "type": "xlsx",
+  "bytes": 28179,
+  "sha256": "bcf52c983ffa081cc651ff8459939a9d0a5a7bd4d21502d527250054aa7ccd9e",
+  "sheets": [
+    {
+      "name": "Tracker [layout 1, from row 1]",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 159,
+        "cols": 7
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 4 text cells, followed by data",
+      "data_rows": 145,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 91,
+          "types": {
+            "date": 145
+          },
+          "date_formats": {
+            "excel datetime": 145
+          },
+          "date_min": "2025-10-01",
+          "date_max": "2026-03-30",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Area",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 14,
+          "types": {
+            "text": 145
+          },
+          "values": {
+            "service": 24,
+            "Service Dept": 18,
+            "Workshop": 15,
+            "Sales": 15,
+            "SERVICE": 15,
+            "Svc": 14,
+            "Service": 13,
+            "sales": 9,
+            "New Cars": 5,
+            "Used Cars": 4,
+            "P&A": 4,
+            "Parts": 4,
+            "Parts & Accessories": 4,
+            "parts counter": 1
+          }
+        },
+        {
+          "name": "Rating",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 145
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 67,
+            "4": 24,
+            "3": 19,
+            "1": 18,
+            "2": 17
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 25.5,
+          "n_distinct": 108,
+          "types": {
+            "text": 108
+          },
+          "length": {
+            "min": 11,
+            "median": 92,
+            "max": 380
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": [
+        "5 blank row(s) inside the data",
+        "6 summary/notes-like row(s) (e.g. Total, Average, Note)",
+        "3 empty column(s)"
+      ]
+    },
+    {
+      "name": "Tracker [layout 2, from row 160]",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 175,
+        "cols": 7
+      },
+      "header_row": 160,
+      "header_reason": "row 1: 7 text cells, followed by data",
+      "data_rows": 163,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 106,
+          "types": {
+            "date": 163
+          },
+          "date_formats": {
+            "excel datetime": 163
+          },
+          "date_min": "2026-04-01",
+          "date_max": "2026-09-29",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Area",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 14,
+          "types": {
+            "text": 163
+          },
+          "values": {
+            "Workshop": 26,
+            "Service": 19,
+            "Svc": 18,
+            "Service Dept": 17,
+            "SERVICE": 17,
+            "service": 15,
+            "Sales": 11,
+            "Used Cars": 10,
+            "parts counter": 8,
+            "sales": 8,
+            "New Cars": 5,
+            "P&A": 4,
+            "Parts": 3,
+            "Parts & Accessories": 2
+          }
+        },
+        {
+          "name": "CSAT",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 163
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 72,
+            "4": 41,
+            "1": 21,
+            "2": 16,
+            "3": 13
+          }
+        },
+        {
+          "name": "Customer comments",
+          "proposed_role": "comment",
+          "null_pct": 23.3,
+          "n_distinct": 125,
+          "types": {
+            "text": 125
+          },
+          "length": {
+            "min": 7,
+            "median": 95,
+            "max": 338
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Source",
+          "proposed_role": "other",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "text": 163
+          },
+          "values": {
+            "Card": 56,
+            "Walk-in": 39,
+            "Email": 26,
+            "SMS survey": 23,
+            "Phone": 19
+          }
+        },
+        {
+          "name": "Customer",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 163,
+          "types": {
+            "text": 163
+          },
+          "length": {
+            "min": 7,
+            "median": 13,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rego",
+          "proposed_role": "vehicle",
+          "null_pct": 16.6,
+          "n_distinct": 136,
+          "types": {
+            "text": 136
+          },
+          "length": {
+            "min": 6,
+            "median": 6,
+            "max": 6
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": [
+        "second header row: column layout changes from here",
+        "5 blank row(s) inside the data",
+        "6 summary/notes-like row(s) (e.g. Total, Average, Note)"
+      ]
+    }
+  ],
+  "data_rows_total": 308,
+  "oddities": [
+    "[Tracker [layout 1, from row 1]] 5 blank row(s) inside the data",
+    "[Tracker [layout 1, from row 1]] 6 summary/notes-like row(s) (e.g. Total, Average, Note)",
+    "[Tracker [layout 1, from row 1]] 3 empty column(s)",
+    "[Tracker [layout 2, from row 160]] second header row: column layout changes from here",
+    "[Tracker [layout 2, from row 160]] 5 blank row(s) inside the data",
+    "[Tracker [layout 2, from row 160]] 6 summary/notes-like row(s) (e.g. Total, Average, Note)"
+  ]
+}

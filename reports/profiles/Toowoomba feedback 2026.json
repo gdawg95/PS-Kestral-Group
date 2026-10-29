@@ -1,0 +1,95 @@
+{
+  "file": "Toowoomba feedback 2026.xlsx",
+  "type": "xlsx",
+  "bytes": 20183,
+  "sha256": "4221f189205f3994a8964607388b313c054e56bdebacdc06a2b9d79c66344cbd",
+  "sheets": [
+    {
+      "name": "2026",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 251,
+        "cols": 4
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 4 text cells, followed by data",
+      "data_rows": 250,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 158,
+          "types": {
+            "date": 250
+          },
+          "date_formats": {
+            "excel datetime": 250
+          },
+          "date_min": "2026-01-02",
+          "date_max": "2026-09-30",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Department",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 3,
+          "types": {
+            "text": 250
+          },
+          "values": {
+            "Service": 215,
+            "Parts": 26,
+            "Sales": 9
+          }
+        },
+        {
+          "name": "Rating",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 250
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 110,
+            "4": 55,
+            "1": 31,
+            "2": 27,
+            "3": 27
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 24.4,
+          "n_distinct": 189,
+          "types": {
+            "text": 189
+          },
+          "length": {
+            "min": 15,
+            "median": 103,
+            "max": 315
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": []
+    }
+  ],
+  "data_rows_total": 250,
+  "oddities": []
+}

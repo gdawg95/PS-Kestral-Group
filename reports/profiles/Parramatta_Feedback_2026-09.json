@@ -1,0 +1,155 @@
+{
+  "file": "Parramatta_Feedback_2026-09.xlsx",
+  "type": "xlsx",
+  "bytes": 9133,
+  "sha256": "b977deb9758d324f36eea412ac3a0610017d510a164bd3690e362cdb03b67af9",
+  "sheets": [
+    {
+      "name": "Sep 26",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 41,
+        "cols": 8
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 8 text cells, followed by data",
+      "data_rows": 40,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 23,
+          "types": {
+            "date": 40
+          },
+          "date_formats": {
+            "excel datetime": 40
+          },
+          "date_min": "2026-09-01",
+          "date_max": "2026-09-30",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Cust No",
+          "proposed_role": "identifier",
+          "null_pct": 0.0,
+          "n_distinct": 40,
+          "types": {
+            "number": 40
+          },
+          "length": {
+            "min": 5,
+            "median": 5,
+            "max": 5
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Mobile",
+          "proposed_role": "contact",
+          "null_pct": 7.5,
+          "n_distinct": 37,
+          "types": {
+            "numeric text": 37
+          },
+          "length": {
+            "min": 10,
+            "median": 10,
+            "max": 10
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Department",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 3,
+          "types": {
+            "text": 40
+          },
+          "values": {
+            "Service": 26,
+            "Sales": 10,
+            "Parts": 4
+          }
+        },
+        {
+          "name": "Booking ref",
+          "proposed_role": "identifier",
+          "null_pct": 0.0,
+          "n_distinct": 40,
+          "types": {
+            "text": 40
+          },
+          "length": {
+            "min": 8,
+            "median": 8,
+            "max": 8
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rating",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 40
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 11,
+            "4": 9,
+            "1": 9,
+            "2": 7,
+            "3": 4
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 20.0,
+          "n_distinct": 32,
+          "types": {
+            "text": 32
+          },
+          "length": {
+            "min": 13,
+            "median": 99,
+            "max": 226
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Staff",
+          "proposed_role": "other",
+          "null_pct": 0.0,
+          "n_distinct": 6,
+          "types": {
+            "text": 40
+          },
+          "length": {
+            "min": 3,
+            "median": 5,
+            "max": 5
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": []
+    }
+  ],
+  "data_rows_total": 40,
+  "oddities": []
+}

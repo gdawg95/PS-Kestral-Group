@@ -1,0 +1,139 @@
+{
+  "file": "Wollongong_Apr26-Sep26.csv",
+  "type": "csv",
+  "bytes": 18738,
+  "sha256": "19b9b4ba6c60d4453ae41a4f93e8f1c105600beb7ab3aafedfcca2f9c08ec78f",
+  "bom": false,
+  "encoding": "cp1252",
+  "delimiter": ",",
+  "sheets": [
+    {
+      "name": null,
+      "state": "n/a (csv)",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 148,
+        "cols": 6
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 6 text cells, followed by data",
+      "data_rows": 147,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 90,
+          "types": {
+            "date text": 147
+          },
+          "date_formats": {
+            "%d-%b-%y": 147
+          },
+          "date_min": "2026-04-01",
+          "date_max": "2026-09-30",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 9,
+            "median": 9,
+            "max": 9
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Dept",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 14,
+          "types": {
+            "text": 147
+          },
+          "values": {
+            "Service": 22,
+            "SERVICE": 20,
+            "Service Dept": 17,
+            "Workshop": 16,
+            "Sales": 14,
+            "Svc": 13,
+            "New Cars": 10,
+            "service": 7,
+            "Parts": 7,
+            "Used Cars": 7,
+            "sales": 6,
+            "P&A": 4,
+            "Parts & Accessories": 2,
+            "parts counter": 2
+          }
+        },
+        {
+          "name": "Rating",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "numeric text": 147
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 69,
+            "4": 31,
+            "3": 21,
+            "1": 18,
+            "2": 8
+          }
+        },
+        {
+          "name": "Customer feedback",
+          "proposed_role": "comment",
+          "null_pct": 22.4,
+          "n_distinct": 114,
+          "types": {
+            "text": 114
+          },
+          "length": {
+            "min": 7,
+            "median": 97,
+            "max": 279
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Name",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 147,
+          "types": {
+            "text": 147
+          },
+          "length": {
+            "min": 6,
+            "median": 12,
+            "max": 20
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Mobile",
+          "proposed_role": "contact",
+          "null_pct": 9.5,
+          "n_distinct": 133,
+          "types": {
+            "numeric text": 133
+          },
+          "length": {
+            "min": 10,
+            "median": 10,
+            "max": 10
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": []
+    }
+  ],
+  "data_rows_total": 147,
+  "oddities": []
+}

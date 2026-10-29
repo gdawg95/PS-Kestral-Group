@@ -1,0 +1,161 @@
+{
+  "file": "Toowoomba Q4 2025 summary.xlsx",
+  "type": "xlsx",
+  "bytes": 5303,
+  "sha256": "6a62787f644fa7621d34071e51e9f72fee611e35b924ad8033839ee26769cc8c",
+  "sheets": [
+    {
+      "name": "Summary",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 10,
+        "cols": 8
+      },
+      "header_row": 3,
+      "header_reason": "row 3: 8 text cells, followed by data",
+      "data_rows": 7,
+      "columns": [
+        {
+          "name": "Month",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 4,
+          "types": {
+            "text": 7
+          },
+          "date_formats": {},
+          "date_min": null,
+          "date_max": null,
+          "unparseable": 7,
+          "length": {
+            "min": 6,
+            "median": 6,
+            "max": 11
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Department",
+          "proposed_role": "department",
+          "null_pct": 14.3,
+          "n_distinct": 2,
+          "types": {
+            "text": 6
+          },
+          "values": {
+            "Parts": 3,
+            "Service": 3
+          }
+        },
+        {
+          "name": "1",
+          "proposed_role": "other",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 7
+          },
+          "values": {
+            "0": 3,
+            "2": 1,
+            "4": 1,
+            "3": 1,
+            "9": 1
+          }
+        },
+        {
+          "name": "2",
+          "proposed_role": "other",
+          "null_pct": 0.0,
+          "n_distinct": 4,
+          "types": {
+            "number": 7
+          },
+          "values": {
+            "0": 3,
+            "3": 2,
+            "1": 1,
+            "7": 1
+          }
+        },
+        {
+          "name": "3",
+          "proposed_role": "other",
+          "null_pct": 0.0,
+          "n_distinct": 4,
+          "types": {
+            "number": 7
+          },
+          "values": {
+            "1": 3,
+            "2": 2,
+            "3": 1,
+            "10": 1
+          }
+        },
+        {
+          "name": "4",
+          "proposed_role": "other",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 7
+          },
+          "values": {
+            "1": 2,
+            "2": 2,
+            "6": 1,
+            "5": 1,
+            "17": 1
+          }
+        },
+        {
+          "name": "5",
+          "proposed_role": "other",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 7
+          },
+          "values": {
+            "9": 2,
+            "1": 2,
+            "0": 1,
+            "8": 1,
+            "28": 1
+          }
+        },
+        {
+          "name": "Grand Total",
+          "proposed_role": "other",
+          "null_pct": 0.0,
+          "n_distinct": 7,
+          "types": {
+            "number": 7
+          },
+          "values": {
+            "2": 1,
+            "23": 1,
+            "4": 1,
+            "20": 1,
+            "3": 1,
+            "19": 1,
+            "71": 1
+          }
+        }
+      ],
+      "oddities": [
+        "2 row(s) above the header (titles or notes)",
+        "no column proposed as 'rating'",
+        "no column proposed as 'comment'"
+      ]
+    }
+  ],
+  "data_rows_total": 7,
+  "oddities": [
+    "[Summary] 2 row(s) above the header (titles or notes)",
+    "[Summary] no column proposed as 'rating'",
+    "[Summary] no column proposed as 'comment'"
+  ]
+}

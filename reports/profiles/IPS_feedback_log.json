@@ -1,0 +1,134 @@
+{
+  "file": "IPS_feedback_log.xlsx",
+  "type": "xlsx",
+  "bytes": 24139,
+  "sha256": "afbba3d8a8483f5e2d23cd881e3d19d60445c4d3914388c4b9458a9d251e15a4",
+  "sheets": [
+    {
+      "name": "Log",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 278,
+        "cols": 6
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 6 text cells, followed by data",
+      "data_rows": 277,
+      "columns": [
+        {
+          "name": "Site",
+          "proposed_role": "site",
+          "null_pct": 0.0,
+          "n_distinct": 1,
+          "types": {
+            "text": 277
+          },
+          "values": {
+            "KMG-IPS": 277
+          }
+        },
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 178,
+          "types": {
+            "date text": 267,
+            "text": 10
+          },
+          "date_formats": {
+            "%d/%m/%Y": 267
+          },
+          "date_min": "2025-10-01",
+          "date_max": "2026-09-29",
+          "unparseable": 10,
+          "ambiguous_day_month": 103,
+          "length": {
+            "min": 4,
+            "median": 10,
+            "max": 10
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Dept",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 14,
+          "types": {
+            "text": 277
+          },
+          "values": {
+            "SERVICE": 40,
+            "Service Dept": 36,
+            "Service": 35,
+            "Svc": 32,
+            "service": 27,
+            "Sales": 23,
+            "Workshop": 22,
+            "Used Cars": 14,
+            "sales": 12,
+            "New Cars": 10,
+            "Parts": 8,
+            "Parts & Accessories": 7,
+            "parts counter": 6,
+            "P&A": 5
+          }
+        },
+        {
+          "name": "Rating",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 277
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 131,
+            "4": 65,
+            "1": 33,
+            "2": 28,
+            "3": 20
+          }
+        },
+        {
+          "name": "Notes",
+          "proposed_role": "comment",
+          "null_pct": 26.0,
+          "n_distinct": 205,
+          "types": {
+            "text": 205
+          },
+          "length": {
+            "min": 18,
+            "median": 106,
+            "max": 288
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Logged by",
+          "proposed_role": "other",
+          "null_pct": 0.0,
+          "n_distinct": 6,
+          "types": {
+            "text": 277
+          },
+          "length": {
+            "min": 3,
+            "median": 4,
+            "max": 5
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": []
+    }
+  ],
+  "data_rows_total": 277,
+  "oddities": []
+}
