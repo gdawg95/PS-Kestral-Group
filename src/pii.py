@@ -32,8 +32,8 @@ _SEP = r"[\s-]?"
 PHONE = re.compile(
     r"(?<![\w/])(?:"
     r"(?:\+?61|0061)" + _SEP + r"\(?0?\)?" + _SEP + r"[2-478](?:" + _SEP + r"\d){8}"  # +61 ...
-    r"|\(0[2378]\)" + _SEP + r"\d{4}" + _SEP + r"\d{4}"                                # (02) 9123 4567
-    r"|0[2-478](?:" + _SEP + r"\d){8}"                                                 # 0412 345 678 / 02 9123 4567
+    r"|\(0[2378]\)" + _SEP + r"\d{4}" + _SEP + r"\d{4}"  # (02) 9123 4567
+    r"|0[2-478](?:" + _SEP + r"\d){8}"  # 0412 345 678 / 02 9123 4567
     r"|1[38]00" + _SEP + r"\d{3}" + _SEP + r"\d{3}"                                    # 1300 / 1800
     r"|13" + _SEP + r"\d{2}" + _SEP + r"\d{2}"                                         # 13 xx xx
     r")(?![\w/])"
@@ -155,7 +155,8 @@ def _redact_people(text: str, counts: Counter) -> str:
                 or not any(ch.isupper() for ch in surface)):
             continue
         before, after = text[: ent.start_char], text[ent.end_char:]
-        token = "[STAFF]" if (STAFF_BEFORE.search(before) or STAFF_AFTER.search(after)) else "[NAME]"
+        is_staff = STAFF_BEFORE.search(before) or STAFF_AFTER.search(after)
+        token = "[STAFF]" if is_staff else "[NAME]"
         out.append(text[last: ent.start_char])
         out.append(token)
         counts[token] += 1
