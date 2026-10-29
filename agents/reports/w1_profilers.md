@@ -12,7 +12,7 @@
 ## Files in / profiles out
 - 52 data files in, 52 profiles out. The owner's folder shows 54 because of two Excel lock files
   (`~$Parramatta_Feedback_2026-01.xlsx`, `~$Tamworth.xlsx`), which the profiler skips.
-- 7,161 data rows excluding Chermside Q1 FINAL (7,273 including it).
+- 7,162 data rows excluding Chermside Q1 FINAL (7,274 including it).
 
 ## Privacy checks
 - Comment, identifier, name, contact and vehicle columns: values withheld in every profile (0 exceptions).
@@ -28,6 +28,15 @@
    are now split at repeated headers and each layout is profiled separately.
 2. **Two-row headers.** Ballarat has merged group labels above the real header (row 2).
 3. **Formats.** Added `2 Oct 25` dates (Bendigo) and comment headers such as "What did they say?".
+4. **False layout split in Tamworth (caught by the owner's spot-check).** Fix 1 wrongly treated
+   Tamworth row 10 as a second header: its text date "27/10/2025" matched the "/10" rating pattern.
+   Effects: 142 rows reported instead of 143, misleading null % for HOW WAS IT, and one comment's
+   text (no personal details) written into the profile as a column name. Fixed by rejecting rows
+   containing dates, numbers or sentence breaks as headers; "HOW WAS IT" is now recognised as a
+   rating. Regression tests in `tests/test_profile_file.py`. After the fix only Tamworth changed;
+   the only real layout changes are Ringwood Q1 (row 37) and Frankston (row 160).
+   The comment string remains in this branch's history (commit 1a881c8); merging with
+   squash keeps it out of `main`.
 
 ## Findings that need an owner decision
 Each has a proposed default. Decisions go into DECISIONS.md before Wave 2.

@@ -35,7 +35,7 @@ ROLE_PATTERNS = [  # first match wins; checked against the lower-cased header
         "comment",
         r"comment|feedback|verbatim|remark|note|text|what could|why|say|said|tell us|anything else",
     ),
-    ("rating", r"rating|score|satisf|nps|stars?\b|csat|out of|/\s*10|/\s*5"),
+    ("rating", r"rating|score|satisf|nps|stars?\b|csat|out of|/\s*10|/\s*5|how was"),
     ("date", r"date|when|day|time|period|month|submitted|received"),
     ("department", r"dept|department|area|division|team|section|^svc$"),
     ("site", r"site|branch|location|dealer|store|outlet"),
@@ -406,6 +406,14 @@ def _header_like(row) -> bool:
     cells = [v for v in row if v is not None and not (isinstance(v, str) and not v.strip())]
     if len(cells) < 3 or not all(isinstance(v, str) and len(v.strip()) <= 40 for v in cells):
         return False
+    # A data row with text dates or sentences can look like a header (Tamworth row 10:
+    # "27/10/2025" matched the "/10" rating pattern). Headers hold no dates, numbers or sentences.
+    for v in cells:
+        s = v.strip()
+        if parse_date(s)[0] is not None or to_number(s) is not None:
+            return False
+        if re.search(r"[.!?]\s+\S", s):  # sentence break inside the text; "How satisfied?" is fine
+            return False
     core = {"date", "department", "rating", "comment"}
     return sum(classify_role(v) in core for v in cells) >= 2
 
