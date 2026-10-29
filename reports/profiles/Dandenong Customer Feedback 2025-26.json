@@ -1,0 +1,1802 @@
+{
+  "file": "Dandenong Customer Feedback 2025-26.xlsx",
+  "type": "xlsx",
+  "bytes": 63475,
+  "sha256": "84c5d52ff9c4458b2d76c7df2369ccb921437805030d3417306b60b61d4ed0bd",
+  "sheets": [
+    {
+      "name": "Oct 25",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 45,
+        "cols": 8
+      },
+      "header_row": 4,
+      "header_reason": "row 4: 8 text cells, followed by data",
+      "data_rows": 41,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 20,
+          "types": {
+            "date": 41
+          },
+          "date_formats": {
+            "excel datetime": 41
+          },
+          "date_min": "2025-10-01",
+          "date_max": "2025-10-30",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Dept",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 3,
+          "types": {
+            "text": 41
+          },
+          "values": {
+            "Service": 27,
+            "Sales": 13,
+            "Parts": 1
+          }
+        },
+        {
+          "name": "Customer",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 41,
+          "types": {
+            "text": 41
+          },
+          "length": {
+            "min": 7,
+            "median": 12,
+            "max": 20
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Vehicle",
+          "proposed_role": "vehicle",
+          "null_pct": 24.4,
+          "n_distinct": 11,
+          "types": {
+            "text": 31
+          },
+          "length": {
+            "min": 3,
+            "median": 5,
+            "max": 12
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rego",
+          "proposed_role": "vehicle",
+          "null_pct": 12.2,
+          "n_distinct": 36,
+          "types": {
+            "text": 36
+          },
+          "length": {
+            "min": 6,
+            "median": 6,
+            "max": 6
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rating (1-5)",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 41
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 18,
+            "4": 10,
+            "3": 5,
+            "2": 4,
+            "1": 4
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 22.0,
+          "n_distinct": 32,
+          "types": {
+            "text": 32
+          },
+          "length": {
+            "min": 21,
+            "median": 119,
+            "max": 232
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Action taken",
+          "proposed_role": "other",
+          "null_pct": 63.4,
+          "n_distinct": 7,
+          "types": {
+            "text": 15
+          },
+          "length": {
+            "min": 7,
+            "median": 10,
+            "max": 28
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": [
+        "3 row(s) above the header (titles or notes)"
+      ]
+    },
+    {
+      "name": "Nov 25",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 48,
+        "cols": 8
+      },
+      "header_row": 4,
+      "header_reason": "row 4: 8 text cells, followed by data",
+      "data_rows": 44,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 18,
+          "types": {
+            "date": 44
+          },
+          "date_formats": {
+            "excel datetime": 44
+          },
+          "date_min": "2025-11-01",
+          "date_max": "2025-11-29",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Dept",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 3,
+          "types": {
+            "text": 44
+          },
+          "values": {
+            "Service": 29,
+            "Sales": 9,
+            "Parts": 6
+          }
+        },
+        {
+          "name": "Customer",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 43,
+          "types": {
+            "text": 44
+          },
+          "length": {
+            "min": 6,
+            "median": 12,
+            "max": 20
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Vehicle",
+          "proposed_role": "vehicle",
+          "null_pct": 13.6,
+          "n_distinct": 10,
+          "types": {
+            "text": 38
+          },
+          "length": {
+            "min": 3,
+            "median": 5,
+            "max": 12
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rego",
+          "proposed_role": "vehicle",
+          "null_pct": 9.1,
+          "n_distinct": 40,
+          "types": {
+            "text": 40
+          },
+          "length": {
+            "min": 6,
+            "median": 6,
+            "max": 6
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rating (1-5)",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 44
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 19,
+            "4": 14,
+            "1": 8,
+            "3": 2,
+            "2": 1
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 22.7,
+          "n_distinct": 34,
+          "types": {
+            "text": 34
+          },
+          "length": {
+            "min": 13,
+            "median": 87,
+            "max": 312
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Action taken",
+          "proposed_role": "other",
+          "null_pct": 79.5,
+          "n_distinct": 7,
+          "types": {
+            "text": 9
+          },
+          "length": {
+            "min": 3,
+            "median": 10,
+            "max": 15
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": [
+        "3 row(s) above the header (titles or notes)"
+      ]
+    },
+    {
+      "name": "Dec 25",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 41,
+        "cols": 8
+      },
+      "header_row": 4,
+      "header_reason": "row 4: 8 text cells, followed by data",
+      "data_rows": 37,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 17,
+          "types": {
+            "date": 37
+          },
+          "date_formats": {
+            "excel datetime": 37
+          },
+          "date_min": "2025-12-01",
+          "date_max": "2025-12-31",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Dept",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 3,
+          "types": {
+            "text": 37
+          },
+          "values": {
+            "Service": 23,
+            "Sales": 8,
+            "Parts": 6
+          }
+        },
+        {
+          "name": "Customer",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 37,
+          "types": {
+            "text": 37
+          },
+          "length": {
+            "min": 7,
+            "median": 13,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Vehicle",
+          "proposed_role": "vehicle",
+          "null_pct": 2.7,
+          "n_distinct": 11,
+          "types": {
+            "text": 36
+          },
+          "length": {
+            "min": 3,
+            "median": 11,
+            "max": 12
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rego",
+          "proposed_role": "vehicle",
+          "null_pct": 10.8,
+          "n_distinct": 33,
+          "types": {
+            "text": 33
+          },
+          "length": {
+            "min": 6,
+            "median": 6,
+            "max": 6
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rating (1-5)",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 37
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 26,
+            "3": 5,
+            "2": 2,
+            "4": 2,
+            "1": 2
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 18.9,
+          "n_distinct": 30,
+          "types": {
+            "text": 30
+          },
+          "length": {
+            "min": 14,
+            "median": 108,
+            "max": 295
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Action taken",
+          "proposed_role": "other",
+          "null_pct": 78.4,
+          "n_distinct": 5,
+          "types": {
+            "text": 8
+          },
+          "length": {
+            "min": 7,
+            "median": 15,
+            "max": 28
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": [
+        "3 row(s) above the header (titles or notes)"
+      ]
+    },
+    {
+      "name": "Jan 26",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 40,
+        "cols": 8
+      },
+      "header_row": 4,
+      "header_reason": "row 4: 8 text cells, followed by data",
+      "data_rows": 36,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 18,
+          "types": {
+            "date": 36
+          },
+          "date_formats": {
+            "excel datetime": 36
+          },
+          "date_min": "2026-01-03",
+          "date_max": "2026-01-30",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Dept",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 3,
+          "types": {
+            "text": 36
+          },
+          "values": {
+            "Service": 27,
+            "Parts": 5,
+            "Sales": 4
+          }
+        },
+        {
+          "name": "Customer",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 36,
+          "types": {
+            "text": 36
+          },
+          "length": {
+            "min": 6,
+            "median": 13,
+            "max": 18
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Vehicle",
+          "proposed_role": "vehicle",
+          "null_pct": 8.3,
+          "n_distinct": 11,
+          "types": {
+            "text": 33
+          },
+          "length": {
+            "min": 3,
+            "median": 5,
+            "max": 12
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rego",
+          "proposed_role": "vehicle",
+          "null_pct": 16.7,
+          "n_distinct": 30,
+          "types": {
+            "text": 30
+          },
+          "length": {
+            "min": 6,
+            "median": 6,
+            "max": 6
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rating (1-5)",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 36
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 19,
+            "4": 8,
+            "3": 5,
+            "1": 2,
+            "2": 2
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 41.7,
+          "n_distinct": 21,
+          "types": {
+            "text": 21
+          },
+          "length": {
+            "min": 28,
+            "median": 92,
+            "max": 167
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Action taken",
+          "proposed_role": "other",
+          "null_pct": 80.6,
+          "n_distinct": 5,
+          "types": {
+            "text": 7
+          },
+          "length": {
+            "min": 10,
+            "median": 12,
+            "max": 28
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": [
+        "3 row(s) above the header (titles or notes)"
+      ]
+    },
+    {
+      "name": "Feb 26",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 36,
+        "cols": 8
+      },
+      "header_row": 4,
+      "header_reason": "row 4: 8 text cells, followed by data",
+      "data_rows": 32,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 22,
+          "types": {
+            "date": 32
+          },
+          "date_formats": {
+            "excel datetime": 32
+          },
+          "date_min": "2026-02-01",
+          "date_max": "2026-02-28",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Dept",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 3,
+          "types": {
+            "text": 32
+          },
+          "values": {
+            "Service": 20,
+            "Sales": 7,
+            "Parts": 5
+          }
+        },
+        {
+          "name": "Customer",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 32,
+          "types": {
+            "text": 32
+          },
+          "length": {
+            "min": 8,
+            "median": 13,
+            "max": 17
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Vehicle",
+          "proposed_role": "vehicle",
+          "null_pct": 6.2,
+          "n_distinct": 11,
+          "types": {
+            "text": 30
+          },
+          "length": {
+            "min": 3,
+            "median": 5,
+            "max": 12
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rego",
+          "proposed_role": "vehicle",
+          "null_pct": 9.4,
+          "n_distinct": 29,
+          "types": {
+            "text": 29
+          },
+          "length": {
+            "min": 6,
+            "median": 6,
+            "max": 6
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rating (1-5)",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 32
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 15,
+            "4": 8,
+            "3": 6,
+            "1": 2,
+            "2": 1
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 37.5,
+          "n_distinct": 20,
+          "types": {
+            "text": 20
+          },
+          "length": {
+            "min": 24,
+            "median": 92,
+            "max": 227
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Action taken",
+          "proposed_role": "other",
+          "null_pct": 71.9,
+          "n_distinct": 6,
+          "types": {
+            "text": 9
+          },
+          "length": {
+            "min": 3,
+            "median": 10,
+            "max": 28
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": [
+        "3 row(s) above the header (titles or notes)"
+      ]
+    },
+    {
+      "name": "Mar 26",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 35,
+        "cols": 8
+      },
+      "header_row": 4,
+      "header_reason": "row 4: 8 text cells, followed by data",
+      "data_rows": 31,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 19,
+          "types": {
+            "date": 31
+          },
+          "date_formats": {
+            "excel datetime": 31
+          },
+          "date_min": "2026-03-03",
+          "date_max": "2026-03-31",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Dept",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 3,
+          "types": {
+            "text": 31
+          },
+          "values": {
+            "Service": 19,
+            "Sales": 7,
+            "Parts": 5
+          }
+        },
+        {
+          "name": "Customer",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 31,
+          "types": {
+            "text": 31
+          },
+          "length": {
+            "min": 9,
+            "median": 12,
+            "max": 20
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Vehicle",
+          "proposed_role": "vehicle",
+          "null_pct": 3.2,
+          "n_distinct": 10,
+          "types": {
+            "text": 30
+          },
+          "length": {
+            "min": 3,
+            "median": 5,
+            "max": 12
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rego",
+          "proposed_role": "vehicle",
+          "null_pct": 16.1,
+          "n_distinct": 26,
+          "types": {
+            "text": 26
+          },
+          "length": {
+            "min": 6,
+            "median": 6,
+            "max": 6
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rating (1-5)",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 31
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 20,
+            "2": 5,
+            "4": 4,
+            "3": 1,
+            "1": 1
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 38.7,
+          "n_distinct": 19,
+          "types": {
+            "text": 19
+          },
+          "length": {
+            "min": 34,
+            "median": 84,
+            "max": 328
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Action taken",
+          "proposed_role": "other",
+          "null_pct": 83.9,
+          "n_distinct": 4,
+          "types": {
+            "text": 5
+          },
+          "length": {
+            "min": 7,
+            "median": 10,
+            "max": 28
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": [
+        "3 row(s) above the header (titles or notes)"
+      ]
+    },
+    {
+      "name": "Apr 26",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 44,
+        "cols": 8
+      },
+      "header_row": 4,
+      "header_reason": "row 4: 8 text cells, followed by data",
+      "data_rows": 40,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 19,
+          "types": {
+            "date": 40
+          },
+          "date_formats": {
+            "excel datetime": 40
+          },
+          "date_min": "2026-04-01",
+          "date_max": "2026-04-30",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Dept",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 2,
+          "types": {
+            "text": 40
+          },
+          "values": {
+            "Service": 28,
+            "Sales": 12
+          }
+        },
+        {
+          "name": "Customer",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 40,
+          "types": {
+            "text": 40
+          },
+          "length": {
+            "min": 8,
+            "median": 13,
+            "max": 21
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Vehicle",
+          "proposed_role": "vehicle",
+          "null_pct": 17.5,
+          "n_distinct": 11,
+          "types": {
+            "text": 33
+          },
+          "length": {
+            "min": 3,
+            "median": 11,
+            "max": 12
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rego",
+          "proposed_role": "vehicle",
+          "null_pct": 12.5,
+          "n_distinct": 35,
+          "types": {
+            "text": 35
+          },
+          "length": {
+            "min": 6,
+            "median": 6,
+            "max": 6
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rating (1-5)",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 40
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 18,
+            "4": 9,
+            "2": 6,
+            "1": 4,
+            "3": 3
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 22.5,
+          "n_distinct": 31,
+          "types": {
+            "text": 31
+          },
+          "length": {
+            "min": 16,
+            "median": 93,
+            "max": 247
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Action taken",
+          "proposed_role": "other",
+          "null_pct": 62.5,
+          "n_distinct": 7,
+          "types": {
+            "text": 15
+          },
+          "length": {
+            "min": 3,
+            "median": 10,
+            "max": 28
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": [
+        "3 row(s) above the header (titles or notes)"
+      ]
+    },
+    {
+      "name": "May 26",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 46,
+        "cols": 8
+      },
+      "header_row": 5,
+      "header_reason": "row 5: 8 text cells, followed by data",
+      "data_rows": 41,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 22,
+          "types": {
+            "date": 41
+          },
+          "date_formats": {
+            "excel datetime": 41
+          },
+          "date_min": "2026-05-01",
+          "date_max": "2026-05-28",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Dept",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 3,
+          "types": {
+            "text": 41
+          },
+          "values": {
+            "Service": 25,
+            "Sales": 12,
+            "Parts": 4
+          }
+        },
+        {
+          "name": "Customer",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 41,
+          "types": {
+            "text": 41
+          },
+          "length": {
+            "min": 7,
+            "median": 12,
+            "max": 17
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Vehicle",
+          "proposed_role": "vehicle",
+          "null_pct": 12.2,
+          "n_distinct": 10,
+          "types": {
+            "text": 36
+          },
+          "length": {
+            "min": 3,
+            "median": 5,
+            "max": 12
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rego",
+          "proposed_role": "vehicle",
+          "null_pct": 19.5,
+          "n_distinct": 33,
+          "types": {
+            "text": 33
+          },
+          "length": {
+            "min": 6,
+            "median": 6,
+            "max": 6
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rating (1-5)",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 41
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 13,
+            "2": 8,
+            "4": 7,
+            "1": 7,
+            "3": 6
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 17.1,
+          "n_distinct": 34,
+          "types": {
+            "text": 34
+          },
+          "length": {
+            "min": 40,
+            "median": 119,
+            "max": 275
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Action taken",
+          "proposed_role": "other",
+          "null_pct": 46.3,
+          "n_distinct": 8,
+          "types": {
+            "text": 22
+          },
+          "length": {
+            "min": 3,
+            "median": 10,
+            "max": 28
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": [
+        "4 row(s) above the header (titles or notes)"
+      ]
+    },
+    {
+      "name": "Jun 26",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 57,
+        "cols": 8
+      },
+      "header_row": 4,
+      "header_reason": "row 4: 8 text cells, followed by data",
+      "data_rows": 53,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 21,
+          "types": {
+            "date": 53
+          },
+          "date_formats": {
+            "excel datetime": 53
+          },
+          "date_min": "2026-06-01",
+          "date_max": "2026-06-30",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Dept",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 3,
+          "types": {
+            "text": 53
+          },
+          "values": {
+            "Service": 33,
+            "Sales": 16,
+            "Parts": 4
+          }
+        },
+        {
+          "name": "Customer",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 53,
+          "types": {
+            "text": 53
+          },
+          "length": {
+            "min": 7,
+            "median": 12,
+            "max": 18
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Vehicle",
+          "proposed_role": "vehicle",
+          "null_pct": 3.8,
+          "n_distinct": 11,
+          "types": {
+            "text": 51
+          },
+          "length": {
+            "min": 3,
+            "median": 5,
+            "max": 12
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rego",
+          "proposed_role": "vehicle",
+          "null_pct": 9.4,
+          "n_distinct": 48,
+          "types": {
+            "text": 48
+          },
+          "length": {
+            "min": 6,
+            "median": 6,
+            "max": 6
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rating (1-5)",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 53
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 15,
+            "1": 14,
+            "3": 11,
+            "2": 7,
+            "4": 6
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 18.9,
+          "n_distinct": 43,
+          "types": {
+            "text": 43
+          },
+          "length": {
+            "min": 12,
+            "median": 103,
+            "max": 260
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Action taken",
+          "proposed_role": "other",
+          "null_pct": 41.5,
+          "n_distinct": 9,
+          "types": {
+            "text": 31
+          },
+          "length": {
+            "min": 3,
+            "median": 10,
+            "max": 28
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": [
+        "3 row(s) above the header (titles or notes)"
+      ]
+    },
+    {
+      "name": "Jul 26",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 52,
+        "cols": 8
+      },
+      "header_row": 4,
+      "header_reason": "row 4: 8 text cells, followed by data",
+      "data_rows": 48,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 19,
+          "types": {
+            "date": 48
+          },
+          "date_formats": {
+            "excel datetime": 48
+          },
+          "date_min": "2026-07-01",
+          "date_max": "2026-07-31",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Dept",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 3,
+          "types": {
+            "text": 48
+          },
+          "values": {
+            "Service": 33,
+            "Sales": 10,
+            "Parts": 5
+          }
+        },
+        {
+          "name": "Customer",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 48,
+          "types": {
+            "text": 48
+          },
+          "length": {
+            "min": 6,
+            "median": 12,
+            "max": 20
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Vehicle",
+          "proposed_role": "vehicle",
+          "null_pct": 6.2,
+          "n_distinct": 11,
+          "types": {
+            "text": 45
+          },
+          "length": {
+            "min": 3,
+            "median": 12,
+            "max": 12
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rego",
+          "proposed_role": "vehicle",
+          "null_pct": 22.9,
+          "n_distinct": 37,
+          "types": {
+            "text": 37
+          },
+          "length": {
+            "min": 6,
+            "median": 6,
+            "max": 6
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rating (1-5)",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 48
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 18,
+            "1": 12,
+            "4": 8,
+            "3": 8,
+            "2": 2
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 16.7,
+          "n_distinct": 40,
+          "types": {
+            "text": 40
+          },
+          "length": {
+            "min": 42,
+            "median": 120,
+            "max": 283
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Action taken",
+          "proposed_role": "other",
+          "null_pct": 56.2,
+          "n_distinct": 9,
+          "types": {
+            "text": 21
+          },
+          "length": {
+            "min": 3,
+            "median": 10,
+            "max": 28
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": [
+        "3 row(s) above the header (titles or notes)"
+      ]
+    },
+    {
+      "name": "Aug 26",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 48,
+        "cols": 8
+      },
+      "header_row": 4,
+      "header_reason": "row 4: 8 text cells, followed by data",
+      "data_rows": 44,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 24,
+          "types": {
+            "date": 44
+          },
+          "date_formats": {
+            "excel datetime": 44
+          },
+          "date_min": "2026-08-01",
+          "date_max": "2026-08-31",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Dept",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 3,
+          "types": {
+            "text": 44
+          },
+          "values": {
+            "Service": 30,
+            "Sales": 11,
+            "Parts": 3
+          }
+        },
+        {
+          "name": "Customer",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 44,
+          "types": {
+            "text": 44
+          },
+          "length": {
+            "min": 8,
+            "median": 12,
+            "max": 22
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Vehicle",
+          "proposed_role": "vehicle",
+          "null_pct": 15.9,
+          "n_distinct": 11,
+          "types": {
+            "text": 37
+          },
+          "length": {
+            "min": 3,
+            "median": 5,
+            "max": 12
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rego",
+          "proposed_role": "vehicle",
+          "null_pct": 15.9,
+          "n_distinct": 37,
+          "types": {
+            "text": 37
+          },
+          "length": {
+            "min": 6,
+            "median": 6,
+            "max": 6
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rating (1-5)",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 44
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "1": 13,
+            "5": 12,
+            "4": 10,
+            "3": 5,
+            "2": 4
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 11.4,
+          "n_distinct": 39,
+          "types": {
+            "text": 39
+          },
+          "length": {
+            "min": 27,
+            "median": 127,
+            "max": 323
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Action taken",
+          "proposed_role": "other",
+          "null_pct": 52.3,
+          "n_distinct": 9,
+          "types": {
+            "text": 21
+          },
+          "length": {
+            "min": 3,
+            "median": 10,
+            "max": 28
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": [
+        "3 row(s) above the header (titles or notes)"
+      ]
+    },
+    {
+      "name": "Sep 26",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 41,
+        "cols": 8
+      },
+      "header_row": 4,
+      "header_reason": "row 4: 8 text cells, followed by data",
+      "data_rows": 37,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 19,
+          "types": {
+            "date": 37
+          },
+          "date_formats": {
+            "excel datetime": 37
+          },
+          "date_min": "2026-09-01",
+          "date_max": "2026-09-29",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Dept",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 3,
+          "types": {
+            "text": 37
+          },
+          "values": {
+            "Service": 25,
+            "Sales": 7,
+            "Parts": 5
+          }
+        },
+        {
+          "name": "Customer",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 37,
+          "types": {
+            "text": 37
+          },
+          "length": {
+            "min": 8,
+            "median": 12,
+            "max": 17
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Vehicle",
+          "proposed_role": "vehicle",
+          "null_pct": 8.1,
+          "n_distinct": 11,
+          "types": {
+            "text": 34
+          },
+          "length": {
+            "min": 3,
+            "median": 5,
+            "max": 12
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rego",
+          "proposed_role": "vehicle",
+          "null_pct": 16.2,
+          "n_distinct": 31,
+          "types": {
+            "text": 31
+          },
+          "length": {
+            "min": 6,
+            "median": 6,
+            "max": 6
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rating (1-5)",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 37
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 15,
+            "1": 7,
+            "4": 5,
+            "2": 5,
+            "3": 5
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 18.9,
+          "n_distinct": 30,
+          "types": {
+            "text": 30
+          },
+          "length": {
+            "min": 42,
+            "median": 113,
+            "max": 278
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Action taken",
+          "proposed_role": "other",
+          "null_pct": 54.1,
+          "n_distinct": 8,
+          "types": {
+            "text": 17
+          },
+          "length": {
+            "min": 3,
+            "median": 10,
+            "max": 28
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": [
+        "3 row(s) above the header (titles or notes)"
+      ]
+    },
+    {
+      "name": "Sheet3",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 0,
+        "cols": 0
+      },
+      "header_row": null,
+      "header_reason": "no header-like row in the first 20 rows",
+      "data_rows": 0,
+      "oddities": [
+        "no tabular data found"
+      ]
+    }
+  ],
+  "data_rows_total": 484,
+  "oddities": [
+    "[Oct 25] 3 row(s) above the header (titles or notes)",
+    "[Nov 25] 3 row(s) above the header (titles or notes)",
+    "[Dec 25] 3 row(s) above the header (titles or notes)",
+    "[Jan 26] 3 row(s) above the header (titles or notes)",
+    "[Feb 26] 3 row(s) above the header (titles or notes)",
+    "[Mar 26] 3 row(s) above the header (titles or notes)",
+    "[Apr 26] 3 row(s) above the header (titles or notes)",
+    "[May 26] 4 row(s) above the header (titles or notes)",
+    "[Jun 26] 3 row(s) above the header (titles or notes)",
+    "[Jul 26] 3 row(s) above the header (titles or notes)",
+    "[Aug 26] 3 row(s) above the header (titles or notes)",
+    "[Sep 26] 3 row(s) above the header (titles or notes)",
+    "[Sheet3] no tabular data found"
+  ]
+}

@@ -1,0 +1,143 @@
+# PII test cases for src/pii.py (DECISIONS.md D-026). All synthetic; no real feedback text.
+#
+# Each case: input -> expected (exact output). Optional `row_values` simulates the same row's
+# name / rego columns. `ner: true` cases need spaCy (they run on the laptop).
+#
+# OWNER: add at least 3 of your own cases under `owner_cases` at the bottom, based on the kinds of
+# things you've seen in the comments. Don't paste real comments; write look-alikes.
+
+must_redact:
+  - id: email
+    input: "email me at j.smith88@example.com.au thanks"
+    expected: "email me at [EMAIL] thanks"
+  - id: mobile_spaced
+    input: "Rang Sarah's husband on 0412 345 678 twice"
+    expected: "Rang Sarah's husband on [PHONE] twice"
+    ner: false
+  - id: mobile_unspaced
+    input: "call 0412345678 asap"
+    expected: "call [PHONE] asap"
+  - id: mobile_intl
+    input: "my number is +61 412 345 678"
+    expected: "my number is [PHONE]"
+  - id: landline_parens
+    input: "ring the store on (02) 9123 4567"
+    expected: "ring the store on [PHONE]"
+  - id: landline_plain
+    input: "ph 03 9876 5432 after 5"
+    expected: "ph [PHONE] after 5"
+  - id: phone_1300
+    input: "called 1300 123 456 and got no answer"
+    expected: "called [PHONE] and got no answer"
+  - id: address_street
+    input: "please pick up from 14 Smith Street tomorrow"
+    expected: "please pick up from [ADDRESS] tomorrow"
+  - id: address_unit
+    input: "deliver to Unit 3/22 Harbour View Rd please"
+    expected: "deliver to [ADDRESS] please"
+  - id: rego_nsw_shape
+    input: "car ABC12D was returned dirty"
+    expected: "car [REGO] was returned dirty"
+  - id: rego_three_three
+    input: "My car XYZ 789 was ready late"
+    expected: "My car [REGO] was ready late"
+  - id: rego_dash
+    input: "plate ABC-123 still has the old sticker"
+    expected: "plate [REGO] still has the old sticker"
+  - id: rego_vic
+    input: "the 1AB2CD needs a wash"
+    expected: "the [REGO] needs a wash"
+  - id: rego_qld
+    input: "brought in 123ABC for a service"
+    expected: "brought in [REGO] for a service"
+  - id: rego_cued_short
+    input: "rego XYZ9 was wrong on the invoice"
+    expected: "rego [REGO] was wrong on the invoice"
+  - id: rego_from_row_column
+    input: "returned abc 123 with a scratch"
+    row_values: {redact_rego: ["ABC123"]}
+    expected: "returned [REGO] with a scratch"
+  - id: customer_name_from_row
+    input: "Hi it's Bronwyn, car was great"
+    row_values: {redact_name: ["Bronwyn Taylor"]}
+    expected: "Hi it's [NAME], car was great"
+  - id: customer_full_name_from_row
+    input: "Bronwyn Taylor here, very happy"
+    row_values: {redact_name: ["Bronwyn Taylor"]}
+    expected: "[NAME] here, very happy"
+  - id: two_things
+    input: "email a@b.com or call 0400 111 222"
+    expected: "email [EMAIL] or call [PHONE]"
+  # Staff roster (first names from the data's staff columns). Added after the PII pilot missed
+  # "Raj" and a lower-case staff name.
+  - id: staff_roster_capitalised
+    input: "Raj held up the old part and it clicked straight away"
+    staff_names: ["Raj", "Bec"]
+    expected: "[STAFF] held up the old part and it clicked straight away"
+  - id: staff_roster_lowercase
+    input: "stepped in and raj had a chat with me"
+    staff_names: ["Raj"]
+    expected: "stepped in and [STAFF] had a chat with me"
+  - id: staff_roster_after_thanks
+    input: "Super speedy, thanks Ben!"
+    staff_names: ["Ben"]
+    expected: "Super speedy, thanks [STAFF]!"
+  - id: staff_roster_whole_word_only
+    input: "Bec was great, the Becker bike rack too"
+    staff_names: ["Bec"]
+    expected: "[STAFF] was great, the Becker bike rack too"
+
+must_not_redact:
+  - id: model_codes
+    input: "The RAV4 and CX-5 and CX5 were fine, V8 sounded great"
+  - id: trim_codes
+    input: "HiLux SR5 4WD with the 2.0L engine, i30 too"
+  - id: period
+    input: "Much better than Q3 2026, and FY26 pricing was fair"
+  - id: price
+    input: "Charged $1,200 for a $450 job"
+  - id: date
+    input: "Booked for 12/03/2026 but done on 14-03-2026"
+  - id: department_words
+    input: "Service was slow, Sales were great, Parts had it in stock"
+  - id: distance_time
+    input: "Waited 3 hours, car has 45000 km, booked at 8:30am"
+  - id: short_number
+    input: "Gave them 10 out of 10, 5 stars"
+  - id: fictional_models
+    input: "Voltra E3 and the Veyra GT are both great"
+  - id: plain_text
+    input: "Nobody called me back and the coffee machine was broken"
+
+ner_cases:  # need spaCy en_core_web_sm; run on the laptop
+  - id: staff_in_dept
+    input: "Dave in service was great"
+    expected: "[STAFF] in service was great"
+  - id: staff_role_before
+    input: "My salesperson Priya Sharma explained everything"
+    expected: "My salesperson [STAFF] explained everything"
+  - id: staff_thanks_to
+    input: "Huge thanks to Michael Chen for sorting it out"
+    expected: "Huge thanks to [STAFF] for sorting it out"
+  - id: customer_self
+    input: "Hi, I'm Sarah Jones and I want a call back"
+    expected: "Hi, I'm [NAME] and I want a call back"
+  - id: other_person
+    input: "My wife Jennifer Brown picked it up"
+    expected: "My wife [NAME] picked it up"
+  # Sentence-initial capitalised words spaCy mistook for names in the pilot ("Spooky", "Keys").
+  - id: sentence_start_word_not_a_name
+    input: "My phone buzzed with an update. Spooky good timing."
+    known_names: ["Dave", "Ben"]
+    expected: "My phone buzzed with an update. Spooky good timing."
+  - id: sentence_start_plural_not_a_name
+    input: "Keys weren't ready at the time I was told."
+    known_names: ["Dave", "Ben"]
+    expected: "Keys weren't ready at the time I was told."
+  - id: sentence_start_known_name_is_redacted
+    input: "Josh was wonderful."
+    known_names: ["Josh"]
+    expected: "[NAME] was wonderful."
+
+owner_cases:  # OWNER: add yours here (same shape as above; use expected: "<same as input>" for must-not-redact)
+  []

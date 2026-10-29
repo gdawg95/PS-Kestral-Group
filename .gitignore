@@ -12,3 +12,8 @@ data/clean/
 .venv/
 __pycache__/
 .ipynb_checkpoints/
+.ruff_cache/
+.pytest_cache/
+
+# Run logs from the laptop (read by Claude through the bridge; may echo data)
+logs/

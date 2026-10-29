@@ -1,0 +1,695 @@
+"""Profile the structure of raw feedback files (Wave 1, brief agents/briefs/w1_profilers.md).
+
+Writes one JSON per file to reports/profiles/ plus reports/profiles/_index.csv.
+
+Privacy rule (D-003): values are only listed for category-like columns (department, rating,
+site, and short low-cardinality "other" columns whose names don't look personal). Comment,
+identifier, name, contact and vehicle columns are described by type, null % and length only.
+
+Usage:
+    python scripts/profile_file.py data/raw/feedback/FILE [FILE ...]
+    python scripts/profile_file.py --all
+"""
+
+from __future__ import annotations
+
+import argparse
+import csv
+import datetime as dt
+import hashlib
+import io
+import json
+import re
+import sys
+from collections import Counter
+from pathlib import Path
+
+import openpyxl
+
+ROOT = Path(__file__).resolve().parents[1]
+RAW = ROOT / "data" / "raw" / "feedback"
+OUT = ROOT / "reports" / "profiles"
+
+ROLE_PATTERNS = [  # first match wins; checked against the lower-cased header
+    (
+        "comment",
+        r"comment|feedback|verbatim|remark|note|text|what could|why|say|said|tell us|anything else",
+    ),
+    ("rating", r"rating|score|satisf|nps|stars?\b|csat|out of|/\s*10|/\s*5|how was"),
+    ("date", r"date|when|day|time|period|month|submitted|received"),
+    ("department", r"dept|department|area|division|team|section|^svc$"),
+    ("site", r"site|branch|location|dealer|store|outlet"),
+    ("contact", r"phone|mobile|email|e-mail|contact|address|postcode|suburb"),
+    ("name", r"name|customer$|client$|surname|first|last"),
+    ("vehicle", r"model|make|vehicle|car\b|vin|rego|registration|plate"),
+    ("identifier", r"\bid\b|_id|id$|no\.?$|number|ref|dms|job|ro\b|invoice|account|cust"),
+]
+LISTABLE_ROLES = {"department", "rating", "site"}
+PERSONAL_HINT = re.compile(
+    r"name|phone|mobile|email|address|cust|client|rego|vin|staff|advisor|\bby\b|taken|logged|"
+    r"given|handled|served|owner|assigned|rep\b|who|reviewer|author|user",
+    re.I,
+)
+# Values that look like first names are withheld even when the header gives no hint.
+FIRST_NAME_LIKE = re.compile(r"^[A-Z][a-z]{1,11}$")
+SAFE_WORDS = {
+    "Good",
+    "Bad",
+    "Ok",
+    "Okay",
+    "Yes",
+    "No",
+    "Card",
+    "Email",
+    "Phone",
+    "Sms",
+    "Walk",
+    "Web",
+    "Online",
+    "Service",
+    "Sales",
+    "Parts",
+    "Workshop",
+    "Closed",
+    "Open",
+    "Pending",
+    "Done",
+    "Source",
+    "Staff",
+}
+SUMMARY_ROW = re.compile(
+    r"^\s*(total|average|avg|mean|count|summary|note|notes|nps|overall)\b", re.I
+)
+DATE_FORMATS = [
+    "%Y-%m-%d",
+    "%d/%m/%Y",
+    "%d/%m/%y",
+    "%d-%m-%Y",
+    "%d.%m.%Y",
+    "%m/%d/%Y",
+    "%Y/%m/%d",
+    "%d %b %Y",
+    "%d %B %Y",
+    "%d %b %y",
+    "%b %d %Y",
+    "%d-%b-%Y",
+    "%d-%b-%y",
+    "%Y-%m-%d %H:%M:%S",
+    "%d/%m/%Y %H:%M",
+    "%d/%m/%Y %H:%M:%S",
+    "%Y-%m-%dT%H:%M:%S",
+    "%Y%m%d",
+]
+MAX_LISTED = 40
+SCALE_NOTE = re.compile(
+    r"(rating|score|scale)\b.*\d\s*=|\d\s*=\s*(poor|excellent|best|worst)", re.I
+)
+REVERSED_SCALE = re.compile(r"1\s*=\s*(excellent|best|very good|very satisfied)", re.I)
+
+
+def sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+# ---------- reading ----------
+
+
+def read_csv(path: Path) -> tuple[list[dict], dict]:
+    raw = path.read_bytes()
+    meta: dict = {"bom": raw.startswith(b"\xef\xbb\xbf")}
+    for enc in ("utf-8-sig", "cp1252", "latin-1"):
+        try:
+            text = raw.decode(enc)
+            meta["encoding"] = enc
+            break
+        except UnicodeDecodeError:
+            continue
+    sample = text[:20000]
+    try:
+        delim = csv.Sniffer().sniff(sample, delimiters=",;\t|").delimiter
+    except csv.Error:
+        delim = ","
+    meta["delimiter"] = {"\t": "tab"}.get(delim, delim)
+    rows = list(csv.reader(io.StringIO(text), delimiter=delim))
+    rows = [[c if c != "" else None for c in r] for r in rows]
+    return [{"name": None, "state": "n/a (csv)", "rows": rows, "merged": 0}], meta
+
+
+def read_xlsx(path: Path) -> tuple[list[dict], dict]:
+    wb = openpyxl.load_workbook(path, data_only=True)
+    sheets = []
+    for ws in wb.worksheets:
+        rows = [list(r) for r in ws.iter_rows(values_only=True)]
+        sheets.append(
+            {
+                "name": ws.title,
+                "state": ws.sheet_state,
+                "rows": rows,
+                "merged": len(ws.merged_cells.ranges),
+            }
+        )
+    return sheets, {}
+
+
+# ---------- structure ----------
+
+
+def is_blank(row) -> bool:
+    return all(v is None or (isinstance(v, str) and not v.strip()) for v in row)
+
+
+def find_header(rows: list[list]) -> tuple[int | None, str]:
+    """Header = first row (within the top 20) with >=2 short text cells, followed by data rows."""
+    for i, row in enumerate(rows[:20]):
+        cells = [v for v in row if v is not None and not (isinstance(v, str) and not v.strip())]
+        texts = [v for v in cells if isinstance(v, str) and len(v.strip()) <= 60]
+        if len(texts) >= 2 and len(texts) >= 0.6 * len(cells):
+            following = [r for r in rows[i + 1 : i + 6] if not is_blank(r)]
+            if following:
+                why = f"row {i + 1}: {len(texts)} text cells, followed by data"
+                return i, why
+    return None, "no header-like row in the first 20 rows"
+
+
+def classify_role(header: str | None) -> str:
+    h = (header or "").strip().lower()
+    for role, pat in ROLE_PATTERNS:
+        if re.search(pat, h):
+            return role
+    return "other"
+
+
+# ---------- value parsing ----------
+
+
+def parse_date(v) -> tuple[dt.date | None, str | None]:
+    if v is None:
+        return None, None
+    if isinstance(v, dt.datetime):
+        return v.date(), "excel datetime"
+    if isinstance(v, dt.date):
+        return v, "excel date"
+    if isinstance(v, (int, float)) and not isinstance(v, bool):
+        if 30000 <= v <= 60000:  # Excel serial day number
+            return (dt.date(1899, 12, 30) + dt.timedelta(days=int(v))), "excel serial number"
+        if 19000101 <= v <= 21001231:
+            try:
+                return dt.datetime.strptime(str(int(v)), "%Y%m%d").date(), "yyyymmdd number"
+            except ValueError:
+                return None, None
+        return None, None
+    s = str(v).strip()
+    for fmt in DATE_FORMATS:
+        try:
+            return dt.datetime.strptime(s, fmt).date(), fmt
+        except ValueError:
+            continue
+    return None, None
+
+
+def to_number(v):
+    if isinstance(v, bool):
+        return None
+    if isinstance(v, (int, float)):
+        return v
+    if isinstance(v, str):
+        s = v.strip()
+        try:
+            return float(s) if "." in s else int(s)
+        except ValueError:
+            return None
+    return None
+
+
+def value_type(v) -> str:
+    if v is None:
+        return "null"
+    if isinstance(v, bool):
+        return "bool"
+    if isinstance(v, (dt.datetime, dt.date)):
+        return "date"
+    if isinstance(v, (int, float)):
+        return "number"
+    s = str(v).strip()
+    if to_number(s) is not None:
+        return "numeric text"
+    if parse_date(s)[0] is not None:
+        return "date text"
+    return "text"
+
+
+def norm_listed(v):
+    if isinstance(v, float) and v.is_integer():
+        return int(v)
+    if isinstance(v, (dt.datetime, dt.date)):
+        return v.isoformat()
+    return v if not isinstance(v, str) else v
+
+
+def _mostly_first_names(values: list) -> bool:
+    texts = [str(v).strip() for v in values if isinstance(v, str)]
+    if not texts:
+        return False
+    hits = sum(1 for t in texts if FIRST_NAME_LIKE.match(t) and t.title() not in SAFE_WORDS)
+    return hits / len(texts) >= 0.5
+
+
+def profile_column(name, values: list, n_rows: int) -> dict:
+    role = classify_role(name)
+    non_null = [v for v in values if v is not None and not (isinstance(v, str) and not v.strip())]
+    types = Counter(value_type(v) for v in non_null)
+    col: dict = {
+        "name": name,
+        "proposed_role": role,
+        "null_pct": round(100 * (1 - len(non_null) / n_rows), 1) if n_rows else None,
+        "n_distinct": len({str(v).strip() for v in non_null}),
+        "types": dict(types.most_common()),
+    }
+
+    # content-based nudges where the header was unhelpful
+    if role == "other" and non_null:
+        dates = sum(parse_date(v)[0] is not None for v in non_null)
+        if dates / len(non_null) > 0.9:
+            col["proposed_role"] = role = "date"
+            col["role_note"] = "inferred from content (values parse as dates)"
+
+    if role == "date":
+        parsed = [parse_date(v) for v in non_null]
+        ok = [d for d, _ in parsed if d is not None]
+        col["date_formats"] = dict(Counter(f for _, f in parsed if f).most_common())
+        col["date_min"] = min(ok).isoformat() if ok else None
+        col["date_max"] = max(ok).isoformat() if ok else None
+        col["unparseable"] = len(non_null) - len(ok)
+        if ok:
+            col["ambiguous_day_month"] = sum(
+                1
+                for v in non_null
+                if isinstance(v, str)
+                and re.match(r"^\s*(0?[1-9]|1[0-2])[/-](0?[1-9]|1[0-2])[/-]", v)
+            )
+    if role == "rating":
+        nums = [to_number(v) for v in non_null]
+        good = [x for x in nums if x is not None]
+        col["numeric_share"] = round(len(good) / len(non_null), 3) if non_null else None
+        if good:
+            col["min"], col["max"] = min(good), max(good)
+
+    listable = role in LISTABLE_ROLES or (
+        role == "other"
+        and col["n_distinct"] <= 12
+        and not PERSONAL_HINT.search(str(name or ""))
+        and all(len(str(v)) <= 25 for v in non_null)
+        and not _mostly_first_names(non_null)
+    )
+    if listable:
+        counts = Counter(norm_listed(v.strip() if isinstance(v, str) else v) for v in non_null)
+        col["values"] = {str(k): c for k, c in counts.most_common(MAX_LISTED)}
+        if len(counts) > MAX_LISTED:
+            col["values_truncated"] = len(counts) - MAX_LISTED
+    else:
+        lengths = [len(str(v)) for v in non_null]
+        if lengths:
+            lengths.sort()
+            col["length"] = {
+                "min": lengths[0],
+                "median": lengths[len(lengths) // 2],
+                "max": lengths[-1],
+            }
+        col["values"] = "withheld (privacy rule)"
+    return col
+
+
+def profile_sheet(sheet: dict) -> tuple[dict, list[tuple]]:
+    rows = sheet["rows"]
+    out: dict = {
+        "name": sheet["name"],
+        "state": sheet["state"],
+        "merged_cells": sheet["merged"],
+        "dimensions_raw": {"rows": len(rows), "cols": max((len(r) for r in rows), default=0)},
+    }
+    oddities: list[str] = []
+    if sheet["state"] not in ("visible", "n/a (csv)"):
+        oddities.append(f"sheet is {sheet['state']}")
+    if sheet["merged"]:
+        oddities.append(f"{sheet['merged']} merged cell ranges")
+
+    h, why = find_header(rows)
+    out["header_row"] = (h + 1) if h is not None else None
+    out["header_reason"] = why
+    if h is None:
+        out["data_rows"] = 0
+        oddities.append("no tabular data found")
+        out["oddities"] = oddities
+        return out, []
+    if h > 0:
+        oddities.append(f"{h} row(s) above the header (titles or notes)")
+        # Scale notes above the header matter (Geelong 2025: "1 = Excellent, 5 = Poor").
+        # Only lines about the rating scale are kept, so titles with names are not copied.
+        notes = [
+            str(v).strip()
+            for r in rows[:h]
+            for v in r
+            if isinstance(v, str) and SCALE_NOTE.search(v)
+        ]
+        if notes:
+            out["scale_notes"] = notes
+            if any(REVERSED_SCALE.search(n) for n in notes):
+                oddities.append("REVERSED rating scale stated above the header (1 = best)")
+
+    width = max(len(r) for r in rows[h:])
+    header = list(rows[h]) + [None] * (width - len(rows[h]))
+    header = [str(c).strip() if c is not None else None for c in header]
+    body = [list(r) + [None] * (width - len(r)) for r in rows[h + 1 :]]
+
+    blank_idx = [i for i, r in enumerate(body) if is_blank(r)]
+    summary_idx = [
+        i
+        for i, r in enumerate(body)
+        if not is_blank(r) and any(isinstance(v, str) and SUMMARY_ROW.match(v) for v in r[:3])
+    ]
+    data = [r for i, r in enumerate(body) if i not in set(blank_idx) | set(summary_idx)]
+
+    # trailing vs interior blank rows
+    if blank_idx:
+        last_data = max((i for i, r in enumerate(body) if not is_blank(r)), default=-1)
+        interior = [i for i in blank_idx if i < last_data]
+        if interior:
+            oddities.append(f"{len(interior)} blank row(s) inside the data")
+    if summary_idx:
+        oddities.append(f"{len(summary_idx)} summary/notes-like row(s) (e.g. Total, Average, Note)")
+
+    # drop fully empty columns but record them
+    empty_cols = [
+        header[j] or f"col{j + 1}" for j in range(width) if all(r[j] is None for r in data)
+    ]
+    keep = [j for j in range(width) if not all(r[j] is None for r in data)]
+    if empty_cols:
+        oddities.append(f"{len(empty_cols)} empty column(s)")
+    unnamed = [j for j in keep if not header[j]]
+    if unnamed:
+        oddities.append(f"{len(unnamed)} column(s) with data but no header")
+    dupes = [n for n, c in Counter(header[j] for j in keep if header[j]).items() if c > 1]
+    if dupes:
+        oddities.append(f"duplicate header names: {dupes}")
+
+    out["data_rows"] = len(data)
+    out["columns"] = [profile_column(header[j], [r[j] for r in data], len(data)) for j in keep]
+
+    roles = Counter(c["proposed_role"] for c in out["columns"])
+    for need in ("date", "department", "rating", "comment"):
+        if roles.get(need, 0) == 0:
+            oddities.append(f"no column proposed as '{need}'")
+        elif roles[need] > 1:
+            oddities.append(f"{roles[need]} columns proposed as '{need}' (pick one)")
+    site_cols = [c for c in out["columns"] if c["proposed_role"] == "site"]
+    if (
+        site_cols
+        and isinstance(site_cols[0].get("values"), dict)
+        and len(site_cols[0]["values"]) > 1
+    ):
+        oddities.append(
+            f"site column has {len(site_cols[0]['values'])} distinct spellings "
+            "(possibly more than one site)"
+        )
+    out["oddities"] = oddities
+
+    # row fingerprints for cross-file duplicate checks (kept in memory only, never written)
+    fps = [tuple(str(r[j]).strip() if r[j] is not None else "" for j in keep) for r in data]
+    return out, fps
+
+
+def _header_like(row) -> bool:
+    cells = [v for v in row if v is not None and not (isinstance(v, str) and not v.strip())]
+    if len(cells) < 3 or not all(isinstance(v, str) and len(v.strip()) <= 40 for v in cells):
+        return False
+    # A data row with text dates or sentences can look like a header (Tamworth row 10:
+    # "27/10/2025" matched the "/10" rating pattern). Headers hold no dates, numbers or sentences.
+    for v in cells:
+        s = v.strip()
+        if parse_date(s)[0] is not None or to_number(s) is not None:
+            return False
+        if re.search(r"[.!?]\s+\S", s):  # sentence break inside the text; "How satisfied?" is fine
+            return False
+    core = {"date", "department", "rating", "comment"}
+    return sum(classify_role(v) in core for v in cells) >= 2
+
+
+def split_blocks(sheet: dict) -> list[dict]:
+    """Split a sheet wherever a second header row appears (the layout changes mid-sheet)."""
+    rows = sheet["rows"]
+    h, _ = find_header(rows)
+    if h is None:
+        return [sheet]
+    starts = [h] + [i for i in range(h + 1, len(rows)) if _header_like(rows[i])]
+    # A header directly above another header is a two-row header (group labels on top), not a
+    # layout change: keep the lower row as the real header.
+    multi = [s for s, nxt in zip(starts, starts[1:], strict=False) if nxt == s + 1]
+    starts = [s for s in starts if s not in multi]
+    if multi:
+        sheet = {**sheet, "two_row_header": True}
+    if len(starts) == 1:
+        if multi:
+            return [{**sheet, "rows": sheet["rows"][starts[0] :], "row_offset": starts[0]}]
+        return [sheet]
+    blocks = []
+    for k, start in enumerate(starts):
+        end = starts[k + 1] if k + 1 < len(starts) else len(rows)
+        lead = rows[:start] if k == 0 else []
+        blocks.append(
+            {
+                **sheet,
+                "name": f"{sheet['name'] or 'csv'} [layout {k + 1}, from row {start + 1}]",
+                "rows": lead + rows[start:end],
+                "row_offset": 0 if k == 0 else start,
+                "layout_change": k > 0,
+            }
+        )
+    return blocks
+
+
+def profile_file(path: Path) -> tuple[dict, dict]:
+    if path.suffix.lower() == ".csv":
+        sheets, meta = read_csv(path)
+        ftype = "csv"
+    else:
+        sheets, meta = read_xlsx(path)
+        ftype = "xlsx"
+    prof: dict = {
+        "file": path.name,
+        "type": ftype,
+        "bytes": path.stat().st_size,
+        "sha256": sha256(path),
+        **meta,
+        "sheets": [],
+    }
+    fingerprints: dict = {}
+    for whole in sheets:
+        for s in split_blocks(whole):
+            sp, fps = profile_sheet(s)
+            if s.get("row_offset") and sp.get("header_row"):
+                sp["header_row"] += s["row_offset"]
+            if s.get("two_row_header"):
+                sp["oddities"].insert(0, "two-row header (group labels above the column names)")
+            if s.get("layout_change"):
+                sp["oddities"].insert(0, "second header row: column layout changes from here")
+            prof["sheets"].append(sp)
+            fingerprints[s["name"] or "csv"] = fps
+    prof["data_rows_total"] = sum(s.get("data_rows", 0) for s in prof["sheets"])
+    prof["oddities"] = [
+        f"[{s['name'] or 'csv'}] {o}" for s in prof["sheets"] for o in s["oddities"]
+    ]
+    return prof, fingerprints
+
+
+# ---------- cross-file checks ----------
+
+
+def sheet_overlaps(fp_by_file: dict[str, dict]) -> list[dict]:
+    """Sheets inside the same file that share rows, ignoring the first column (usually the date).
+
+    Penrith "Jun 26" turned out to be a copy of "Jul 26".
+    """
+    out = []
+    for f, sheets in fp_by_file.items():
+        names = list(sheets)
+        for i, a in enumerate(names):
+            for b in names[i + 1 :]:
+                ra = {r[1:] for r in sheets[a]}
+                rb = {r[1:] for r in sheets[b]}
+                shared = len(ra & rb)
+                if ra and rb and shared >= 0.5 * min(len(ra), len(rb)):
+                    out.append(
+                        {
+                            "file": f,
+                            "sheet_a": a,
+                            "sheet_b": b,
+                            "shared_rows": shared,
+                            "rows_a": len(ra),
+                            "rows_b": len(rb),
+                        }
+                    )
+    return out
+
+
+def overlap_report(fp_by_file: dict[str, dict]) -> list[dict]:
+    """Pairs of files that share data rows (exact match on all kept cells)."""
+    flat = {f: {row for fps in sheets.values() for row in fps} for f, sheets in fp_by_file.items()}
+    names = sorted(flat)
+    out = []
+    for i, a in enumerate(names):
+        for b in names[i + 1 :]:
+            if not flat[a] or not flat[b]:
+                continue
+            shared = len(flat[a] & flat[b])
+            if shared:
+                out.append(
+                    {
+                        "file_a": a,
+                        "file_b": b,
+                        "shared_rows": shared,
+                        "rows_a": len(flat[a]),
+                        "rows_b": len(flat[b]),
+                        "a_contained_in_b": flat[a] <= flat[b],
+                        "b_contained_in_a": flat[b] <= flat[a],
+                    }
+                )
+    return out
+
+
+def write_index(profiles: list[dict], overlaps: list[dict]) -> None:
+    with open(OUT / "_index.csv", "w", newline="", encoding="utf-8") as fh:
+        w = csv.writer(fh)
+        w.writerow(
+            [
+                "file",
+                "type",
+                "sheets",
+                "hidden_sheets",
+                "data_rows",
+                "date_min",
+                "date_max",
+                "rating_values",
+                "n_oddities",
+            ]
+        )
+        for p in sorted(profiles, key=lambda x: x["file"].lower()):
+            cols = [c for s in p["sheets"] for c in s.get("columns", [])]
+            dmins = [c["date_min"] for c in cols if c.get("date_min")]
+            dmaxs = [c["date_max"] for c in cols if c.get("date_max")]
+            rvals = sorted(
+                {
+                    k
+                    for c in cols
+                    if c["proposed_role"] == "rating" and isinstance(c.get("values"), dict)
+                    for k in c["values"]
+                }
+            )
+            w.writerow(
+                [
+                    p["file"],
+                    p["type"],
+                    len(p["sheets"]),
+                    sum(s["state"] not in ("visible", "n/a (csv)") for s in p["sheets"]),
+                    p["data_rows_total"],
+                    min(dmins) if dmins else "",
+                    max(dmaxs) if dmaxs else "",
+                    "|".join(rvals[:15]),
+                    len(p["oddities"]),
+                ]
+            )
+    (OUT / "_overlaps.json").write_text(json.dumps(overlaps, indent=2))
+
+
+def main(argv=None) -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("files", nargs="*")
+    ap.add_argument("--all", action="store_true")
+    args = ap.parse_args(argv)
+    paths = (
+        sorted(
+            p
+            for p in RAW.iterdir()
+            if p.suffix.lower() in (".csv", ".xlsx") and not p.name.startswith("~$")
+        )
+        if args.all
+        else [Path(f) for f in args.files]
+    )
+    OUT.mkdir(parents=True, exist_ok=True)
+    profiles, fps = [], {}
+    for p in paths:
+        prof, fp = profile_file(p)
+        profiles.append(prof)
+        fps[p.name] = fp
+        (OUT / f"{p.stem}.json").write_text(
+            json.dumps(prof, indent=2, default=str), encoding="utf-8"
+        )
+        print(
+            f"{p.name}: {prof['data_rows_total']} rows, {len(prof['sheets'])} sheet(s), "
+            f"{len(prof['oddities'])} oddities"
+        )
+    overlaps = overlap_report(fps)
+    within = sheet_overlaps(fps)
+    for w in within:
+        print(
+            f"SHEET OVERLAP {w['file']}: {w['sheet_a']} <-> {w['sheet_b']}: "
+            f"{w['shared_rows']} shared rows"
+        )
+        prof = next(p for p in profiles if p["file"] == w["file"])
+        prof["oddities"].append(
+            f"sheets {w['sheet_a']!r} and {w['sheet_b']!r} share {w['shared_rows']} "
+            f"of {min(w['rows_a'], w['rows_b'])} rows (copied sheet?)"
+        )
+        (OUT / f"{Path(w['file']).stem}.json").write_text(
+            json.dumps(prof, indent=2, default=str), encoding="utf-8"
+        )
+    for o in overlaps:
+        print(f"OVERLAP {o['file_a']} <-> {o['file_b']}: {o['shared_rows']} shared rows")
+    write_index(profiles, overlaps + [{"within_file": True, **w} for w in within])
+    return 0
+
+
+def write_review(out: Path = OUT) -> Path:
+    """Human-readable checklist of every profile, for the owner's spot-checks (Checkpoint 1)."""
+    lines = [
+        "# Profiles: review sheet",
+        "",
+        "Pick any 3 files, open them in Excel, and tick the lines that match (put Y in the box).",
+        "",
+    ]
+    for f in sorted(out.glob("*.json"), key=lambda p: p.name.lower()):
+        if f.name.startswith("_"):
+            continue
+        p = json.loads(f.read_text(encoding="utf-8"))
+        lines += [f"## {p['file']}", ""]
+        if p.get("delimiter"):
+            lines.append(f"- [ ] CSV separated by `{p['delimiter']}`")
+        lines.append(f"- [ ] {p['data_rows_total']} data rows in total")
+        for s in p["sheets"]:
+            lines.append(
+                f"- [ ] Sheet **{s['name'] or 'csv'}**: header in row {s['header_row']}, "
+                f"**{s.get('data_rows', 0)} data rows**"
+            )
+            for c in s.get("columns", []):
+                bits = [f"`{c['name']}` → {c['proposed_role']}", f"{c['null_pct']}% empty"]
+                if c.get("date_min"):
+                    bits.append(f"dates {c['date_min']} to {c['date_max']}")
+                if isinstance(c.get("values"), dict) and c["proposed_role"] in LISTABLE_ROLES:
+                    bits.append(
+                        "values: " + ", ".join(f"{k} ({v})" for k, v in c["values"].items())
+                    )
+                lines.append("    - [ ] " + "; ".join(bits))
+        if p["oddities"]:
+            lines.append("- Oddities: " + "; ".join(p["oddities"]))
+        lines.append("")
+    path = out / "_review.md"
+    path.write_text("\n".join(lines), encoding="utf-8")
+    return path
+
+
+if __name__ == "__main__":
+    if "--review" in sys.argv:
+        print(write_review())
+        sys.exit(0)
+    rc = main()
+    write_review()
+    sys.exit(rc)

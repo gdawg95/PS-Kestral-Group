@@ -1,0 +1,17 @@
+# Ollama for the optional LLM step (DECISIONS.md D-011, D-012).
+# Runs CPU-only on the owner's laptop. Image pinned by digest, recorded 29 Oct 2026.
+# Model: qwen2.5:3b, Ollama model ID 357c53fb659c (1.9 GB). Pull it once with:
+#   docker compose exec ollama ollama pull qwen2.5:3b
+# Then check `ollama list` shows ID 357c53fb659c.
+# Fixed project name so the model volume (kestrel-ollama_ollama) is the same
+# whichever folder this is run from.
+name: kestrel-ollama
+services:
+  ollama:
+    image: ollama/ollama@sha256:20d1bbfbabe1c97ba4b16301f08a20d8484bcf77047742a3cb71c613d8e12d0b
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+volumes:
+  ollama:

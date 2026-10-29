@@ -1,0 +1,96 @@
+{
+  "file": "bendigo feedback.csv",
+  "type": "csv",
+  "bytes": 14622,
+  "sha256": "85d134dd3bed9470d37894cb6d268d7b45a224d01cff4da2837943b7cff95384",
+  "bom": true,
+  "encoding": "utf-8-sig",
+  "delimiter": ",",
+  "sheets": [
+    {
+      "name": null,
+      "state": "n/a (csv)",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 145,
+        "cols": 4
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 4 text cells, followed by data",
+      "data_rows": 144,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 118,
+          "types": {
+            "date text": 144
+          },
+          "date_formats": {
+            "%d %b %y": 144
+          },
+          "date_min": "2025-10-02",
+          "date_max": "2026-09-30",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 8,
+            "median": 9,
+            "max": 9
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Dept",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 3,
+          "types": {
+            "text": 144
+          },
+          "values": {
+            "SV": 97,
+            "S": 32,
+            "P": 15
+          }
+        },
+        {
+          "name": "Stars",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "text": 144
+          },
+          "numeric_share": 0.0,
+          "values": {
+            "\u2605\u2605\u2605\u2605\u2605": 60,
+            "\u2605\u2605\u2605\u2605\u2606": 41,
+            "\u2605\u2606\u2606\u2606\u2606": 20,
+            "\u2605\u2605\u2605\u2606\u2606": 14,
+            "\u2605\u2605\u2606\u2606\u2606": 9
+          }
+        },
+        {
+          "name": "What did they say?",
+          "proposed_role": "comment",
+          "null_pct": 28.5,
+          "n_distinct": 103,
+          "types": {
+            "text": 103
+          },
+          "length": {
+            "min": 12,
+            "median": 97,
+            "max": 364
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": []
+    }
+  ],
+  "data_rows_total": 144,
+  "oddities": []
+}
