@@ -1,0 +1,96 @@
+# The approved theme list. Closes D-023.
+#
+# Approved by the owner (gdawg95), 30 Oct 2026, in conversation, from the candidate clusters
+# in reports/theme_discovery.md and the evidence in reports/theme_proposal.md. Capped at 8 by
+# D-059.
+#
+# Provenance, because the technical report has to defend it:
+#   Six themes were DISCOVERED. KMeans at k=12 over UMAP-reduced MiniLM embeddings of all
+#   5,353 redacted comments, seed 42. KMeans rather than HDBSCAN because HDBSCAN cannot
+#   cluster this corpus - a min_cluster_size sweep returned either 84 micro-clusters or one
+#   cluster holding 87% of the data, since short service comments have no separated density
+#   peaks.
+#   Two themes were ADDED under D-023's "fixed + discovered mix": workmanship and
+#   explanation. Both are plainly present in the comments but neither separated at k=8 or
+#   k=12, so they are added from the business question with quoted evidence rather than
+#   asserted without it.
+#
+# A theme is a SUBJECT, not a complaint category. Each one below has positive and negative
+# comments in it deliberately: Wave 5 reports the negative RATE WITHIN each theme, which only
+# works if the theme itself carries no sentiment. A "bad service" theme would double-count
+# what the sentiment column already says.
+#
+# The `description` field is what gets embedded for assignment, so it is written to read like
+# the comments it should attract, not like a dictionary definition. Changing a description
+# changes every assignment and invalidates the cache.
+
+version: 1
+
+themes:
+  - name: Staff manner
+    description: >-
+      How the staff treated the customer. Friendly, welcoming, helpful, patient, respectful,
+      a good bunch of people, happy to help. Or rude, dismissive, condescending, talked down
+      to, laughed at, made to feel stupid. The manner of the people, separate from the work
+      they did.
+    source: discovered (k=12 clusters 3 and 4, 1,043 comments)
+
+  - name: Communication and updates
+    description: >-
+      Being kept informed while the car was in. Calls, texts and emails that came without
+      being asked for, or that never came. Having to ring to find out what was happening,
+      ringing two or three times, leaving messages nobody returned, promised callbacks that
+      did not happen, quotes that were meant to be emailed and were not.
+    source: discovered (k=12 cluster 0, 751 comments)
+
+  - name: Pricing and billing
+    description: >-
+      What it cost and whether the bill matched what was agreed. Good value, reasonable
+      price, cheaper than expected, the invoice matched the quote. Or charged for work never
+      approved, a pile of extras nobody said yes to, the price changed without being told,
+      the bill came in higher than quoted.
+    source: discovered (k=12 cluster 1, 687 comments)
+
+  - name: Waiting and turnaround
+    description: >-
+      Time. How long the job took, how long the customer waited at the counter or for the
+      car, whether it was ready when promised. Long queues, waiting all day, waited ages,
+      half a Saturday gone, still waiting at 11:30. Or in and out quickly, back same day,
+      ready right on time.
+    source: discovered (k=12 cluster 2, 655 comments)
+
+  - name: Parts availability
+    description: >-
+      Whether the part was on hand. Work blocked or stretched out for weeks because a
+      component was not in stock, had to be ordered in, came from a warehouse interstate, or
+      was waiting on a truck. The customer left without their vehicle, catching buses, paying
+      taxi fares, or needing a hire car they could not afford.
+    source: discovered (k=12 cluster 5, 472 comments)
+
+  - name: Booking
+    description: >-
+      Getting an appointment at all. Booking online or over the phone, how far out the next
+      available appointment was, three weeks to get in. Bookings that were lost, had no
+      record, or got bumped and rescheduled.
+    source: discovered (k=12 cluster 10, 196 comments)
+
+  - name: Workmanship and rework
+    description: >-
+      The quality of the work itself and whether the original fault was actually fixed. A
+      leak or a drip after the hose was replaced, the car still pulling to one side after the
+      brakes were done, a noise still there, the oil leak still there, the fuel gauge still
+      wrong, damage or marks left on the car. Having to bring it back for the same problem.
+    source: >-
+      added (D-023 mix). Did not separate at k=8 or k=12; clusters 6 and 9 mixed it with
+      pricing and turnaround. Added from the business question with quoted evidence.
+
+  - name: Explanation and transparency
+    description: >-
+      Whether the work and the invoice were explained in terms the customer understood. Being
+      shown the worn part, having the quote walked through line by line, told exactly what
+      was being replaced and why, explained without being made to feel dumb. Or left
+      guessing, never told what was wrong, nobody showing them anything.
+    source: >-
+      added (D-023 mix). Did not separate at k=8 or k=12; cluster 9's label suggested it but
+      its examples were pricing and turnaround. Added from the business question with quoted
+      evidence.
