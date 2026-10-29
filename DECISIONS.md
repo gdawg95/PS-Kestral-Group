@@ -62,31 +62,58 @@ Format: `D-NNN · Title · Status · Date`
 - **Evidence:** the profiler's exact-row check found every row of FINAL inside v2; v2 adds 6 rows and extends the date range to 31 Mar. Owner checked the v2 profile against the spreadsheet (agents/reports/w1_profilers_pilot_review.md).
 - **Also found:** the two "extra" files in the owner's folder (54 vs the brief's 52) were Excel lock files (`~$...`), not data. The profiler skips `~$` files.
 
-### D-020 · All ratings normalised to 1–5 · Decided (owner) / Proposed (10-point) · 29 Oct 2026
-- **Decision (owner):** every rating is converted to a 1–5 scale. 3-point word scales map Bad = 1, OK/average/medium = 3, Good = 5.
+### D-020 · All ratings normalised to 1–5 · Decided · 29 Oct 2026
+- **Decision (owner):** every rating is converted to a 1–5 scale. 3-point word scales map Bad = 1, OK/average/medium = 3, Good = 5. Owner approved all the mappings below, including the 10-point rule and the Geelong 2025 reversal (D-030).
 - **Mappings** (applied by `scripts/check_ratings.py`; full table in `reports/rating_check.md`):
   | Source scale | Where | Rows | Rule |
   |---|---|---:|---|
   | 1–5 numeric | most sites | 6,144 | unchanged |
-  | 1–10 | Ringwood (from Feb 2026 template) | 321 | `round(1 + (x−1)·4/9)` → 1,1,2,2,3,3,4,4,5,5 *(proposed, awaiting owner OK)* |
+  | 1–10 | Ringwood (from Feb 2026 template) | 321 | `round(1 + (x−1)·4/9)` → 1,1,2,2,3,3,4,4,5,5 (1–2→1, 3–4→2, 5–6→3, 7–8→4, 9–10→5) |
   | 5-point words | Ballarat | 292 | Very dissatisfied 1 … Very satisfied 5 |
   | Stars ★ | Bendigo | 144 | number of filled stars |
   | 3-point words | Tamworth | 143 | Bad 1 · OK 3 · Good 5 (owner rule) |
   | Reversed 1–5 | Geelong 2025 sheet | 68 | `6 − x` (sheet note: "1 = Excellent, 5 = Poor") |
   | Pivot counts | Toowoomba Q4 2025 | 71 | already 1–5 |
-- **Sanity check result:** every value maps; no out-of-range, fractional or non-numeric ratings. Blank ratings: Tamworth 10, plus 3 note rows elsewhere.
+- **Sanity check result:** every value maps; no out-of-range, fractional or non-numeric ratings. Rows without a rating are dropped (D-031).
 - **Caveats for reporting:** Tamworth's stretched 3-point scale can only produce 1, 3 or 5, so its mean (4.08) isn't strictly comparable with true 5-point sites. Report % positive alongside the mean, and run a sensitivity check (Good = 4). Noosa (feedback cards handed out by staff) averages 4.63, which is likely selection bias.
 
 ### D-028 · Penrith "Sales - New" and "Sales - Used" are one Sales department · Decided · 29 Oct 2026
 - **Decision (owner):** both map to Sales in the Wave 3 department mapping.
 
-### D-029 · Penrith "Jun 26" sheet is a copy of "Jul 26" · Proposed · 29 Oct 2026
+### D-029 · Penrith "Jun 26" sheet is a copy of "Jul 26" · Decided · 29 Oct 2026
 - **Finding:** all 43 rows of the "Jun 26" sheet are identical to "Jul 26", and its dates run 1–31 July 2026. Penrith's real June 2026 feedback is missing from the pack.
-- **Proposed:** exclude the "Jun 26" sheet; report June 2026 as a coverage gap for Penrith (no imputation).
+- **Decision (owner, accepted default):** exclude the "Jun 26" sheet (43 rows); report June 2026 as a coverage gap for Penrith (no imputation).
 
-### D-030 · Geelong 2025 sheet uses a reversed scale · Proposed · 29 Oct 2026
+### D-030 · Geelong 2025 sheet uses a reversed scale · Decided · 29 Oct 2026
 - **Finding:** the 2025 sheet's title says "Rating: 1 = Excellent, 5 = Poor"; the 2026 sheet says "1 = Poor ... 5 = Excellent (new head office scale)". Comments agree: in 2025, low scores carry the positive comments.
-- **Proposed:** convert 2025 ratings with `6 − x` (mean 2.40 → 3.60). Without this, Geelong would show a false jump of +1.4 between 2025 and 2026.
+- **Decision (owner):** convert all 68 ratings on the 2025 sheet with `6 − x` (mean 2.40 → 3.60). Without this, Geelong would show a false jump of +1.4 between 2025 and 2026. The ingestion test suite must assert that the reversal is applied to this sheet only.
+
+### D-031 · Drop rows that have no rating · Decided · 29 Oct 2026
+- **Decision (owner):** a row without a usable rating is dropped, even if it has a comment.
+- **Rows affected:** 13 in total. 10 genuine responses from Tamworth with a blank HOW WAS IT (7% of that file), plus 3 rows that are not feedback at all: a note in Shepparton ("Site closed 31/3/26 ..."), a note in Ringwood Q1 ("*** NEW TEMPLATE FROM FEB") and a test row in Southport ("asdf").
+- **Why:** every analysis needs a score; 10 rows is too few to matter, and keeping score-less rows complicates trend and negative-rate calculations.
+- **Recorded in the data-quality report:** count of dropped rows per file and reason.
+
+### D-032 · Profiling findings: owner accepted all proposed defaults · Decided · 29 Oct 2026
+Source: `agents/reports/w1_profilers.md` (15 findings). Wave 2 ingestion applies each of these.
+
+| # | File(s) | Rule |
+|---|---|---|
+| 1 | Toowoomba Q4 2025 summary | Expand the pivot counts into 71 rows dated mid-month, no comment, flag `from_summary=true`; use in score trends, exclude from NLP |
+| 2 | liverpool_q3_2026.csv | Parse dates month-first (US format); assert every date falls in Jul–Sep 2026 |
+| 3 | Shepparton | 6 dates in Oct–Dec 2026 (after closure) treated as year typos → 2025, flag `date_corrected=true`; drop the note row |
+| 4 | IPS_feedback_log | 10 vague dates ("early Oct", "wk1 Feb") assigned to the 1st/8th/15th/22nd/29th of the month, year from neighbouring rows, flag `date_approx=true` |
+| 5 | Southport | Drop 3 test rows ("asdf", "TEST", 01/01/1900); exclude the "Google reviews (copied)" sheet |
+| 6 | North QLD (Rocky + TSV) | Split into two dealers using the Site column (Rockhampton/Rocky/ROK, Townsville/TSV/Tsv) |
+| 7 | Ringwood | Keep both templates; 10-point ratings mapped per D-020 |
+| 8 | Bendigo, Tamworth, Ballarat | Stars, Good/OK/Bad and satisfaction words mapped per D-020 |
+| 9 | Essendon | Department taken from the sheet name (Sales / Service / Parts) |
+| 10 | Frankston | Drop the 12 monthly "Total ..." rows and blank separators; read both layouts |
+| 11 | Dandenong | Header at row 4 of each monthly sheet; ignore the empty `Sheet3` |
+| 12 | All | Department variants mapped in Wave 3 to Service / Sales / Parts; New Cars and Used Cars → Sales (and D-028) |
+| 13 | Several | Extra columns ("Action", "Action taken", "Followed up?", "Source") dropped by the allowlist (D-003) |
+| 14 | Geelong 2025 sheet | Reversed scale, `6 − x` (D-030) |
+| 15 | Penrith | Exclude the "Jun 26" copy; June 2026 reported as a gap (D-029) |
 
 ## Outputs
 
