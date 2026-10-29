@@ -56,7 +56,7 @@ Format: `D-NNN · Title · Status · Date`
 - **Method:** (1) exact-match redaction of that row's own name/rego values (where the source has those columns); (2) regex for phones, emails, addresses and Australian rego formats; (3) spaCy NER for remaining person names.
 - **[STAFF] vs [NAME]:** an NER person name is tagged `[STAFF]` only when it appears in a staff context (e.g. "Dave in service", "my salesperson Priya"); otherwise `[NAME]`. Owner expects `[STAFF]` to be rare, so imprecision here is low-impact.
 - **Known risk:** rego regex can false-positive on model and part codes (e.g. RAV4, CX5, V8). The test suite must include these as must-*not*-redact cases.
-- **Method update after the PII pilot (29 Oct 2026, proposed, owner to approve):** the first laptop pilot missed "Raj" and a lower-case "dave", and redacted the ordinary words "Spooky" and "Keys". Three steps added:
+- **Method update after the PII pilot (29 Oct 2026, accepted by the owner after reviewing the second pilot):** the first laptop pilot missed "Raj" and a lower-case "dave", and redacted the ordinary words "Spooky" and "Keys". Three steps added:
   1. **Staff roster:** the 16 first names in the data's staff columns ("Taken by", "Logged by", "Card given by", "Staff") are redacted as `[STAFF]` in any letter case.
   2. **Sentence-start guard:** a one-word spaCy PERSON at the start of a sentence is redacted only if it is a first name seen in a name or staff column.
   3. **Corpus pass:** names spaCy tags mid-sentence in ≥ 2 comments, and that are capitalised in ≥ 60% of their uses, are redacted in any case ("Dave" yes; "Will", "Lovely" no). Token chosen by context.
@@ -121,6 +121,11 @@ Source: `agents/reports/w1_profilers.md` (15 findings). Wave 2 ingestion applies
 | 13 | Several | Extra columns ("Action", "Action taken", "Followed up?", "Source") dropped by the allowlist (D-003) |
 | 14 | Geelong 2025 sheet | Reversed scale, `6 − x` (D-030) |
 | 15 | Penrith | Exclude the "Jun 26" copy; June 2026 reported as a gap (D-029) |
+
+### D-033 · PII sign-off (gate G4) without extra owner test cases · Decided · 29 Oct 2026
+- **Decision (owner):** skip the brief's "owner adds 3 test cases" criterion because of time; the PII module is accepted as is.
+- **Compensating controls:** owner read 40 redacted comments across two pilots and found no visible personal data in the second; automated leak check found 0 staff names and no real names left in the two pilot files; 41 synthetic fixture cases plus 9 allowlist and corpus-pass unit tests, including must-not-redact cases.
+- **Residual risk (accepted):** a name used once, in lower case and absent from any staff column, can get through. Wave 2 adds a dataset-wide leak count to the data-quality report.
 
 ## Outputs
 
