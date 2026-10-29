@@ -142,8 +142,9 @@ Verified by: S Gyaw, 29/10/2026
 - **Where the owner's instruction was corrected:** the owner approved the dealer codes as "QLD 02 Ipswich" and "QLD 07 is the combination of Rockhampton & Townsville". Ipswich is QLD03 (QLD02 is Springwood, which has its own file) and QLD07 is Rockhampton with QLD08 Townsville. D-034 records both the approval and the correction; the mapping implements the corrected codes.
 - **Owner decisions arising:** D-034, D-035, D-013 revision 2. Eight further questions are open in `mappings/QUESTIONS.md`, three of which (Q1 Bendigo codes, Q2 Southport no-date row, Q3 Toowoomba missing Sales) change rows in the dataset.
 - **Not done / not verified:** the Makefile itself is untested because the laptop has no `make`; the pipeline stage modules it calls do not exist yet. No data has been ingested — Checkpoint 2 blocks it.
-- **Verdict:** <owner to complete>
-- **Verified by:** <owner, date>
+
+Verdict: Identification of tricky edge cases from the spreadsheets, where there were inconsistent data formats. 
+Verified by: S Gyaw, 29/10/2026 
 
 ### AI-006 · Wave 2 · Checkpoint 2, ingestion and the G1 pilot · Claude Code (desktop app, laptop repo) · 29 Oct 2026
 - **Tool / model:** Claude Opus 5, in `C:\PS-Kestral-Group` with the project virtual environment (D-013 revision 2). Branch `w1-wrapup`.
@@ -168,8 +169,9 @@ Verified by: S Gyaw, 29/10/2026
 - **Also qualified:** the owner referred to Southport's no-date row as row 166; it is row 167. Both the draft's number and the owner's were off by one, which is why the mapping now records every junk row by spreadsheet row *and* cell values. The row is a test row either way — its comment reads "testing new form" — so the decision stands.
 - **Owner decisions arising:** D-036 – D-045. Checkpoint 2 passed; the trend threshold stays TBD at the owner's choice, with `reports/trend_evidence.md` written to support it.
 - **Not done / not verified:** steps 3 and 4 of the brief (per-dealer joins with the four D-002 proofs, and the whole-corpus leak check) have not run, so **D-019 is still open**. `data/interim/consolidated.parquet` holds the pilot's 1,946 rows, not the expected 7,159 — anything reading it now reads a sixth of the data. `reports/trend_evidence.md` covers 6 of 24 dealerships. The Makefile is still untested because the laptop has no `make`. `nlp_pass_mark` is still TBD.
-- **Verdict:** <owner to complete>
-- **Verified by:** <owner, date>
+
+Verdict: Splitting of conjoined raw data, and removal of unrequired data. 
+Verified by: S Gyaw, 29/10/2026
 
 ### AI-007 · Wave 2 · Full ingestion, the four join proofs and Wave 3 preparation · Claude Code (desktop app, laptop repo) · 29 Oct 2026
 - **Tool / model:** Claude Opus 5, in `C:\PS-Kestral-Group` with the project virtual environment (D-013 revision 2). Branch `w1-wrapup`.
@@ -194,8 +196,9 @@ Verified by: S Gyaw, 29/10/2026
 - **Where the AI declined to report the convenient number:** the leak check's raw name counter said 100 comments (1.9%). Sifting it the way D-026 sifts names showed 98 are ordinary words and 2 are probable misses — 0.04%. The report gives both numbers and explains the difference, rather than the flattering one or the alarming one alone.
 - **Owner decisions arising:** D-046 (pilot signed off, G1 passed). Still needed before Wave 3: approve `mappings/departments.yaml` (Checkpoint 3), decide the 9 Springwood pairs (closes D-019), approve `agents/briefs/w3_validate.md` (gate G2). Before Wave 4: `nlp_pass_mark`, and the hand-labelled sample, which the owner labels blind to model output.
 - **Not done / not verified:** `mappings/departments.yaml` is a draft and nothing departmental may be reported until it is approved. Two comments may still carry a name (`IPS_feedback_log.xlsx` rows 35 and 40) — worth two minutes before anything is published. `trend_evidence` and `nlp_pass_mark` are still TBD in `config.yaml` (gate G7). `make all` is still untested as `make`, the laptop having none. `README.md` is still two lines and is deliverable #3.
-- **Verdict:** <owner to complete>
-- **Verified by:** <owner, date>
+
+Verdict: Accepted the two name misses turned out to be three and the leak check missed the destroyed [EMAIL] tokens. Both fixed in AI-008.
+Verified by: S Gyaw, 29/10/2026
 
 ### AI-008 · Wave 3 · Validation, the four Checkpoint 3 decisions, PII fix and the technical report · Claude Code (desktop app, laptop repo) · 29 Oct 2026
 - **Tool / model:** Claude Opus 5, in `C:\PS-Kestral-Group` with the project virtual environment (D-013 revision 2). Branch `w1-wrapup`.
@@ -219,5 +222,6 @@ Verified by: S Gyaw, 29/10/2026
 - **Where the evidence contradicted the brief, and the AI's own framing.** The brief warned that dropping the 9 Springwood rows "moves a dealership's published score"; measured first, it moves the mean by 0.007 and the rank not at all, so the decision was taken on correctness grounds and the brief's premise was reported as wrong. The brief also flagged a 0.35 gap for "Workshop"; across the six service spellings it is not significant (ANOVA F=1.55, p=0.170), and the naive pairwise test that *does* return p=0.008 was identified as the artifact of picking the highest of six groups before testing it. And having told the owner the two `Aug?` dates were the weakest of the sixteen, showing the neighbouring rows proved them the best supported — row 248 sits between two rows both dated 12 Aug. All three corrections are in DECISIONS.md rather than only in conversation.
 - **Owner decisions arising:** D-047 – D-053. Gate G2 (the brief) and gate G1 (the pilot) both cleared by the owner. `nlp_pass_mark` deferred to Wave 4 by the owner's choice, with the baseline evidence written up first (`reports/nlp_pass_mark_evidence.md`): always answering "positive" scores 59.3%, so 80% raw agreement is only 21 points above a model that cannot read.
 - **Not done / not verified:** the over-redaction defect in summary row 24 was fixed in this same session on the owner's instruction (D-054), after this entry was first written. Still outstanding: `reports/run_manifest.json` does not exist. `make all` cannot succeed — `classify`, `analyse` and `figures` are unwritten — and `make` itself is still unavailable on the laptop. The final theme list (D-023) and the LLM in/out call (D-024) are Wave 4. Whether the nine dropped comments read as double entries to a human was the owner's judgement, not verified by the AI. `gitleaks` has not been run over the history.
-- **Verdict:** <owner to complete>
-- **Verified by:** <owner, date>
+
+Verdict: AI picked up on four of its own errors (were caught by the tests and the diff review) and two caught by my own checking questions.
+Verified by: S Gyaw, 29/10/2026
