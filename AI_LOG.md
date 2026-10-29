@@ -177,6 +177,7 @@ Verified by: S Gyaw, 29/10/2026
   - `agents/briefs/w3_validate.md`, which cuts PLAN.md's four Wave 3 agents down to what is actually left: dealership matching is gone (D-034), dates and scales are mostly done, theme discovery moves to Wave 4.
   - `reports/trend_evidence.md` regenerated on all 24 dealerships.
   - `agents/reports/w2_ingest.md` rewritten for the full run. Decision recorded: D-046.
+  - **Brief reconciled against what was actually touched.** `agents/briefs/w2_ingest.md` said "Not allowed: DECISIONS.md" and limited the Makefile to its ingest target, yet DECISIONS.md, AI_LOG.md, three `scripts/`, two new reports and the Makefile's lint target were all changed. Every one was asked for by the owner except two, which are the agent's own. The brief now carries a table naming each change and who authorised it, because PLAN.md section 9's stop rule says an agent going outside its brief should be rejected and re-briefed - a reviewer comparing the diff against "Allowed to touch" would have been right to reject the work. The report also records why PLAN.md's "Site joiners x3" produced no reports of their own.
 - **Checks performed:**
   - `ruff check .`: all checks passed. `pytest -q`: **197 passed, 2 skipped**.
   - `scripts/check_mapping.py`: 52/52 files reconcile. `scripts/check_departments.py`: 16 values, 16 entries, counts match the data.

@@ -151,6 +151,27 @@ And one caught by the test suite rather than by me: tightening the regex to fix 
 stopped it matching "Grand Total", because `total` anchored at the start of a string
 does not match a string beginning "Grand". The existing test failed immediately.
 
+## Where this differs from PLAN.md section 8
+
+PLAN.md's Wave 2 names three agent types. Only one ran, so a reviewer looking for the
+other two reports will not find them. The reason, for the record:
+
+| PLAN.md's Wave 2 agent | What happened |
+|---|---|
+| Mapping — draft `columns.yaml` | Ran as **step 1 of this agent**, not separately. The mapping went to the owner on its own at Checkpoint 2 before any code was written, which is what the separation was for. |
+| **Site joiners ×3 (VIC / NSW / QLD)** | **Never ran as separate agents.** There was nothing for them to do: a per-state joiner only makes sense if each state's files are stitched into a running sheet first, and ingestion reads every file straight into one frame keyed by `dealer_code`. The four proofs those joiners existed to produce — non-overlapping date ranges, no unexpected month gaps, rows in = rows out, exact-match duplicates — are implemented here as steps 3 and 4 and published in `reports/reconciliation.md`, per dealer rather than per state. |
+| Ingest — build the consolidated dataset | This agent. |
+
+So no evidence is missing, but it is in one report instead of four, and grouped by
+dealership rather than by state. PLAN.md section 8 has not been edited: it is the owner's
+document, and a plan that records what was intended is more useful to a reviewer than one
+quietly rewritten to match what happened.
+
+The same is true of Wave 3, which PLAN.md still describes as four agents. Two of them are
+gone — dealership matching has nothing left to match (D-034) and theme discovery belongs
+with the rest of the NLP in Wave 4. `agents/briefs/w3_validate.md` sets out what is
+actually left and why, for the owner to approve under G2.
+
 ## Assumptions
 
 - **`classify_junk` never scans the comment column.** A customer may open with

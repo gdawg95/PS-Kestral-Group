@@ -1,22 +1,37 @@
 # Brief: w2_ingest
-**Status:** steps 1, 2 and 5 complete; the G1 pilot has run; steps 3 and 4 wait on the
-owner checking the pilot's reconciliation rows.
+**Status:** all five steps complete, 29 Oct 2026. Awaiting the owner's verdict in
+`AI_LOG.md` (control loop step 6) and the merge (G5).
+**Approved by:** owner (gdawg95), 29 Oct 2026 — Checkpoint 2 on the revised
+`mappings/columns.yaml` (D-036 – D-045), then G1 on the pilot (D-046).
 
-**Progress (29 Oct 2026, late afternoon):**
-- **Checkpoint 2 passed.** The owner answered all eight questions in
-  `mappings/QUESTIONS.md`, asked for four changes, and approved the revised
-  `mappings/columns.yaml` (D-036 – D-045).
-- `src/ingest.py` and `tests/test_ingest.py` are written: 112 test cases, synthetic
-  frames only, one test per rule the owner decided.
-- **Pilot run on the five awkward dealers** (six dealer codes, because North QLD is two
-  dealerships): 1,884 rows read → 1,946 written, arithmetic closing, every drop reasoned.
-  See `reports/reconciliation.md` and `agents/reports/w2_ingest.md`.
-- Two mapping errors found and fixed in the process: the Wollongong encoding (D-043) and
-  the row budget double-subtracting blank and "Total" rows (D-039).
-- **Next:** the owner checks the pilot rows, then steps 3 and 4 run over all 51 files.
-  `data/interim/consolidated.parquet` currently holds the pilot's 1,946 rows, not 7,159.
+**Outcome (29 Oct 2026):** 7,137 rows read → **7,159 written** across 24 dealerships,
+hitting the row budget the owner approved before any code existed. Three of the four
+D-002 proofs pass; the fourth found 9 double-entered pairs in Springwood, which is the
+owner's decision and keeps **D-019 open**. Full detail in
+`agents/reports/w2_ingest.md` and `reports/reconciliation.md`.
 
 The questions below the steps are answered: Q1 → D-034, Q2 → D-035.
+
+## Scope changes the owner directed after this brief was approved
+
+Recorded because the stop rule in PLAN.md section 9 says an agent going outside its
+brief should be rejected and re-briefed, not patched. Each of these was asked for by the
+owner in conversation; none was the agent's own idea. Without this section a reviewer
+comparing the files changed against "Allowed to touch" would be right to reject the work.
+
+| File touched | Not in the original brief because | Who asked, and when |
+|---|---|---|
+| `DECISIONS.md` (D-034 – D-046) | the brief says explicitly *not allowed* | Owner, 29 Oct: "Good deduction, pls add to the DECISIONS.md file", then eight question answers and four mapping changes that each needed recording |
+| `AI_LOG.md` (AI-005 – AI-007) | not listed either way | Control loop step 6 requires an entry per agent run; the verdict line is left for the owner |
+| `reports/formatting_changes.md` | a new deliverable | Owner, 29 Oct: "note where all the formatting changes are across all worksheets — I will add them to the client report" |
+| `reports/trend_evidence.md`, `scripts/trend_evidence.py` | a new deliverable | Owner, 29 Oct, choosing "set it after the data" for the trend threshold (D-044), which required the evidence to exist |
+| `mappings/departments.yaml`, `scripts/check_departments.py` | Wave 3 preparation | Owner, 29 Oct: "is there anything to be done prior to Wave 3?" |
+| `agents/briefs/w3_validate.md` | Wave 3 preparation | same question; the brief needs G2 approval before Wave 3 starts |
+| `scripts/check_mapping.py` | not listed | Agent's own addition, Wave 1 wrap-up, so the owner could check a 31-layout mapping against the profiles rather than by eye. Declared in `agents/reports/w1_scaffold.md` |
+| `Makefile`, `scripts/run.ps1` — **lint** target, not the ingest target | the brief allows the ingest target only | Agent's own fix: `make lint` ran `ruff format --check`, which fails on 8 files, so `make all` — the command the Wave 5 verifier runs — could not succeed. Logged as AI_LOG summary row 14 |
+
+The last two are the agent's own, not the owner's. Both are declared rather than quiet,
+and either can be reverted without affecting the dataset.
 
 Goal:            Turn the 52 raw files into one consolidated, de-identified dataset with one row per piece of
                  feedback, and prove nothing was lost, duplicated or mis-assigned.
@@ -24,7 +39,7 @@ Inputs:          data/raw/feedback/ (52 files), data/raw/reference/dealerships.c
                  DECISIONS.md (D-001 – D-005, D-020, D-026 – D-033)
 Outputs:         mappings/columns.yaml (per-file mapping, owner-approved before ingestion runs: Checkpoint 2)
                  src/ingest.py, tests/test_ingest.py
-                 data/interim/consolidated.parquet (+ .csv copy so the cloud workspace can read it; both gitignored)
+                 data/interim/consolidated.parquet (gitignored; the .csv twin is no longer needed — see below)
                  reports/reconciliation.md (rows in → rows out per file and per dealer, with every drop and fix counted)
                  agents/reports/w2_ingest.md
 Allowed to touch: mappings/, src/ingest.py, tests/test_ingest.py, reports/reconciliation.md, Makefile (ingest target),
@@ -32,8 +47,8 @@ Allowed to touch: mappings/, src/ingest.py, tests/test_ingest.py, reports/reconc
 Not allowed:     src/pii.py (except a bug fix, reported), DECISIONS.md, writing any raw value other than the four kept
                  columns to disk
 Decisions that apply: D-001, D-002, D-003, D-005, D-020, D-026, D-027 – D-033
-Runs in:         code written in the cloud workspace; ingestion runs on the owner's laptop (`make ingest`, needs spaCy),
-                 output read back through the bridge (D-013)
+Runs in:         the laptop repository directly — code and ingestion both (D-013 revision 2 replaced the
+                 cloud-workspace / log-paste arrangement this line originally described)
 
 Steps:
   1. Draft mappings/columns.yaml from the profiles. One entry per file (and per sheet / layout where they differ):
