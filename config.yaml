@@ -42,5 +42,17 @@ thresholds:
     min_change_1to5: 0.5            # smallest change reported as a trend
     thin_dealer_basis: quarterly    # NSW07, QLD05, QLD07, VIC08, VIC09: median month < 20
 
-  nlp_pass_mark: TBD                # D-022, set in Wave 4 before hand-labelling (gate G7)
+  # The NLP pass mark (D-055, closes D-022). Evidence:
+  # reports/nlp_pass_mark_evidence.md - commented rows are 59.3% positive, so a model that
+  # answers "positive" every time scores 59.3% raw agreement but kappa = 0. This supersedes
+  # the ">= 80% on 100 comments" default proposed in agents/briefs/w3_validate.md Q4.
+  nlp_pass_mark:
+    metric: cohens_kappa            # chance-corrected agreement, not raw agreement
+    sentiment_min_kappa: 0.60       # 3-class sentiment; always-positive model scores 0
+    sample_size: 150                # +/-6.4pp at 95%; 100 comments gives +/-7.8pp
+    sample_stratified: true         # ~50/50/50 by score class, weighted back for headlines
+    theme_bar: TBD                  # share of assignments judged defensible; set once the
+                                    # theme list is fixed (D-023)
+    fallback: score_only            # kappa < 0.60 -> D-004's rating is primary and
+                                    # sentiment is reported as a method comparison
   llm_max_projected_hours: 2        # D-011 cut-off rule

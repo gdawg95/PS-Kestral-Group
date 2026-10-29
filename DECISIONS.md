@@ -366,7 +366,7 @@ Source: `agents/reports/w1_profilers.md` (15 findings). Wave 2 ingestion applies
   D-034 approved the file → dealer code map by hand, and no free-text dealership column
   survives ingestion (D-003), so there are no strings to score. Leaving it as `TBD` would
   have read as an unresolved threshold for the rest of the project.
-- **Still `TBD`:** `nlp_pass_mark` only (D-022, Wave 4).
+- **Still `TBD`:** `nlp_pass_mark` only (D-022, Wave 4 — set later the same day, see D-055).
 
 ### D-053 · Checkpoint 3: the 16 corrected and imputed dates are approved · Decided · 29 Oct 2026
 - **Owner's words:** "the 16 date rows - i approve the changes."
@@ -475,6 +475,46 @@ Source: `agents/reports/w1_profilers.md` (15 findings). Wave 2 ingestion applies
 
 ## Outputs
 
+### D-055 · `thresholds.nlp_pass_mark` is set: Cohen's κ ≥ 0.60 on a 150-comment stratified sample · Decided · 29 Oct 2026
+- **Owner's words:** "Set κ ≥ 0.60".
+- **Closes D-022,** on the evidence in `reports/nlp_pass_mark_evidence.md` rather than ahead
+  of it (gate G7). Committed before any evaluation result exists, and before the
+  hand-labelling that would produce one.
+- **The rule:**
+  | Setting | Value |
+  |---|---|
+  | `metric` | `cohens_kappa` — chance-corrected agreement, not raw agreement |
+  | `sentiment_min_kappa` | 0.60, on three-class sentiment (negative / neutral / positive) |
+  | `sample_size` | 150 comments |
+  | `sample_stratified` | `true` — roughly 50 / 50 / 50 by score class, weighted back to the true distribution for any headline figure |
+  | `theme_bar` | `TBD` — the share of theme assignments judged defensible, set once the theme list is fixed (D-023) |
+  | `fallback` | `score_only` — if κ < 0.60, D-004's rating signal is primary and sentiment is reported as a method comparison with its κ stated |
+- **This supersedes the default proposed in `agents/briefs/w3_validate.md` Q4** — "sentiment
+  agreement ≥ 80% on a 100-comment hand-labelled sample, with the fallback being rule-based
+  sentiment only". That default was written before the baseline evidence existed, and the
+  evidence the same agent then produced argues against it on both counts.
+  - **The metric.** The commented rows are 59.3% positive, so a model that answers
+    "positive" to every comment scores 59.3% raw agreement. An 80% bar therefore sits only
+    21 points above a model that does not read the text, and can be cleared while getting
+    the negative class — the entire business question — badly wrong. Chance agreement on
+    these marginals is 0.447, so 80% raw agreement corresponds to κ ≈ 0.64: a κ floor of
+    0.60 is very nearly the same bar for a model that genuinely works, and it is what fails
+    the always-positive model, which scores κ = 0.
+  - **The sample size.** At 100 comments the 95% confidence half-width on an agreement
+    estimate near 80% is ±7.8pp, so a 100-comment sample cannot distinguish 80% from 72%
+    — the ruler is wider than the margin being judged. 150 narrows it to ±6.4pp. Drawn at
+    random, 100 comments also yield only about 13 neutral and 28 negative examples, so both
+    minority classes would be measured off a handful of rows. Stratifying is what makes the
+    negative class measurable.
+- **Why there is no theme bar yet.** D-022 mentions a theme F1. A credible per-theme F1
+  across roughly 8 themes is not available from 150 comments — some themes would have
+  three examples. The bar that a sample this size can defend is the share of assigned
+  themes judged defensible on the same comments, and that cannot be set before the theme
+  list exists (D-023). A real theme F1 needs its own sample, sized after theme discovery,
+  and is a candidate for the cut list.
+- **What this does not change:** the owner still labels the sample blind to model output,
+  and the agent that produces the classification is not the one that grades it (D-017).
+
 ### D-007 · Two reports · Decided · 29 Oct 2026
 - **Decision:** (1) a non-technical business report for the Head of CX; (2) a technical report (`README.md`) for reviewers. The business report links to the technical one.
 
@@ -552,7 +592,7 @@ Source: `agents/reports/w1_profilers.md` (15 findings). Wave 2 ingestion applies
 |---|---|---|
 | D-019 | Duplicate check result (confirms or overturns D-002 assumption) | **Closed 29 Oct 2026 — see D-047.** D-002 holds; the only true duplicates were 9 double-entered pairs at Springwood |
 | D-021 | Evidence threshold for calling a trend real | **Closed 29 Oct 2026 — see D-052.** 20 responses a month, 0.5 stars, thin sites quarterly |
-| D-022 | NLP pass mark and fallback | **Still deferred.** Put to the owner on 29 Oct 2026 with the baseline evidence (`reports/nlp_pass_mark_evidence.md`); the owner chose to set it in Wave 4, before hand-labelling, rather than now. `thresholds.nlp_pass_mark` stays `TBD` and gate G7 still applies — it must be committed before any evaluation result exists |
+| D-022 | NLP pass mark and fallback | **Closed 29 Oct 2026 — see D-055.** Cohen's κ ≥ 0.60 on a 150-comment stratified sample, with D-004's rating signal as the fallback. The theme bar stays open until the theme list is fixed (D-023) |
 | D-023 | Final theme list (fixed + discovered mix) | After theme discovery |
 | D-024 | LLM in or out | After the 20-comment pilot |
 | D-025 | Value benchmarks and assumptions (low/mid/high) | Wave 5 |
