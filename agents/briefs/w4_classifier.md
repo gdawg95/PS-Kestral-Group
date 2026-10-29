@@ -1,6 +1,10 @@
 # Brief: w4_classifier
-**Status:** draft, awaiting owner approval (gate G2)
-<!-- When approved, replace with: **Approved by:** owner (gdawg95), <date>, <where> -->
+**Approved by:** owner (gdawg95), 29 Oct 2026, in conversation — after answering Q1–Q3
+below, each recorded with its evidence as D-056 – D-060. Q3's cap of 8 constrains D-023
+(the final theme list), which stays open until the owner names the themes after discovery.
+Two of those five decisions are Wave 5 reporting rules that this wave's arithmetic forced:
+D-058 (every negative rate names its denominator) and D-060 (the drivers cut is two-way,
+not three-way).
 
 **Drafted 29 Oct 2026, Thursday evening.** This is the first of Wave 4's four agents and
 the only one whose inputs all exist now. The other three are deliberately not drafted yet,

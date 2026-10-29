@@ -515,6 +515,106 @@ Source: `agents/reports/w1_profilers.md` (15 findings). Wave 2 ingestion applies
 - **What this does not change:** the owner still labels the sample blind to model output,
   and the agent that produces the classification is not the one that grades it (D-017).
 
+### D-056 · The `unassigned` similarity floor is set from the observed distribution, not chosen in advance · Decided · 29 Oct 2026
+- **Owner's answer to `agents/briefs/w4_classifier.md` Q1:** set it after assignment.
+- **The decision.** The classifier assigns every comment to its nearest approved theme by
+  cosine similarity and records that similarity. The floor below which a comment becomes
+  `unassigned` is set by the owner *after* seeing the similarity distribution with example
+  comments at each decile, and committed to `config.yaml` before any Wave 5 number uses it.
+- **Why not a number now.** Cosine values depend on the embedding model and on how the theme
+  descriptions in `mappings/themes.yaml` are worded — and neither is fixed until the owner
+  approves the theme list. A floor chosen blind could put anywhere between none and 40% of
+  comments into `unassigned`, and which it was would not be knowable until it ran.
+- **Why this does not breach gate G7.** G7 stops a bar being moved *after seeing how the
+  model scored* — it protects the verdict. The similarity distribution is a property of the
+  comment text and the theme wording, not a result: no negative rate, driver count or
+  recommendation exists or changes while it is inspected. This is the same move D-052 made
+  for `trend_evidence`, which derived 0.5 stars from the measured SD of 1.44 in
+  `reports/trend_evidence.md` and was still committed before any trend result existed.
+- **Audit hardening.** The distribution is reviewed with comment text visible but with no
+  dealership or theme-count breakdown, so the floor cannot be influenced by which site it
+  would flatter.
+
+### D-057 · Rows without a comment carry null sentiment, never "neutral" · Decided · 29 Oct 2026
+- **Owner's answer to `agents/briefs/w4_classifier.md` Q2:** null.
+- **The evidence.** 1,797 of the 7,150 clean rows have no comment. Their ratings are not
+  neutral — they are overwhelmingly positive:
+
+  | Rating | No comment | Has comment |
+  |---|---:|---:|
+  | 1 | 3.7% | 16.9% |
+  | 2 | 2.2% | 11.2% |
+  | 3 | 5.7% | 12.6% |
+  | 4 | 27.0% | 19.9% |
+  | 5 | 61.4% | 39.3% |
+
+  Of the 1,797: **105 negative (1–2), 103 neutral (3), 1,589 positive (4–5)**. Labelling
+  them all "neutral" would mislabel **1,694 of 1,797 — 94.3%** — almost entirely by
+  recoding satisfied customers as indifferent ones, and would inject 1,589 invented
+  neutrals into every sentiment total and every theme denominator.
+- **Nothing is lost by null.** D-004 already makes the rating the minimum signal precisely
+  because many customers leave no comment. The 105 negative-by-rating rows still count as
+  negative feedback; they simply carry no *sentiment* label, because there is no text to
+  have a sentiment about.
+- 71 of the 1,797 are the Toowoomba summary rows that have no comment by design (D-032 #1).
+
+### D-058 · Every negative rate states its denominator · Decided · 29 Oct 2026
+- **Follows from D-057's evidence rather than from a question of its own.** Recorded
+  separately because it is a Wave 5 reporting rule, and Wave 5's brief will cite it.
+- **The finding.** Commentless rows average **4.40** on the 1–5 scale against **3.54** for
+  commented rows — a gap of 0.86. Happy customers tick 5 and leave; unhappy ones write.
+  The commented subset is therefore **not representative** of the feedback population.
+- **The consequence.** Negative rate across commented rows is **28.1%**; across all 7,150
+  rows by rating it is roughly **22.5%** (1,609 rows). A report that says "28% of feedback
+  is negative" without qualification overstates it by 5.6 points, by silently excluding the
+  group that is overwhelmingly satisfied.
+- **The rule.** Every negative-rate figure in either report names its denominator. Theme
+  and sentiment rates are necessarily over the 5,353 commented rows; dealership and
+  department rates under D-004 are over all 7,150. The two are never compared without
+  saying so.
+
+### D-059 · The theme list is capped at 8 · Decided · 29 Oct 2026
+- **Owner's words:** "yes, pls cap to 8 themes, I think that will capture most of the data &
+  dealership sites into a manageable & reportable amount."
+- **Measured against the project's own bar** — `trend_evidence.min_month_responses: 20`
+  (D-052), reused here so two parts of the project do not use different ideas of "enough":
+
+  | Themes | Average dealer × theme cell | Dealerships clearing 20 |
+  |---:|---:|---:|
+  | 8 | 27.9 | **19 of 24** |
+  | 10 | 22.3 | 17 of 24 |
+  | 12 | 18.6 | 8 of 24 |
+
+  There is a cliff between 10 and 12. These figures are also **optimistic**: they assume
+  themes split evenly, and real theme distributions are skewed, so the smaller themes' cells
+  will be thinner than the table suggests.
+- **The five dealerships that do not clear the bar at 8 themes are exactly D-052's five
+  thin sites** — VIC09 (36 commented rows), QLD05 (37), NSW07 (94), VIC08 (103), QLD07
+  (156). Two independent measures, month volume and comment volume, single out the same five
+  sites, which is corroboration rather than coincidence.
+- **Constrains D-023, does not close it.** The theme *names* remain the owner's to set after
+  discovery; this fixes the size of the list, not its content. Cut-list item 8 already made
+  themes beyond roughly 8 cuttable.
+
+### D-060 · Wave 5's drivers cut is rescoped from three-way to two-way · Decided · 29 Oct 2026
+- **This departs from PLAN.md section 8**, which promises "negative rate by theme ×
+  department × dealership". Recorded now, from Wave 4's cell arithmetic, rather than
+  discovered mid-analysis on the Friday.
+- **Why the three-way cut is not available.** 8 themes × 72 department-dealership cells is
+  576 cells for 5,353 comments: **9.3 comments per cell** before any skew. 15 of those 72
+  department × dealership cells already hold fewer than 20 comments before themes enter at
+  all.
+  - **Parts** has 508 commented rows in total; across 8 themes and 24 dealerships that is
+    about 2.6 per cell. Parts can carry a theme breakdown nationally, never per dealership.
+  - **VIC09** (36 commented rows) and **QLD05** (37) cannot support a theme split at all —
+    4 to 5 comments per theme.
+- **The rescope.** Theme × department nationally; theme × dealership for the 19 sites whose
+  average cell clears 20; the five thin sites at department level with a footnote —
+  consistent with D-052 already putting those same five on a quarterly basis for trends.
+- **What is not cut:** the business question. Drivers of negative feedback by theme, and by
+  department, are both still answered. What is dropped is the per-dealership-per-theme cell
+  that the data cannot populate.
+
 ### D-007 · Two reports · Decided · 29 Oct 2026
 - **Decision:** (1) a non-technical business report for the Head of CX; (2) a technical report (`README.md`) for reviewers. The business report links to the technical one.
 
@@ -593,6 +693,6 @@ Source: `agents/reports/w1_profilers.md` (15 findings). Wave 2 ingestion applies
 | D-019 | Duplicate check result (confirms or overturns D-002 assumption) | **Closed 29 Oct 2026 — see D-047.** D-002 holds; the only true duplicates were 9 double-entered pairs at Springwood |
 | D-021 | Evidence threshold for calling a trend real | **Closed 29 Oct 2026 — see D-052.** 20 responses a month, 0.5 stars, thin sites quarterly |
 | D-022 | NLP pass mark and fallback | **Closed 29 Oct 2026 — see D-055.** Cohen's κ ≥ 0.60 on a 150-comment stratified sample, with D-004's rating signal as the fallback. The theme bar stays open until the theme list is fixed (D-023) |
-| D-023 | Final theme list (fixed + discovered mix) | After theme discovery |
+| D-023 | Final theme list (fixed + discovered mix) | After theme discovery. **Size capped at 8 on 29 Oct 2026 — see D-059**; the names stay open until the owner sets them |
 | D-024 | LLM in or out | After the 20-comment pilot |
 | D-025 | Value benchmarks and assumptions (low/mid/high) | Wave 5 |
