@@ -298,23 +298,38 @@ def load_themes() -> list[dict]:
 def assign_themes(embeddings, themes: list[dict]) -> tuple[list[str], list[float]]:
     """Nearest approved theme by cosine similarity (brief step 4).
 
-    The theme's own description is embedded, not its name: "Staff manner" is two words and
-    carries almost no signal, while the description is written to read like the comments it
-    should attract. Assignment is independent of the clustering - a comment can be assigned a
-    theme its KMeans cluster had nothing to do with, which is the point, since two of the
-    eight themes have no cluster of their own.
+    Each theme is represented by several SHORT probe phrases, and a comment's score for a
+    theme is the maximum over that theme's probes. The first version embedded one 60-word
+    description per theme and produced a compressed scale (median 0.328) with two of ten
+    decile spot-checks misassigned: a long description embeds to the centroid of everything
+    it mentions, which sits far from any single 101-character comment, and the descriptions
+    borrowed each other's consequences. See mappings/themes.yaml for the full account.
+
+    Assignment is independent of the clustering - a comment can be assigned a theme its
+    KMeans cluster had nothing to do with. That is the point, since two of the eight themes
+    have no cluster of their own and would otherwise stay empty.
     """
     from sentence_transformers import SentenceTransformer
 
     model = SentenceTransformer(CONFIG["models"]["embeddings"], device="cpu")
-    texts = [f"{t['name']}. {t['description']}" for t in themes]
-    theme_vecs = model.encode(texts, show_progress_bar=False)
+
+    probes: list[str] = []
+    owner: list[int] = []
+    for i, t in enumerate(themes):
+        for probe in t.get("probes") or [f"{t['name']}. {t['description']}"]:
+            probes.append(probe)
+            owner.append(i)
+    probe_vecs = model.encode(probes, show_progress_bar=False)
 
     a = embeddings / np.linalg.norm(embeddings, axis=1, keepdims=True)
-    b = theme_vecs / np.linalg.norm(theme_vecs, axis=1, keepdims=True)
-    sims = a @ b.T
-    best = sims.argmax(axis=1)
-    return [themes[i]["name"] for i in best], sims.max(axis=1).round(4).tolist()
+    b = probe_vecs / np.linalg.norm(probe_vecs, axis=1, keepdims=True)
+    sims = a @ b.T  # comments x probes
+    owner_arr = np.array(owner)
+    per_theme = np.stack(
+        [sims[:, owner_arr == i].max(axis=1) for i in range(len(themes))], axis=1
+    )
+    best = per_theme.argmax(axis=1)
+    return [themes[i]["name"] for i in best], per_theme.max(axis=1).round(4).tolist()
 
 
 def write_assignment_report(path: Path, df: pd.DataFrame, themes: list[dict]) -> None:
