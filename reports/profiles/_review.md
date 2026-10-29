@@ -350,7 +350,7 @@ Pick any 3 files, open them in Excel, and tick the lines that match (put Y in th
     - [ ] `Rating` → rating; 0.0% empty; values: 5 (113), 4 (48), 1 (31), 3 (25), 2 (19)
     - [ ] `Feedback` → comment; 24.2% empty
     - [ ] `Customer` → name; 0.0% empty
-- Oddities: [2025] 3 row(s) above the header (titles or notes); [2026] 3 row(s) above the header (titles or notes)
+- Oddities: [2025] 3 row(s) above the header (titles or notes); [2025] REVERSED rating scale stated above the header (1 = best); [2026] 3 row(s) above the header (titles or notes)
 
 ## Hunter Motors feedback 25-26.xlsx
 
@@ -690,6 +690,7 @@ Pick any 3 files, open them in Excel, and tick the lines that match (put Y in th
     - [ ] `Score` → rating; 0.0% empty; values: 5 (19), 4 (13), 1 (6), 2 (4), 3 (3)
     - [ ] `Comments` → comment; 26.7% empty
     - [ ] `Customer` → name; 0.0% empty
+- Oddities: sheets 'Jun 26' and 'Jul 26' share 43 of 43 rows (copied sheet?)
 
 ## Ringwood feedback Q1 2026.xlsx
 
