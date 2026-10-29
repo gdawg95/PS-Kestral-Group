@@ -1,144 +1,76 @@
-# Open questions on the draft mapping
+# Open questions on the draft mapping — ALL ANSWERED
 
-Read alongside `mappings/columns.yaml`. Eight items. Each has a proposed default, so
-you can approve with one word and only argue with the ones you disagree with.
+**Status:** the owner answered Q1–Q8 on 29 October 2026 and asked for four
+further changes to the mapping. Every answer is recorded as a decision in
+`DECISIONS.md` (D-036 – D-044) and implemented in `mappings/columns.yaml`.
+Nothing on this page is still open.
 
-Q1–Q3 change rows in the dataset. Q4–Q6 are confirmations of things the mapping already
-assumes. Q7–Q8 are about how the reconciliation counts things.
+Kept as the record of what was asked, what was answered, and what changed.
 
----
+| # | Question | Owner's answer | Decision |
+|---|---|---|---|
+| 1 | Bendigo's `SV` / `S` / `P` | Service / Sales / Parts — **and spell the words out** | D-036 |
+| 2 | Southport's row with a rating but no date | It was a test; remove it with the other test rows | D-037 |
+| 3 | Toowoomba's missing Q4 Sales rows | Take at face value; report Service and Parts only | D-038 |
+| 4 | Dandenong's booking-system note | Keep as contextual evidence; no numeric data in the row | D-044 |
+| 5 | Ringwood's second header at row 37 | Confirmed; the 1–10 → 1–5 conversion happens either way | D-044 |
+| 6 | Shepparton's six 2026 dates | Nothing to change | D-044 |
+| 7 | Blank and "Total" rows | Useless — tag as "summary or notes" and drop | D-039 |
+| 8 | The row budget, and the "asdf" row | Count "asdf" as "summary or notes" too, so it drops once | D-037, D-039 |
 
-## Q1. Bendigo codes its departments `SV` / `S` / `P` — do these mean Service / Sales / Parts?
+## The four further changes the owner asked for
 
-**Proposal:** SV = Service, S = Sales, P = Parts.
+| Change | What was done | Decision |
+|---|---|---|
+| "The staff column can be dropped as well" | The staff-name columns were already dropped from the dataset. The key is renamed `redact_staff` to make that plain, and the file now states that they are read in memory only, to strip staff names out of comments. | D-041 |
+| "Note where all the formatting changes are" | New register: `reports/formatting_changes.md` — 13 kinds of inconsistency, each located by dealership, written to lift into the client report. | — |
+| "I am OK with the imputation of estimated dates" for Ipswich | The rule is now exact and self-checking: the day is the midpoint of the nearest dated rows either side, the label supplies the month, and the run fails if those two disagree. Checked by hand for all 10 rows. | D-040 |
+| "Split North QLD into Rockhampton and Townsville, using their own site codes" | Already the plan; now explicit, with both codes, both names and both row counts (202 / 354) asserted in the mapping. | D-042 |
 
-Bendigo is the only file that uses letter codes rather than words. The 144 rows split
-SV 97 / S 32 / P 15, which matches the Service-heavy shape of every other site.
+## What changed in the mapping as a result
 
-I tested it against the comments rather than guessing from the letters:
+- `bendigo` gained `department_map` (SV → Service, S → Sales, P → Parts).
+- `southport` gained a `junk_rows` block naming all four non-feedback rows by
+  spreadsheet row, so the owner can check each one.
+- `ips` date rule rewritten with the 10 values, the method and the cross-check.
+- `northqld` gained a `split` block with asserted per-dealer row counts.
+- `staff_columns` renamed `redact_staff` in all 7 layouts that have one.
+- **`wollongong` encoding corrected from `utf-8` to `cp1252`** — not a question,
+  a bug found while checking the answers. See below.
+- `row_budget` rewritten with counted numbers; `rows_out_expected: 7159`.
 
-| Code | Rows with a comment | "service" words | "sales" words | "parts" words |
-|---|---:|---:|---:|---:|
-| SV | 73 | 17 | 0 | 8 |
-| S | 19 | 2 | 1 | 0 |
-| P | 11 | 1 | 0 | 5 |
+## Two things found while implementing the answers
 
-SV is clearly Service and P is clearly Parts. **S is the weak one** — 19 comments give
-almost no signal either way, and it only becomes Sales by elimination. If S were
-actually a second spelling of Service, Bendigo's Sales feedback would vanish and its
-Service volume would be understated by 32 rows.
+**1. Both Wollongong CSVs are Windows-1252, not UTF-8.** The draft said UTF-8.
+Reading them as UTF-8 raises `UnicodeDecodeError` on a curly apostrophe inside
+the comment column. Forcing it past that would corrupt the apostrophes in the
+very text the NLP reads. Fixed in the mapping; recorded as D-043.
 
-**Worth two minutes of your time:** open `bendigo feedback.csv`, filter `Dept = S`, and
-read five comments. If they read like car buying, we are done.
-
-## Q2. Southport has one row with a rating but no date. Drop it?
-
-Source row 165: Sales, rating 3, no date, and it is not one of the three test rows
-D-032 #5 already covers. D-031 only decided what to do about rows with no *rating*.
-
-**Proposal:** drop it, counted under its own reason `no_date` in the reconciliation.
-Every analysis is by month, so a row with no date cannot join a trend, and inventing a
-date for one row adds more risk than the row is worth.
-
-**Alternative** if you would rather keep it: date it as the midpoint of the rows either
-side of it in the sheet and flag `date_approx`, the same treatment IPS gets (D-032 #4).
-
-## Q3. Toowoomba logged no Sales feedback at all in Q4 2025. Is that real?
-
-The Q4 2025 summary file has six rows — Parts and Service for each of October, November
-and December — totalling 71. There is no Sales row anywhere in it.
-
-**Proposal:** take it at face value and report Toowoomba Q4 2025 as Service and Parts
-only. The expanded rows carry `from_summary = true`, no comment, and are dated the 15th
-of their month.
-
-**Why I am asking:** if the summary was built by someone who only pivoted two
-departments, Toowoomba's Q4 Sales feedback exists somewhere we have not been given, and
-Toowoomba's quarter-on-quarter numbers will look like a composition change rather than a
-data gap. Either way it needs a footnote; the question is which footnote.
-
-## Q4. Dandenong's May 2026 sheet carries a note about a new booking system. Keep it for Wave 5?
-
-The sheet has an extra row above the header: *"NOTE: new online booking system went live
-5 May. Expect some teething issues — log everything!"*
-
-**Proposal:** drop it from the data (it is a note, not a row of feedback) but record it
-as a known event for the trend section. If Dandenong's scores dip from May, this is the
-most likely cause and the business report should say so rather than leave the reader to
-guess.
-
-No data changes either way — I just do not want it to disappear with the note row.
-
-## Q5. Ringwood Q1 2026 — is the template change at row 37 right?
-
-One sheet, two templates: rows 1–36 use the 5-point "Score (1-5)" template (34 rows of
-data, January only), and from row 37 it switches to the 10-point "Score (out of 10)"
-template (79 rows, February and March). The 10-point scores convert per D-020.
-
-**Proposal:** split there, as the profiler found it.
-
-**Worth a glance** because everything downstream for 79 of Ringwood's rows depends on
-reading them as out-of-10 rather than out-of-5. Open the file and check that row 37 is
-where the second header sits.
-
-## Q6. Shepparton's six 2026 dates become 2025. Confirm?
-
-Six rows are dated October–December 2026, after the site closed on 31 March 2026.
-D-032 #3 already treats these as year typos and moves them to 2025, flagged
-`date_corrected`. With that applied, Shepparton's data runs 6 Oct 2025 to 31 Mar 2026,
-which fits the closure exactly.
-
-**Proposal:** no change — just confirming, because it is six rows of a 51-row site and
-the alternative (dropping them) would cost 12% of a dealership.
-
-## Q7. How should blank and "Total" rows be counted?
-
-Frankston has twelve monthly "Total …" rows and some blank separators; Ringwood Q1 has a
-blank row and the "*** NEW TEMPLATE FROM FEB" note. These sit *inside* the row counts the
-profiles report, so they have to be dropped and counted, not silently skipped.
-
-**Proposal:** drop them with reasons `blank` and `summary_or_note`, and let the pilot
-establish the exact counts per file rather than me asserting a number now. My ad-hoc
-count came to roughly 14 blank and 13 note/total rows across the affected files, but the
-boundaries depend on exactly where each layout starts, which the ingest code settles.
-
-## Q8. The row budget — agree with the arithmetic?
-
-`row_budget` at the bottom of `columns.yaml` sets out what ingestion must prove:
-
-```
-7162   source rows across the 51 ingested files
- -51   excluded sheets (Penrith Jun 26: 43, Southport Google reviews: 8)
-  -7   Toowoomba summary source rows (they are counts, not feedback)
- +71   the rows those counts expand into
-----
-7175   candidate rows, before dropping anything
-```
-
-then drops with a reason each: Tamworth no-rating (10), Shepparton closure note (1),
-Ringwood template note (1), Southport "asdf" (1), Southport TEST and 01/01/1900 (2),
-blank/total rows (Q7), Southport no-date (Q2).
-
-**One thing to agree explicitly:** Southport's "asdf" row is both a no-rating row (D-031)
-and a test row (D-032 #5). **Proposal:** count it once, under `test_row`, so the
-arithmetic closes. Otherwise the report double-counts one row and the totals will not add
-up — which is exactly the kind of thing a reviewer checks.
+**2. The blank and "Total" rows were already outside the row count.** The draft
+budget had them as a pending subtraction. They are not inside the 7,162 profiled
+rows — the profiler had already excluded them — so subtracting them again would
+have made the reconciliation fail to close by 26 rows. The exact counts are 14
+blank rows and 12 "Total" rows, and they are now reported separately from the
+16 rows that really are dropped. D-039.
 
 ---
 
-## Not questions — things I decided and you should know about
+## Still not questions — things decided without the owner
 
-- **`Dealer` and `Site` columns are dropped, not used.** Hunter Motors' `Dealer` reads
-  `HUNTER` on all 303 rows and IPS's `Site` reads `KMG-IPS` on all 277, so neither adds
-  anything over the file-level dealer code (D-034). North QLD's `Site` *is* used, because
-  there the file genuinely holds two dealerships.
-- **Liverpool Q3's dates are month-first, confirmed rather than assumed.** Month-first
-  parses all 85 rows into Jul–Sep 2026; day-first parses only 29 and scatters them across
-  the year. The mapping asserts the date range so the run fails if this ever changes.
-- **All four Chatswood CSVs are semicolon-delimited**, not just the Q4 file the profiler
-  brief flagged.
-- **Bendigo's CSV has a byte-order mark**, so it is read as `utf-8-sig`. Without that the
-  first column name comes through as `ï»¿Date` and the mapping silently misses it.
-- **`dropped:` lists are checked, not decorative.** `scripts/check_mapping.py` asserts
-  that every column in every sheet appears either in `columns` or in `dropped`, so a new
-  column in a re-sent file stops the run instead of being quietly ignored.
+- **`Dealer` and `Site` columns are dropped, not used.** Hunter Motors' `Dealer`
+  reads the same value on all 303 rows and Ipswich's `Site` on all 277. North
+  QLD's `Site` *is* used, because that file genuinely holds two dealerships.
+- **Liverpool Q3's dates are month-first, confirmed rather than assumed.**
+  Month-first parses all 85 rows into Jul–Sep 2026; day-first parses only 29.
+  The mapping asserts the date range, so the run fails if this ever changes.
+- **All four Chatswood CSVs are semicolon-delimited**, not just the Q4 file.
+- **Bendigo's CSV has a byte-order mark**, so it is read as `utf-8-sig`.
+- **`dropped:` lists are checked, not decorative.** `scripts/check_mapping.py`
+  asserts that every column in every sheet appears in `columns`, `dropped`,
+  `redact_staff`, `site_column` or the pivot keys, so a new column in a re-sent
+  file stops the run instead of being quietly ignored.
+- **Four comment values are quoted in the mapping** — "TEST TEST", "testing new
+  form", "test - ignore" and "asdf" — the Southport junk rows. They contain no
+  personal data and the owner needs to see them to agree the rows are junk. It
+  is the only place in the repository where a comment value appears, and the
+  mapping says so at the point of use.

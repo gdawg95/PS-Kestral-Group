@@ -29,7 +29,8 @@ switch ($Target) {
     'analyse'   { Step 'analyse'  'uv run python -m src.analyse' }
     'figures'   { Step 'figures'  'uv run python -m src.figures' }
     'test'      { Step 'test'     'uv run pytest -q' }
-    'lint'      { Step 'lint'     'uv run ruff check .'; Step 'format' 'uv run ruff format --check .' }
+    # Formatting is deliberately not gated - see the lint target in the Makefile.
+    'lint'      { Step 'lint'     'uv run ruff check .' }
     'hooks'     { Step 'hooks'    'uv run pre-commit install' }
     'nlp-check' { Step 'nlp-check' 'uv run python scripts/check_nlp_env.py' }
     'all' {

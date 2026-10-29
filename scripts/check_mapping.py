@@ -3,10 +3,11 @@
 Checks, for the owner's Checkpoint 2 review:
   1. every file in data/raw/feedback is in the mapping (and vice versa)
   2. every sheet in each profile is in the mapping (and vice versa)
-  3. every source column is accounted for: columns + dropped + staff_columns
+  3. every source column is accounted for: columns + dropped + redact_staff
   4. header_row and expected_rows agree with the profile
   5. the role set is exactly what src/pii.py accepts
-  6. dealer codes exist in dealerships.csv
+  6. dealer codes exist in dealerships.csv, including the North QLD split codes
+  7. department_map keys are values the source actually uses
 """
 
 import csv
@@ -57,6 +58,37 @@ for name, lay in layouts.items():
     for r in ("date", "rating", "comment", "department"):
         if roles.count(r) > 1:
             note(f"layout {name}: role {r} mapped more than once")
+    # 6. the North QLD split codes are real dealers too
+    for code in (lay.get("split") or {}):
+        if code not in codes:
+            note(f"layout {name}: split code {code!r} is not in dealerships.csv")
+
+
+# 7. department_map keys must be values the source actually uses, and the
+#    expansion must land on one of the three real departments.
+dept_values = {}
+for prof in profiles.values():
+    for sh in prof["sheets"]:
+        for col in sh.get("columns", []):
+            if col.get("proposed_role") == "department" and isinstance(col.get("values"), dict):
+                dept_values.setdefault(prof["file"], set()).update(col["values"])
+
+for fname, spec in files.items():
+    for ref in (spec.get("sheets") or {}).values():
+        lay = layouts.get(ref) if isinstance(ref, str) else None
+        dmap = (lay or {}).get("department_map")
+        if not dmap:
+            continue
+        seen = dept_values.get(fname, set())
+        unused = [k for k in dmap if seen and k not in seen]
+        if unused:
+            note(f"{fname} layout {ref}: department_map keys not in the source: {unused}")
+        bad = [v for v in dmap.values() if v not in {"Service", "Sales", "Parts"}]
+        if bad:
+            note(f"{fname} layout {ref}: department_map expands to {bad}, not a real department")
+        missing = [v for v in seen if v not in dmap]
+        if missing:
+            note(f"{fname} layout {ref}: source department values with no map entry: {missing}")
 
 total_expected = 0
 for fname, spec in files.items():
@@ -108,7 +140,7 @@ for fname, spec in files.items():
         accounted = (
             set(map(str, (lay.get("columns") or {})))
             | set(map(str, lay.get("dropped") or []))
-            | set(map(str, lay.get("staff_columns") or []))
+            | set(map(str, lay.get("redact_staff") or []))
             | set(map(str, ((lay.get("expand_pivot") or {}).get("count_columns") or [])))
         )
         if lay.get("site_column"):

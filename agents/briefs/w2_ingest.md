@@ -1,11 +1,22 @@
 # Brief: w2_ingest
-**Status:** step 1 complete and awaiting Checkpoint 2; steps 2–5 awaiting owner approval (gate G2)
+**Status:** steps 1, 2 and 5 complete; the G1 pilot has run; steps 3 and 4 wait on the
+owner checking the pilot's reconciliation rows.
 
-**Progress (29 Oct 2026, afternoon):** step 1 is done — `mappings/columns.yaml` is drafted
-from the Wave 1 profiles and cross-checked against them by `scripts/check_mapping.py`
-(31 layouts, 52 files, every sheet, header row, row count and column accounted for).
-Eight open questions are in `mappings/QUESTIONS.md`. **Nothing is ingested until the owner
-approves the mapping.** The questions below the steps are answered: Q1 → D-034, Q2 → D-035.
+**Progress (29 Oct 2026, late afternoon):**
+- **Checkpoint 2 passed.** The owner answered all eight questions in
+  `mappings/QUESTIONS.md`, asked for four changes, and approved the revised
+  `mappings/columns.yaml` (D-036 – D-045).
+- `src/ingest.py` and `tests/test_ingest.py` are written: 112 test cases, synthetic
+  frames only, one test per rule the owner decided.
+- **Pilot run on the five awkward dealers** (six dealer codes, because North QLD is two
+  dealerships): 1,884 rows read → 1,946 written, arithmetic closing, every drop reasoned.
+  See `reports/reconciliation.md` and `agents/reports/w2_ingest.md`.
+- Two mapping errors found and fixed in the process: the Wollongong encoding (D-043) and
+  the row budget double-subtracting blank and "Total" rows (D-039).
+- **Next:** the owner checks the pilot rows, then steps 3 and 4 run over all 51 files.
+  `data/interim/consolidated.parquet` currently holds the pilot's 1,946 rows, not 7,159.
+
+The questions below the steps are answered: Q1 → D-034, Q2 → D-035.
 
 Goal:            Turn the 52 raw files into one consolidated, de-identified dataset with one row per piece of
                  feedback, and prove nothing was lost, duplicated or mis-assigned.

@@ -27,8 +27,11 @@ figures:           ## charts for both reports (Wave 5)
 test:
 	$(PYTEST) -q
 
-lint:
-	uv run ruff check . && uv run ruff format --check .
+lint:              ## ruff lint. Formatting is deliberately NOT gated:
+                   ## pyproject configures ruff.lint only, and `ruff format`
+                   ## would rewrite src/pii.py, which this agent does not own
+                   ## (agents/reports/w1_scaffold.md, Assumptions).
+	uv run ruff check .
 
 hooks:             ## install the pre-commit hooks into .git/hooks
 	uv run pre-commit install

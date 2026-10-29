@@ -151,6 +151,84 @@ Source: `agents/reports/w1_profilers.md` (15 findings). Wave 2 ingestion applies
   - **Validation:** the pandera data-quality suite stays in Wave 3, written by a different agent. Under D-017 the agent that builds something does not grade it, and ingest grading its own output would weaken the evidence reviewers look for.
 - **Why this split:** the schema (`src/schema.py`) carries `department` as an optional column, so Wave 3 fills it in without any change to the Wave 2 contract (gate G3 untouched).
 
+### D-036 · Bendigo's letter codes are spelled out at ingestion · Decided · 29 Oct 2026
+- **Question asked:** does Bendigo's `SV` / `S` / `P` mean Service / Sales / Parts? `S` was the weak one — 19 comments gave almost no signal and it was Sales only by elimination.
+- **Decision (owner):** yes, and "it would be better to spell the whole word out so there is no confusion".
+- **What this means:** `layouts.bendigo.department_map` expands SV → Service, S → Sales, P → Parts, and `department_raw` holds the word for Bendigo's 144 rows.
+- **Tension with D-035, recorded deliberately:** this is the one place where ingestion rewrites a source value instead of passing it through, so `department_raw` is not literally raw for this one file. The owner asked for it, the map is three lines in the mapping file, and the source letter stays recoverable from `source_file` + `source_row`. Nothing else is rewritten.
+- **Checked:** `scripts/check_mapping.py` now asserts that every department value the source actually uses has a map entry, that no map key is absent from the source, and that every expansion lands on Service / Sales / Parts. Tested by breaking it on purpose.
+
+### D-037 · Southport's four non-feedback rows · Decided · 29 Oct 2026
+- **Question asked:** one row had a valid rating (3, Sales) but no date, and was not covered by D-032 #5. Drop it, or date it as a midpoint?
+- **Decision (owner):** "yes, the row was a test, so that can be removed along with the other testing rows", and count the `asdf` row as "summary or notes" as well.
+- **Evidence that settles it:** the row's comment reads "testing new form". It is a test row, not lost feedback. Spreadsheet row 167 (the owner referred to it as 166; the row numbers in the draft and in the owner's reply were both off by one, which is why the mapping now records every junk row by its spreadsheet row number and its cell values).
+- **The four rows, verified cell by cell:**
+  | Spreadsheet row | Date cell | Dept | Rating | Comment | Reason |
+  |---|---|---|---|---|---|
+  | 23 | `01/01/1900` | Parts | 1 | `TEST TEST` | `test_row` |
+  | 167 | *empty* | Sales | 3 | `testing new form` | `test_row` |
+  | 196 | `TEST` | Service | 5 | `test - ignore` | `test_row` |
+  | 192 | `asdf` | *empty* | *empty* | `asdf` | `summary_or_note` |
+- **No double counting:** all three test rows carry a rating, so none of them is also a D-031 no-rating row. The `asdf` row is the no-rating one, and it is counted once, under `summary_or_note`, as the owner asked.
+- **Privacy note:** these four comment values are the only comment-column values quoted anywhere in the repository. They contain no personal data, and the owner needs to see them to agree the rows are junk. The exception is stated in `columns.yaml` at the point of use.
+
+### D-038 · Toowoomba Q4 2025 is Service and Parts only, at face value · Decided · 29 Oct 2026
+- **Question asked:** the Q4 2025 summary has no Sales rows at all. Real, or an incomplete pivot?
+- **Decision (owner):** "since there are no sales numbers, I will take face value of the Service & parts only."
+- **What this means:** Toowoomba's Q4 2025 is reported as Service and Parts only, with a footnote. The 71 expanded rows carry `from_summary = true`, no comment, and the 15th of their month as the date.
+- **What the footnote must say:** Toowoomba's Q4 2025 Sales feedback was not supplied. Its quarter-on-quarter comparison therefore shows a composition change, not necessarily a change in Sales performance.
+
+### D-039 · Non-feedback rows are tagged "summary or notes" and dropped; the row budget is corrected · Decided · 29 Oct 2026
+- **Question asked:** how should blank and "Total" rows be counted? The draft left the number to the pilot.
+- **Decision (owner):** "the total rows are useless to me, tag them as 'summary or notes' and drop them."
+- **Counted, not estimated (29 Oct 2026):**
+  | Kind | Rows | Where |
+  |---|---:|---|
+  | Blank separator rows | 14 | Frankston 12 (7 + 5), Ringwood Q1 1, Shepparton 1 |
+  | `Total <month>` rows | 12 | Frankston, one per month |
+  | Notes typed into a data row | 3 | Shepparton closure note, Ringwood template note, Toowoomba "Grand Total" |
+  - 0 blank rows in any of the 15 CSVs.
+- **Correction to the draft budget — the important part:** the 14 blank and 12 `Total` rows are **not inside** the 7,162 profiled source rows. The Wave 1 profiler had already excluded them when it reported `data_rows`. The draft had them queued as a further subtraction, which would have made the reconciliation fail to close by 26 rows. They are now reported separately, as rows accounted for but never counted.
+- **Revised arithmetic, which ingestion must land on exactly:** 7,162 source rows − 51 excluded sheets − 7 Toowoomba summary rows + 71 expanded rows = 7,175 candidates; − 16 dropped rows (10 no-rating, 3 summary-or-note, 3 test) = **7,159 rows out**.
+- **The 13 rows of D-031 are unchanged** — they are the 10 Tamworth no-rating rows plus the Shepparton, Ringwood and Southport junk rows. The same 13 rows, now split into the reasons the owner asked for.
+
+### D-040 · Ipswich's 10 vague dates are imputed from the rows around them · Decided · 29 Oct 2026
+- **Decision (owner):** "in the IPS sheet, I am OK with the imputation of estimated dates using context clues from neighbouring rows."
+- **The 10 values:** `early Oct`, `mid Nov`, `early Jan`, `wk1 Feb`, `wk5 Mar`, `early Apr`, `mid Jun`, `Aug?`, `Aug?`, `mid Sep`. They are the only non-date values in a column of 277.
+- **Rule:** the log is kept in date order, so the day is the midpoint of the nearest dated row above and the nearest below, and the year comes with them. The written label supplies the month.
+- **Cross-check, and why it matters:** label and position disagree for two rows — `mid Jun` sits between 30 May and 4 June, and `early Apr` between 20 and 23 April. Checked by hand for all 10: both signals land in the **same month** every time. Since every analysis is monthly, no published figure depends on which signal is trusted. The run fails if a future imputation falls outside the month its label names.
+- **Flagged:** all 10 rows carry `date_approx = true`, so they can be excluded from any day-level claim.
+
+### D-041 · Staff columns are dropped from the dataset and read in memory only · Decided · 29 Oct 2026
+- **Owner's instruction:** "the 'staff' col can be dropped as well, it will not provide much useful info for the analysis."
+- **Decision:** agreed and already true — the staff-name columns (`Staff`, `Taken by`, `Logged by`, `Card given by`, in 7 of the 31 layouts) never reach any interim or clean file, exactly like every other unmapped column under D-003. The mapping key is renamed from `staff_columns` to `redact_staff` so this reads correctly on the page, and the file now says so at the top.
+- **The one thing that cannot be removed with them, and why:** those columns are what builds the `[STAFF]` roster that strips staff names out of the comment text (D-026). The PII pilot measured the effect — **728 of 5,412 comments, 13%, mention a staff-roster name**. Stop reading the columns and roughly 700 comments keep a named employee in them, and that text is what goes to the NLP and the client report. So the columns are read in memory and discarded, and no staff data is analysed, reported or written.
+- **If the owner wants them gone entirely:** say so and the roster step is removed; the consequence is the ~700 comments above, and it would need recording as a change to D-026.
+
+### D-042 · North QLD is split into QLD07 Rockhampton and QLD08 Townsville · Decided · 29 Oct 2026
+- **Owner's instruction:** "the current North QLD feedback sheet needs to be split into Rockhampton and Townsville sheets individually — using their own site codes."
+- **Decision:** implemented, and now explicit in the mapping rather than implied: `layouts.northqld.split` names both codes, both dealership names and both expected row counts, and `assert_split_counts` fails the run if either drifts.
+- **Numbers:** 202 rows Rockhampton (QLD07) + 354 Townsville (QLD08) = 556, from the six `Site` spellings verified on 29 Oct 2026.
+- **Consequence:** from the dataset onward the two are separate dealerships everywhere — reconciliation, charts and both reports — and the combined file name appears as a dealership nowhere. 24 dealerships must be present in the output, two of them from this one file.
+
+### D-043 · Both Wollongong files are Windows-1252, not UTF-8 · Decided · 29 Oct 2026
+- **Found:** 29 Oct 2026, while checking the owner's answers. Byte `0x92` — a curly apostrophe — appears inside the comment column of each file (offset 431 in `Wollongong_Apr26-Sep26.csv`, 402 in `Wollongong_Oct25-Mar26.csv`). The draft mapping declared `utf-8` for both.
+- **Decision:** read both as `cp1252`.
+- **Why it matters:** as UTF-8 the read raises `UnicodeDecodeError` and the dealership's 285 rows are lost. Forcing it with `errors="replace"` would be worse — it would corrupt apostrophes inside the comments that feed the sentiment and theme analysis, silently.
+- **Encodings now declared per file:** UTF-8 for 12 CSVs, `utf-8-sig` for Bendigo (byte-order mark), `cp1252` for the two Wollongong files.
+
+### D-044 · Owner's confirmations on the Wave 2 mapping review · Decided · 29 Oct 2026
+- **Ringwood's second header is at row 37** — confirmed by the owner. The owner also noted that the split does not change what is needed, since the 1–10 → 1–5 conversion happens either way. It does change it for the 79 rows after row 37: read as out-of-5 they would all look like top scores, which is why the mapping keeps two layouts and the pilot checks both halves.
+- **Shepparton's six 2026 dates** — "nothing to change". D-032 #3 stands: treated as year typos, moved to 2025, flagged `date_corrected`.
+- **Dandenong's booking-system note** — "just keep the note as contextual evidence of performance. There is no relevant numerical data in that row anyway." Recorded in `reports/formatting_changes.md` and to be cited in the trend section if Dandenong dips from May 2026.
+- **Checkpoint 2 (gate G3) passed** — the owner approved the revised `mappings/columns.yaml` on 29 Oct 2026 and authorised the pilot on the five awkward dealers. Nothing reaches `main` without the owner's review (G5).
+- **`thresholds.trend_evidence` stays TBD by the owner's choice** — the owner asked to set it after seeing the actual month-by-month volumes and spreads, so the evidence comes first and the number follows. Gate G7 still blocks trend results until it is set and committed.
+
+### D-045 · A register of formatting inconsistencies is a deliverable in its own right · Decided · 29 Oct 2026
+- **Owner's instruction:** "note where all the formatting changes are across all worksheets — I will add them to the client report."
+- **Decision:** `reports/formatting_changes.md` — 13 kinds of inconsistency across 52 files and 84 worksheets, each located by dealership, with counts and the treatment applied, written to be lifted into the client report. No comment, name, phone, email or plate value is quoted in it.
+- **Why it is worth its own document:** the inconsistency is itself a finding for Kestrel. 19 spellings of 3 departments, 8 ways of writing a date and 7 rating scales across 24 dealerships is the absence of a group standard, not 24 separate quirks. Three of the inconsistencies — Geelong's reversed scale, Ringwood's mid-sheet change to a 10-point scale and Liverpool's one month-first quarter — would have moved a published dealership score with nothing appearing broken.
+
 ## Outputs
 
 ### D-007 · Two reports · Decided · 29 Oct 2026

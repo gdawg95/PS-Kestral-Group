@@ -27,14 +27,17 @@
 #                   then discarded. Never written. (D-003 exception)
 #   redact_rego  -> transient: same, for the registration plate
 #
+# redact_staff: NOT a role and NOT analysis data - the staff-name columns
+#   ("Staff", "Taken by", "Logged by", "Card given by") are dropped from the
+#   dataset like any other unmapped column. They are read in memory only, to
+#   build the [STAFF] roster that strips staff names out of comments (D-026,
+#   D-041). Nothing from them is ever written to disk.
+#
 # EVERYTHING ELSE IS DROPPED. `dropped:` is not instructions to the pipeline -
 # the allowlist drops anything unmapped anyway (D-003). It is a completeness
 # check: src/ingest.py asserts every column in the source appears either in
 # `columns` or in `dropped`, so a new column in a re-sent file stops the run
 # instead of being silently ignored.
-#
-# staff_columns: read in memory only, to build the [STAFF] roster for redaction
-#                (D-026). Never written out. Not a role - passed separately.
 #
 # date_format: excel         real Excel date cells
 #              excel_serial  Excel serial numbers stored as plain numbers
@@ -42,11 +45,16 @@
 #              otherwise a strptime pattern, e.g. %d/%m/%Y
 #
 # rating_scale: one of the values in src/schema.py RatingScale.
+#
+# department_map: expands a source's own letter codes to the words they stand
+#   for, before department_raw is written. Bendigo only (D-036). It is not the
+#   Wave 3 normaliser - it just spells out what the site abbreviated.
 # ============================================================================
 
 version: 1
-status: draft - awaiting owner approval (Checkpoint 2)
+status: revised after the owner's review - Checkpoint 2 sign-off pending on the revisions
 drafted: 2026-10-29
+revised: 2026-10-29  # owner answered QUESTIONS.md Q1-Q8 and asked for four changes
 source_of_truth: reports/profiles/
 
 # ---------------------------------------------------------------------------
@@ -66,7 +74,6 @@ layouts:
       "How satisfied?": rating
       Comments: comment
       Name: redact_name
-    staff_columns: []
     dropped: [Phone]
     notes: 3 merged cell ranges in the header area; the data itself is not merged.
 
@@ -81,7 +88,6 @@ layouts:
       Comments: comment
       Customer: redact_name
       Rego: redact_rego
-    staff_columns: []
     dropped: [Vehicle, "Action taken"]
 
   dandenong_may:                   # same table, one extra note row above it
@@ -95,12 +101,13 @@ layouts:
       Comments: comment
       Customer: redact_name
       Rego: redact_rego
-    staff_columns: []
     dropped: [Vehicle, "Action taken"]
     notes: >
       The extra row reads "NOTE: new online booking system went live 5 May.
-      Expect some teething issues - log everything!". Worth keeping for the
-      Wave 5 trend narrative; it is an event, not data.
+      Expect some teething issues - log everything!". It carries no numbers, so
+      nothing is lost by dropping it from the data. The owner asked to keep it
+      as contextual evidence for the trend section (D-044), so it is recorded in
+      reports/formatting_changes.md and must be cited if Dandenong dips in May.
 
   essendon:
     header_row: 1
@@ -111,7 +118,7 @@ layouts:
       Date: date
       "Customer said": comment
       Score: rating
-    staff_columns: ["Taken by"]
+    redact_staff: ["Taken by"]
     dropped: [Action]
 
   frankston_v1:
@@ -123,7 +130,6 @@ layouts:
       Area: department
       Rating: rating
       Comments: comment
-    staff_columns: []
     dropped: []
     unnamed_columns: drop          # 3 empty columns to the right of Comments
     drop_rows:
@@ -141,7 +147,6 @@ layouts:
       "Customer comments": comment
       Customer: redact_name
       Rego: redact_rego
-    staff_columns: []
     dropped: [Source]
     drop_rows:
       - blank
@@ -157,7 +162,6 @@ layouts:
       Rating: rating
       Feedback: comment
       Customer: redact_name
-    staff_columns: []
     dropped: []
     notes: The reversal applies to THIS sheet only. tests/test_ingest.py must assert that.
 
@@ -171,7 +175,6 @@ layouts:
       Rating: rating
       Feedback: comment
       Customer: redact_name
-    staff_columns: []
     dropped: []
 
   ringwood_5pt:
@@ -183,7 +186,6 @@ layouts:
       Department: department
       "Score (1-5)": rating
       "Customer comments": comment
-    staff_columns: []
     dropped: ["Followed up?"]
     unnamed_columns: drop          # 2 empty columns in Q1 2026
     drop_rows:
@@ -199,11 +201,11 @@ layouts:
       Department: department
       "Score (out of 10)": rating
       "Customer comments": comment
-    staff_columns: [Staff]
+    redact_staff: [Staff]
     dropped: [Model, "Follow up (Y/N)"]
 
   ringwood_10pt_mid:               # same table, but it starts part-way down the sheet
-    header_row: 37
+    header_row: 37                 # owner confirmed the second header sits at row 37 (D-044)
     date_format: "%d/%m/%Y"
     rating_scale: "1-10"
     columns:
@@ -211,7 +213,7 @@ layouts:
       Department: department
       "Score (out of 10)": rating
       "Customer comments": comment
-    staff_columns: [Staff]
+    redact_staff: [Staff]
     dropped: [Model, "Follow up (Y/N)"]
 
   shepparton:
@@ -223,7 +225,6 @@ layouts:
       Dept: department
       Rating: rating
       Comment: comment
-    staff_columns: []
     dropped: []
     date_fixes:
       year_typo:                   # D-032 #3: 6 dates land Oct-Dec 2026, after closure
@@ -244,11 +245,16 @@ layouts:
       Dept: department
       Stars: rating
       "What did they say?": comment
-    staff_columns: []
     dropped: []
+    department_map:                 # D-036: owner confirmed 29 Oct 2026
+      SV: Service
+      S: Sales
+      P: Parts
     notes: >
-      Department is coded SV / S / P, not words - the only file that does this.
-      Needs an owner decision before ingestion (see QUESTIONS, Q4).
+      The only file that codes departments as letters. The owner confirmed the
+      meanings and asked for the words to be spelled out, so department_raw
+      holds "Service" / "Sales" / "Parts" here, not "SV" / "S" / "P". The
+      source letter stays recoverable from source_file + source_row.
 
   boxhill:
     header_row: 1
@@ -260,7 +266,6 @@ layouts:
       department: department
       csat: rating
       verbatim: comment
-    staff_columns: []
     dropped: [response_id, vehicle, dms_customer_no]
     notes: Survey-tool export; the timestamp is truncated to a date.
 
@@ -275,7 +280,6 @@ layouts:
       Department: department
       Rating: rating
       Comments: comment
-    staff_columns: []
     dropped: [Dealer, Vehicle]
     notes: >
       `Dealer` is "HUNTER" on all 303 rows, so it is dropped rather than used
@@ -290,7 +294,7 @@ layouts:
       Department: department
       Rating: rating
       Comments: comment
-    staff_columns: [Staff]
+    redact_staff: [Staff]
     dropped: ["Cust No", Mobile]
 
   parramatta_v2:                   # from May 2026: adds a booking reference
@@ -302,7 +306,7 @@ layouts:
       Department: department
       Rating: rating
       Comments: comment
-    staff_columns: [Staff]
+    redact_staff: [Staff]
     dropped: ["Cust No", Mobile, "Booking ref"]
 
   penrith:
@@ -315,7 +319,6 @@ layouts:
       Score: rating
       Comments: comment
       Customer: redact_name
-    staff_columns: []
     dropped: []
 
   chatswood:
@@ -328,7 +331,6 @@ layouts:
       Dept: department
       Score: rating
       Comment: comment
-    staff_columns: []
     dropped: [Vehicle]
 
   liverpool:
@@ -343,7 +345,6 @@ layouts:
       Feedback: comment
       Customer: redact_name
       Rego: redact_rego
-    staff_columns: []
     dropped: [Phone]
 
   liverpool_q3:                    # D-032 #2: this one file is month-first
@@ -358,7 +359,6 @@ layouts:
       Feedback: comment
       Customer: redact_name
       Rego: redact_rego
-    staff_columns: []
     dropped: [Phone]
     assert_date_range: ["2026-07-01", "2026-09-30"]
     notes: >
@@ -367,7 +367,7 @@ layouts:
 
   wollongong:
     header_row: 1
-    csv: {delimiter: ",", encoding: utf-8}
+    csv: {delimiter: ",", encoding: cp1252}   # NOT utf-8 - see notes (D-043)
     date_format: "%d-%b-%y"
     rating_scale: "1-5"
     columns:
@@ -376,8 +376,13 @@ layouts:
       Rating: rating
       "Customer feedback": comment
       Name: redact_name
-    staff_columns: []
     dropped: [Mobile]
+    notes: >
+      Both Wollongong files are Windows-1252, not UTF-8 (found 29 Oct 2026: byte
+      0x92, a curly apostrophe, inside the comment column of each file - at
+      offset 431 in the Apr-Sep file and 402 in the Oct-Mar one). Reading them as
+      UTF-8 raises UnicodeDecodeError, and forcing it past that would mangle the
+      apostrophes in the comments that then go to the NLP. D-043.
 
   tamworth:
     header_row: 1
@@ -388,7 +393,6 @@ layouts:
       DEPT: department
       "HOW WAS IT": rating
       COMMENTS: comment
-    staff_columns: []
     dropped: []
     notes: >
       10 rows have a blank rating and a real comment; D-031 drops them.
@@ -405,7 +409,6 @@ layouts:
       Department: department
       Rating: rating
       Comments: comment
-    staff_columns: []
     dropped: [Model, Ref, "Customer No"]
 
   springwood:
@@ -418,7 +421,6 @@ layouts:
       Rating: rating
       Comments: comment
       Name: redact_name
-    staff_columns: []
     dropped: [Mobile, Email]
 
   ips:
@@ -430,11 +432,21 @@ layouts:
       Dept: department
       Rating: rating
       Notes: comment
-    staff_columns: ["Logged by"]
+    redact_staff: ["Logged by"]
     dropped: [Site]
     date_fixes:
-      approximate:                 # D-032 #4: "early Oct", "wk1 Feb", 10 rows
-        action: 1st/8th/15th/22nd/29th of the stated month, year from neighbouring rows
+      approximate:                 # D-032 #4 / D-040: owner approved 29 Oct 2026
+        count: 10                  # the only 10 non-date values in the column
+        values: ["early Oct", "mid Nov", "early Jan", "wk1 Feb", "wk5 Mar",
+                 "early Apr", "mid Jun", "Aug?", "Aug?", "mid Sep"]
+        action: >
+          The log is in date order, so the day is the midpoint of the nearest
+          dated row above and the nearest below, and the year comes with them.
+          The label supplies the month.
+        cross_check: >
+          The imputed day must land inside the month the label names, or the run
+          fails. Verified by hand for all 10 rows on 29 Oct 2026 - it holds for
+          every one, so no monthly figure depends on which signal we trust.
         flag: date_approx
     notes: >
       `Site` is "KMG-IPS" on all 277 rows, so it is dropped rather than used as a
@@ -451,13 +463,26 @@ layouts:
       Comments: comment
       "Customer name": redact_name
       Rego: redact_rego
-    staff_columns: []
     dropped: [Vehicle, Email]
     drop_rows:
-      - test_row                   # D-032 #5: "asdf", "TEST", 01/01/1900
+      - test_row                   # 3 rows, D-032 #5 + D-037
+      - summary_or_note            # 1 row, the "asdf" row (D-037, owner's call)
+    # The only place in this repository where comment-column values are quoted.
+    # These four are test strings with no personal content, and the owner needs
+    # to see them to agree the rows are junk. Deliberate, bounded exception to
+    # the profiling privacy rule; nothing else quotes a comment. (D-037)
+    junk_rows:                     # verified cell by cell on 29 Oct 2026
+      test_row:
+        - {xl_row: 23,  date: 01/01/1900, dept: Parts,   rating: 1, comment: "TEST TEST"}
+        - {xl_row: 167, date: null,       dept: Sales,   rating: 3, comment: "testing new form"}
+        - {xl_row: 196, date: TEST,       dept: Service, rating: 5, comment: "test - ignore"}
+      summary_or_note:
+        - {xl_row: 192, date: asdf, dept: null, rating: null, comment: "asdf"}
     notes: >
-      One further row (source row 165) has no date but a valid rating of 3 for Sales.
-      Not covered by D-032 #5. Needs an owner decision (see QUESTIONS, Q5).
+      Row 167 is the row that had a rating but no date. Its comment reads
+      "testing new form", so it is a test row, not lost feedback - the owner
+      confirmed it on 29 Oct 2026 (D-037). All three test rows carry a rating,
+      so none of them is also a D-031 no-rating row: no double counting.
 
   noosa:
     header_row: 1
@@ -468,7 +493,7 @@ layouts:
       Department: department
       Rating: rating
       Comments: comment
-    staff_columns: ["Card given by"]
+    redact_staff: ["Card given by"]
     dropped: []
     notes: >
       49 rows for a full year, mean 4.63, cards handed out by staff. D-020 flags
@@ -483,7 +508,6 @@ layouts:
       Department: department
       Rating: rating
       Comments: comment
-    staff_columns: []
     dropped: []
 
   toowoomba_summary:               # D-032 #1: counts, not rows
@@ -499,19 +523,24 @@ layouts:
       flag: from_summary
       comment: null                # no comments exist in a summary
     columns: {}                    # handled by expand_pivot, not by role mapping
-    staff_columns: []
     dropped: ["Grand Total"]
     drop_rows:
       - summary_or_note            # the "Grand Total" row at the bottom
     notes: >
       6 month x department rows summing to 71. Parts and Service only - Toowoomba
-      logged no Sales feedback in Q4 2025. Excluded from NLP (no text).
+      logged no Sales feedback in Q4 2025. The owner took that at face value on
+      29 Oct 2026 (D-038), so Toowoomba's Q4 2025 is reported as Service and
+      Parts only, with a footnote. Excluded from NLP (no text).
 
   northqld:
     header_row: 1
     date_format: excel_serial
     rating_scale: "1-5"
-    site_column: Site              # D-032 #6: two dealers in one file
+    site_column: Site              # D-032 #6 / D-042: two dealers in one file
+    split:                         # each row leaves as one dealer or the other
+      QLD07: {name: Kestrel Rockhampton, expected_rows: 202}
+      QLD08: {name: Kestrel Townsville,  expected_rows: 354}
+    assert_split_counts: true      # 202 + 354 = 556; the run fails on any drift
     site_map:
       Rockhampton: QLD07
       Rocky: QLD07
@@ -524,11 +553,12 @@ layouts:
       Department: department
       Rating: rating
       Comments: comment
-    staff_columns: []
     dropped: []
     notes: >
       Verified 29 Oct 2026: exactly those 6 spellings, no others, across all four
-      sheets. Split is 202 rows Rockhampton / 354 Townsville = 556.
+      sheets. Split is 202 rows Rockhampton / 354 Townsville = 556. From here on
+      the two sites are separate dealers everywhere - reconciliation, charts and
+      the report - and the file name never appears as a dealership (D-042).
 
 # ---------------------------------------------------------------------------
 # FILES - all 52, grouped by dealer code. Excel lock files (~$*) are skipped.
@@ -838,35 +868,72 @@ files:
 # ---------------------------------------------------------------------------
 # ROW ARITHMETIC the reconciliation report must reproduce (D-002 (c))
 # ---------------------------------------------------------------------------
+# Every number below was counted from the files on 29 Oct 2026, not estimated.
+# Revised after the owner's review: the blank and "Total ..." rows that the
+# draft left as "pilot" turned out to be OUTSIDE the profiled row counts
+# already, so subtracting them again would have made the arithmetic fail to
+# close. They are still counted and reported - see non_feedback_rows (D-039).
 row_budget:
-  # Verified against the profiles on 29 Oct 2026.
   source_rows_in_scope: 7162        # sum of expected_rows over the 51 ingested files
+
   excluded_whole_file:
-    "Chermside Q1 2026 FINAL": 112  # D-027; not counted in the 7162 above
+    "Chermside Q1 2026 FINAL": 112  # D-027; not inside the 7162 above
   excluded_whole_sheet:
     "Penrith Jun 26": 43            # D-029
     "Southport Google reviews (copied)": 8   # D-032 #5
+
   pivot:
-    toowoomba_summary_source_rows: 7   # these 7 do not become feedback rows
+    toowoomba_summary_source_rows: 7   # 6 month x dept + 1 "Grand Total" row
     toowoomba_summary_expanded_rows: 71
+    note: >
+      The "Grand Total" row is one of the 7 and sums to 71 itself, so expanding
+      it would double the quarter. Removing all 7 and adding the 71 handles it;
+      it needs no separate drop line (D-039).
+
+  # Rows the profiler already excluded when it reported data_rows, so they are
+  # NOT inside source_rows_in_scope and must NOT be subtracted again. Counted
+  # here because the reconciliation report still has to account for them and
+  # the owner asked for them to be tagged "summary or notes" and dropped (D-039).
+  non_feedback_rows_outside_the_count:
+    blank: 14                       # Frankston 12 (7 + 5), Ringwood Q1 1, Shepparton 1
+    total_rows: 12                  # Frankston's 12 monthly "Total <month>" rows
+    note: 0 blank rows in any of the 15 CSVs; both counts verified 29 Oct 2026.
+
+  # Rows that ARE inside source_rows_in_scope and have to be dropped.
+  # Each row is counted once and once only.
   dropped_rows:
-    tamworth_no_rating: 10          # D-031
-    shepparton_closure_note: 1      # D-031 (no rating)
-    ringwood_q1_template_note: 1    # D-031 (no rating)
-    southport_asdf: 1               # D-031 (no rating) AND a test row
-    southport_test_and_1900: 2      # D-032 #5 test rows that DO carry a rating
-    blank_and_total_rows: pilot      # Frankston and Ringwood; exact count set by the pilot
-    southport_no_date: pending       # 1 row, rating but no date - see QUESTIONS Q5
+    no_rating: 10                   # Tamworth; blank rating, real comment (D-031)
+    summary_or_note: 3              # D-039 + D-037
+      # - Shepparton "Site closed 31/3/26 ... - Trish"   (xl row 55)
+      # - Ringwood Q1 "*** NEW TEMPLATE FROM FEB 2026 ***" (xl row 36)
+      # - Southport "asdf"                                (xl row 192)
+    test_row: 3                     # Southport, D-032 #5 + D-037
+      # - xl row 23  "TEST TEST",        dated 01/01/1900
+      # - xl row 167 "testing new form", no date
+      # - xl row 196 "test - ignore",    date reads "TEST"
+    total: 16
+
   identity_the_pipeline_must_prove: >
-    rows_out = source_rows_in_scope
-             - excluded_whole_sheet (51)
-             - toowoomba_summary_source_rows (7)
-             + toowoomba_summary_expanded_rows (71)
-             - dropped_rows (by reason, each counted once)
-    i.e. 7175 candidate rows before drops. The reconciliation report must show every
-    drop with its reason, and no row may be counted under two reasons.
+    rows_out = 7162                     source rows in scope
+             -   51                     excluded whole sheets
+             -    7                     Toowoomba summary source rows
+             +   71                     the rows those 7 expand into
+             = 7175                     candidate rows
+             -   16                     dropped rows, by reason, each counted once
+             = 7159                     rows in data/interim/consolidated.parquet
+  rows_out_expected: 7159
+
+  per_dealer_checks:
+    QLD07_rockhampton: 202            # from the North QLD split (D-042)
+    QLD08_townsville: 354
+    note: >
+      24 dealers must appear. North QLD contributes two of them and its file name
+      must appear as a dealership nowhere in the output.
+
   notes: >
-    These are the numbers src/ingest.py must land on. Any difference is a bug in the
-    mapping or in the code and blocks the merge (PLAN.md stop rules). Note that
-    Southport's "asdf" row is both a D-031 no-rating row and a D-032 #5 test row;
-    the report counts it once, under test_row.
+    These are the numbers src/ingest.py must land on. Any difference is a bug in
+    the mapping or in the code and blocks the merge (PLAN.md stop rules). The
+    13 rows D-031 counted as "no rating" are the 10 Tamworth rows plus the three
+    note/junk rows now reported under summary_or_note - the same 13 rows, split
+    into reasons the owner asked for. None of the three Southport test rows is a
+    no-rating row (all three carry a rating), so nothing is counted twice.
