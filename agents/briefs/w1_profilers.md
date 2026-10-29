@@ -1,5 +1,5 @@
 # Brief: w1_profilers
-**Status:** draft, awaiting owner approval (gate G2)
+**Status:** approved by owner (gdawg95), 29 Oct 2026
 
 Goal:            Produce one profile JSON per feedback file describing its structure, so the Wave 2 mapping can be drafted from evidence.
 Inputs:          the 54 files in the challenge pack `feedback/` folder (cloud workspace copy, read-only); reference/dealerships.csv

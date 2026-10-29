@@ -1,5 +1,5 @@
 # Brief: w1_pii
-**Status:** draft, awaiting owner approval (gate G2)
+**Status:** approved by owner (gdawg95), 29 Oct 2026
 
 Goal:            Build `src/pii.py`: the allowlist column filter and the free-text redactor, with tests that prove both work.
 Inputs:          DECISIONS.md D-003, D-026; synthetic test strings written by the agent and the owner (no real feedback rows)
