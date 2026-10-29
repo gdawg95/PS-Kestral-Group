@@ -9,7 +9,7 @@ import pandas as pd
 import pytest
 import yaml
 
-from src.pii import TOKENS, deidentify, redact
+from src.pii import TOKENS, deidentify, promote_names, redact
 
 CASES = yaml.safe_load((Path(__file__).parent / "fixtures" / "pii_cases.yaml").read_text())
 HAS_SPACY_MODEL = importlib.util.find_spec("en_core_web_sm") is not None
@@ -22,7 +22,8 @@ def _ids(cases):
 
 @pytest.mark.parametrize("case", CASES["must_redact"], ids=_ids(CASES["must_redact"]))
 def test_patterns_redact(case):
-    out, counts = redact(case["input"], case.get("row_values"), use_ner=False)
+    out, counts = redact(case["input"], case.get("row_values"), use_ner=False,
+                         staff_names=case.get("staff_names"))
     assert out == case["expected"]
     assert sum(counts.values()) >= 1
 
@@ -44,7 +45,8 @@ def test_ner_leave_alone(case):
 @needs_spacy
 @pytest.mark.parametrize("case", CASES["ner_cases"], ids=_ids(CASES["ner_cases"]))
 def test_ner_people(case):
-    out, _ = redact(case["input"], use_ner=True)
+    out, _ = redact(case["input"], use_ner=True, staff_names=case.get("staff_names"),
+                    known_names=case.get("known_names"))
     assert out == case["expected"]
 
 
@@ -55,7 +57,8 @@ def test_owner_cases(case):
         pytest.skip("owner has not added cases yet")
     if case.get("ner") and not HAS_SPACY_MODEL:
         pytest.skip("needs spaCy")
-    out, _ = redact(case["input"], case.get("row_values"), use_ner=HAS_SPACY_MODEL)
+    out, _ = redact(case["input"], case.get("row_values"), use_ner=HAS_SPACY_MODEL,
+                    staff_names=case.get("staff_names"), known_names=case.get("known_names"))
     assert out == case["expected"]
 
 
@@ -100,7 +103,8 @@ MAPPING = {
 
 def test_allowlist_drops_everything_else(frame):
     out, _ = deidentify(frame, MAPPING, "test.csv", use_ner=False)
-    assert list(out.columns) == ["source_file", "source_row", "date", "department", "rating", "comment"]
+    expected_cols = ["source_file", "source_row", "date", "department", "rating", "comment"]
+    assert list(out.columns) == expected_cols
     flat = out.astype(str).to_string()
     leaks = ("Bronwyn", "Taylor", "Sam Lee", "XYZ999", "ABC123", "b@t.com", "Voltra", "0412")
     for leaked in leaks:
@@ -128,3 +132,23 @@ def test_mapping_errors(frame):
         deidentify(frame, {"Nope": "date"}, "x")
     with pytest.raises(ValueError):
         deidentify(frame, {"Date": "date", "Dept": "date"}, "x")
+
+
+# ---------------------------------------------------------------- corpus pass (no spaCy needed)
+
+
+def test_promote_names_picks_mostly_capitalised():
+    texts = ["Dave was great", "thanks Dave", "dave fixed it", "Dave again", "you will love it",
+             "Will do", "it will be ready", "will call", "Lovely staff", "lovely people", "lovely"]
+    cands = {"Dave": 3, "Will": 2, "Lovely": 2}
+    assert promote_names(texts, cands) == {"Dave"}
+
+
+def test_promote_names_needs_min_count():
+    assert promote_names(["Zed was great"], {"Zed": 1}) == set()
+
+
+def test_extra_names_any_case_with_context():
+    out, _ = redact("as a retiree, dave was a delight. Thanks Dave!", use_ner=False,
+                    extra_names={"Dave"})
+    assert out == "as a retiree, [NAME] was a delight. Thanks [STAFF]!"

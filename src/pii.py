@@ -76,7 +76,7 @@ STAFF_BEFORE = re.compile(
     r"(?i)\b(?:sales\s*(?:person|man|woman|guy|girl|rep|consultant|exec(?:utive)?)|salesperson|"
     r"service\s*(?:advisor|adviser|manager|guy|rep)|advisor|adviser|consultant|mechanic|"
     r"technician|tech|manager|receptionist|staff(?:\s*member)?|parts\s*(?:guy|person|rep)|"
-    r"thanks\s+to|thank\s+you\s+to|shout\s*-?\s*out\s+to|ask\s+for|dealt\s+with|"
+    r"thanks(?:\s+to)?|thank\s+you(?:\s+to)?|cheers|shout\s*-?\s*out\s+to|ask\s+for|dealt\s+with|"
     r"served\s+by|helped\s+by|spoke\s+(?:to|with))\b[\s,:-]*(?:\w+\s+){0,2}$"
 )
 STAFF_AFTER = re.compile(
@@ -137,6 +137,24 @@ def _row_value_patterns(row_values: Mapping[str, Iterable] | None) -> list[tuple
     return pats
 
 
+@lru_cache(maxsize=8)
+def _roster_pattern(names: frozenset[str]) -> re.Pattern | None:
+    """One case-insensitive whole-word pattern for a set of staff first names."""
+    usable = sorted((n.strip() for n in names if n and len(n.strip()) >= 2), key=len, reverse=True)
+    if not usable:
+        return None
+    return re.compile(r"(?<!\w)(?:" + "|".join(re.escape(n) for n in usable) + r")(?!\w)", re.I)
+
+
+def _at_sentence_start(ent) -> bool:
+    """True if the entity is the first real word of its sentence (ignoring quotes/brackets)."""
+    for tok in ent.sent:
+        if tok.is_punct or tok.is_space:
+            continue
+        return tok.i == ent.start
+    return False
+
+
 @lru_cache(maxsize=1)
 def _nlp():
     import spacy  # imported lazily so pattern-only use does not need spaCy
@@ -144,7 +162,7 @@ def _nlp():
     return spacy.load("en_core_web_sm", disable=["lemmatizer"])
 
 
-def _redact_people(text: str, counts: Counter) -> str:
+def _redact_people(text: str, counts: Counter, known_names: frozenset[str] = frozenset()) -> str:
     doc = _nlp()(text)
     out, last = [], 0
     for ent in doc.ents:
@@ -153,6 +171,11 @@ def _redact_people(text: str, counts: Counter) -> str:
         surface = ent.text.strip()
         if (not surface or surface.startswith("[") or surface.lower() in NOT_NAMES
                 or not any(ch.isupper() for ch in surface)):
+            continue
+        # spaCy often tags a capitalised word that opens a sentence ("Spooky good timing.",
+        # "Keys weren't ready"). Trust a one-word, sentence-initial PERSON only if it is a
+        # first name actually seen in the data's name or staff columns.
+        if len(ent) == 1 and _at_sentence_start(ent) and surface not in known_names:
             continue
         before, after = text[: ent.start_char], text[ent.end_char:]
         is_staff = STAFF_BEFORE.search(before) or STAFF_AFTER.search(after)
@@ -165,12 +188,79 @@ def _redact_people(text: str, counts: Counter) -> str:
     return "".join(out)
 
 
+def _redact_extra_names(text: str, names: frozenset[str], counts: Counter) -> str:
+    """Names promoted from the whole corpus (see promote_names), any letter case."""
+    pat = _roster_pattern(names)
+    if pat is None:
+        return text
+    out, last = [], 0
+    for m in pat.finditer(text):
+        before, after = text[: m.start()], text[m.end():]
+        is_staff = STAFF_BEFORE.search(before) or STAFF_AFTER.search(after)
+        token = "[STAFF]" if is_staff else "[NAME]"
+        out += [text[last: m.start()], token]
+        counts[token] += 1
+        last = m.end()
+    out.append(text[last:])
+    return "".join(out)
+
+
+# ---------------------------------------------------------------- corpus pass
+
+
+def person_candidates(texts: Iterable[str]) -> Counter:
+    """Count one-word spaCy PERSON entities that are NOT at the start of a sentence.
+
+    Mid-sentence capitalisation is a much stronger signal than sentence-initial ("Keys weren't").
+    Needs spaCy; run once over all comments at ingestion.
+    """
+    found: Counter = Counter()
+    for doc in _nlp().pipe(t for t in texts if isinstance(t, str) and t.strip()):
+        for ent in doc.ents:
+            surface = ent.text.strip()
+            if (ent.label_ == "PERSON" and len(ent) == 1 and not _at_sentence_start(ent)
+                    and surface[:1].isupper() and surface.lower() not in NOT_NAMES):
+                found[surface] += 1
+    return found
+
+
+def promote_names(texts: Iterable[str], candidates: Mapping[str, int], min_count: int = 2,
+                  min_cap_share: float = 0.6) -> set[str]:
+    """Pick candidate names that are safe to redact in ANY letter case.
+
+    A candidate qualifies if spaCy tagged it in >= min_count comments and, across all comments,
+    >= min_cap_share of its occurrences are capitalised. "Dave" (mostly capitalised) qualifies,
+    so a lower-case "dave" is then caught; "Will" or "Lovely" (mostly ordinary words) do not.
+    Pure function (no spaCy), so it is unit-tested directly.
+    """
+    texts = [t for t in texts if isinstance(t, str)]
+    promoted = set()
+    for name, n in candidates.items():
+        if n < min_count or len(name) < 3:
+            continue
+        occ = [m.group(0) for t in texts for m in _whole_word(name).finditer(t)]
+        if occ and sum(o[:1].isupper() for o in occ) / len(occ) >= min_cap_share:
+            promoted.add(name)
+    return promoted
+
+
 # ---------------------------------------------------------------- public API
 
 
-def redact(text, row_values: Mapping[str, Iterable] | None = None, use_ner: bool = True
+def redact(text, row_values: Mapping[str, Iterable] | None = None, use_ner: bool = True,
+           staff_names: Iterable[str] | None = None, known_names: Iterable[str] | None = None,
+           extra_names: Iterable[str] | None = None,
            ) -> tuple[str | None, Counter]:
-    """Return (redacted_text, token_counts). Never returns or logs the original strings."""
+    """Return (redacted_text, token_counts). Never returns or logs the original strings.
+
+    staff_names: first names from the data's staff columns ("Taken by", "Logged by", "Staff", ...);
+        redacted as [STAFF] in any letter case.
+    known_names: first names seen in any name or staff column (case-sensitive); used only to
+        confirm spaCy's one-word, sentence-initial PERSON guesses.
+    extra_names: names promoted from the whole corpus by promote_names(); any letter case,
+        token chosen by context.
+    All three lists are built in memory at ingestion and never written out (D-003, D-026).
+    """
     counts: Counter = Counter()
     if text is None or (isinstance(text, float) and pd.isna(text)):
         return None, counts
@@ -183,13 +273,20 @@ def redact(text, row_values: Mapping[str, Iterable] | None = None, use_ner: bool
     t = _sub(ADDRESS, "[ADDRESS]", t, counts)
     t = _sub(REGO_CUED, "[REGO]", t, counts, group=1, skip=NOT_REGO)
     t = _sub(REGO_SHAPE, "[REGO]", t, counts, skip=NOT_REGO)
+    roster = _roster_pattern(frozenset(staff_names or ()))
+    if roster is not None:
+        t = _sub(roster, "[STAFF]", t, counts)
+    if extra_names:
+        t = _redact_extra_names(t, frozenset(extra_names), counts)
     if use_ner:
-        t = _redact_people(t, counts)
+        t = _redact_people(t, counts, frozenset(known_names or ()))
     return t, counts
 
 
 def deidentify(df: pd.DataFrame, mapping: Mapping[str, str], source_file: str,
-               use_ner: bool = True) -> tuple[pd.DataFrame, Counter]:
+               use_ner: bool = True, staff_names: Iterable[str] | None = None,
+               known_names: Iterable[str] | None = None,
+               extra_names: Iterable[str] | None = None) -> tuple[pd.DataFrame, Counter]:
     """Apply the allowlist and redact comments.
 
     mapping: source column name -> role, where role is one of KEEP_ROLES or TRANSIENT_ROLES.
@@ -216,7 +313,8 @@ def deidentify(df: pd.DataFrame, mapping: Mapping[str, str], source_file: str,
     for _, row in df.iterrows():
         row_values = {r: [row[c] for c in by_role.get(r, [])] for r in TRANSIENT_ROLES}
         text = row[comment_col] if comment_col else None
-        red, counts = redact(text, row_values, use_ner=use_ner)
+        red, counts = redact(text, row_values, use_ner=use_ner, staff_names=staff_names,
+                             known_names=known_names, extra_names=extra_names)
         comments.append(red)
         totals.update(counts)
 
