@@ -1,0 +1,11 @@
+[
+  {
+    "file_a": "Chermside Q1 2026 FINAL v2.xlsx",
+    "file_b": "Chermside Q1 2026 FINAL.xlsx",
+    "shared_rows": 112,
+    "rows_a": 118,
+    "rows_b": 112,
+    "a_contained_in_b": false,
+    "b_contained_in_a": true
+  }
+]
