@@ -615,6 +615,102 @@ Source: `agents/reports/w1_profilers.md` (15 findings). Wave 2 ingestion applies
   department, are both still answered. What is dropped is the per-dealership-per-theme cell
   that the data cannot populate.
 
+### D-061 · KMeans, not HDBSCAN, for theme discovery · Decided · 30 Oct 2026
+- **Raised by the owner,** who asked whether KMeans or GMM would be an easier fit. The
+  orchestrator predicted neither would help and was wrong; the test is below.
+- **The problem.** HDBSCAN cannot cluster this corpus. A `min_cluster_size` sweep over all
+  5,353 redacted comments:
+
+  | min_size | clusters | outliers | largest cluster |
+  |---:|---:|---:|---:|
+  | 10 | 84 | 27.3% | 533 |
+  | 15 | 42 | 20.0% | 836 |
+  | 20–30 | 7 | 0.0% | **4,649** |
+  | 40 | 5 | 1.7% | 4,632 |
+  | 89 | 2 | 1.0% | 4,862 |
+
+  Either 84 micro-clusters or a single cluster holding 87% of the data. BERTopic's own topic
+  reduction (over-cluster at 15, merge to 10) did not fix it either: the merged result still
+  had one cluster of 3,191 comments, 60% of the corpus.
+- **Why it fails.** HDBSCAN looks for separated density peaks. Comments averaging 101
+  characters about a service visit do not have them — what varies most in the embedding space
+  is which car the customer drives and how happy they are, not which CX driver they are
+  describing. Two of the k=8 clusters were pure artefacts: one of short generic praise, and
+  one grouped on vehicle model names (D-054's `altura`, `corsa`, `vista`, `terra`).
+- **The decision.** KMeans at k=12 over the same UMAP-reduced MiniLM embeddings, seed 42.
+  A forced partition cuts along the dominant variance directions, and those *do* include
+  experience: staff manner, communication, waiting, pricing, parts and booking all came back
+  as coherent groups, and booking separated cleanly at k=12 where it had not at k=8. GMM at
+  k=8 gave the same shape but muddier groups — one mixed "reasonable quote", "LONG QUEUE AT
+  THE COUNTER" and "Waited ages. No parts." — so KMeans was kept for being simpler and
+  cleaner. HDBSCAN stays reachable via `--kmeans-k 0`, so the failure is reproducible.
+- **The cost, stated plainly.** KMeans cannot refuse a comment, so it reports 0% outliers *by
+  construction*. That is a property of the algorithm and not evidence of fit. HDBSCAN's
+  20–27% outlier rate was it declining to force poorly-fitting comments anywhere, which was
+  information; KMeans discards it. The `unassigned` similarity floor (D-056) therefore does
+  more work, not less.
+- **A finding worth keeping:** c-TF-IDF top terms were misleading on this corpus three times
+  in one night — a coherent "chasing for a status update" cluster labelled "ready, ask, hold,
+  car", and a parts-availability cluster labelled "car, explained, paperwork, finance".
+  Themes must be named from example comments, never from top terms. The discovery report
+  carries five examples per cluster for that reason.
+
+### D-062 · Theme assignment matches short probes, max-pooled, not one long description · Decided · 30 Oct 2026
+- **The first attempt and its measured failure.** Assignment embedded one 50–80 word
+  description per theme. The similarity scale came out compressed — median 0.328, p90 0.475 —
+  and two of ten decile spot-checks were misassigned, **one of them at the median**, so no
+  floor could have caught it.
+- **Two causes, both in the wording rather than the model:**
+  1. A 60-word description embeds to the centroid of everything it mentions, which sits far
+     from any single 101-character comment.
+  2. The descriptions borrowed each other's consequences. Parts availability mentioned the
+     customer "left without their vehicle", which attracted *"I was dreading losing the whole
+     day without a car"* — a Waiting comment.
+- **The decision.** Each theme carries 6–7 short probe phrases in the register of the data,
+  each staying inside its own theme's subject, and a comment's score for a theme is the
+  **maximum** over that theme's probes rather than one score against one description.
+- **Result:** median similarity 0.328 → **0.424**, p90 0.475 → **0.582**, max 0.712 →
+  **0.924**. Nine of ten decile spot-checks correct, with the single remaining error at p0 —
+  the bottom of the distribution, where the floor removes it. Errors concentrating at low
+  similarity is the signature of a score that means something. Theme volumes also rebalanced
+  sensibly: Workmanship 200 → 454 and Explanation 234 → 398, so the two hand-added themes
+  carry real weight instead of scraps.
+- **What did not change:** the owner's eight theme names and their descriptions. `description`
+  remains the human-readable text the reports quote; `probes` is a separate field that does
+  the embedding. D-023 is unaffected.
+
+### D-063 · The sentiment model fails on sarcasm and Australian idiom; the LLM is the mitigation · Decided · 30 Oct 2026
+- **Owner's words:** "Route to the LLM." The owner raised sarcasm and colloquialism as a
+  hypothesis before any evidence existed for it, and the evidence then confirmed it.
+- **The defect, measured.** Of the eight pilot comments where the deterministic sentiment and
+  the customer's rating were *opposite*, **all eight were sarcasm or Australian idiom**, and
+  the model was confident while wrong:
+  - *"Lovely to see the tradition continues: arrive at 7:30, wait till lunch..."* → positive, 0.83
+  - *"Oh brilliant, another day of silence. I love guessing whether my car is finished"* → positive, 0.49
+  - *"whacked it on the card and it barely registered. bargain."* → negative, 0.85
+  - *"Well, would you look at that, a dealer who doesn't take me for a mug."* → negative, 0.70
+- **Exposure, not error rate:** 812 of 5,353 comments (15.2%) carry Australian slang markers.
+  Most classify correctly — *"Bloody good bunch of blokes"* is read as praise.
+- **What is NOT the defect.** The 40 of 66 rating-3 comments the model labelled negative are
+  *not* errors. Read directly, they are plain complaints carrying a 3/5 rating — *"Waited and
+  waited. Staff rude."*, *"dirty toilets, no parking, car not ready. typical."* The model is
+  right there and the **rating** is the weak signal, which is exactly why D-055 set the pass
+  mark against the owner's blind labels and not against the rating. On the full corpus the
+  model is also *conservative*, not optimistic: it calls 660 fewer positives than the ratings
+  do and 523 more neutrals, and its single largest error cell is 781 positive→neutral.
+- **The decision.** A local LLM (`qwen2.5:3b`, prompt `sentiment_v1`) gives a third opinion on
+  comments where the sentiment model and the rating disagree. It **annotates only** — it does
+  not overwrite `sentiment_label`, so Wave 5's headline numbers stay reproducible by a
+  reviewer who never starts Ollama. The LLM's value is the *measurement* of how wrong the
+  deterministic labels are on ironic text: a limitation the technical report can state with a
+  number rather than a hedge.
+- **Scope is D-024 and still open.** The pilot projects 1.89–2.49 hours for all 1,887
+  disagreements against D-011's 2-hour cut-off. `reports/llm_review.md` recommends 857
+  comments (the 350 polarity flips plus the 507 where the rating is neutral) at 0.86 hours.
+- **Fallback if the LLM is cut** (PLAN.md §9 requires one in advance): report the sarcasm
+  weakness as a measured limitation in both reports, citing the eight cases and the 15.2%
+  slang exposure. The defect is documented either way; only the mitigation is optional.
+
 ### D-007 · Two reports · Decided · 29 Oct 2026
 - **Decision:** (1) a non-technical business report for the Head of CX; (2) a technical report (`README.md`) for reviewers. The business report links to the technical one.
 
@@ -694,5 +790,5 @@ Source: `agents/reports/w1_profilers.md` (15 findings). Wave 2 ingestion applies
 | D-021 | Evidence threshold for calling a trend real | **Closed 29 Oct 2026 — see D-052.** 20 responses a month, 0.5 stars, thin sites quarterly |
 | D-022 | NLP pass mark and fallback | **Closed 29 Oct 2026 — see D-055.** Cohen's κ ≥ 0.60 on a 150-comment stratified sample, with D-004's rating signal as the fallback. The theme bar stays open until the theme list is fixed (D-023) |
 | D-023 | Final theme list (fixed + discovered mix) | After theme discovery. **Size capped at 8 on 29 Oct 2026 — see D-059**; the names stay open until the owner sets them |
-| D-024 | LLM in or out | After the 20-comment pilot |
+| D-024 | LLM in or out, and at what scope | **Evidence in hand 30 Oct 2026 — see D-063 and `reports/llm_review.md`.** The pilot projects 1.89–2.49 h for all 1,887 disagreements against D-011's 2 h cut-off; 857 comments is the recommended scope at 0.86 h. Still the owner's to decide |
 | D-025 | Value benchmarks and assumptions (low/mid/high) | Wave 5 |
