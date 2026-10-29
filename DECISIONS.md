@@ -127,6 +127,30 @@ Source: `agents/reports/w1_profilers.md` (15 findings). Wave 2 ingestion applies
 - **Compensating controls:** owner read 40 redacted comments across two pilots and found no visible personal data in the second; automated leak check found 0 staff names and no real names left in the two pilot files; 41 synthetic fixture cases plus 9 allowlist and corpus-pass unit tests, including must-not-redact cases.
 - **Residual risk (accepted):** a name used once, in lower case and absent from any staff column, can get through. Wave 2 adds a dataset-wide leak count to the data-quality report.
 
+### D-034 · File → dealer code assignment, including the three files named after something else · Decided · 29 Oct 2026
+- **Decision (owner):** every file is assigned its dealer code in `mappings/columns.yaml` at file level, by hand. The three files whose names do not contain their suburb are resolved as:
+  | File | Dealer code | Dealership |
+  |---|---|---|
+  | `Hunter Motors feedback 25-26.xlsx` | NSW05 | Kestrel Newcastle |
+  | `IPS_feedback_log.xlsx` | QLD03 | Kestrel Ipswich |
+  | `North QLD feedback (Rocky + TSV).xlsx` | **QLD07 and QLD08** | Kestrel Rockhampton *and* Kestrel Townsville — one file, split by its `Site` column |
+- **Evidence (not inference from the file names):**
+  - Matching all 24 suburbs against all 52 file names leaves exactly four codes unmatched (NSW05, QLD03, QLD07, QLD08) and exactly three files unmatched — the three above. Newcastle is in the Hunter region; IPS is Ipswich; Rocky and TSV are Rockhampton and Townsville.
+  - `Hunter Motors`: the `Dealer` column reads `HUNTER` on all 303 rows — one site, no split needed.
+  - `IPS_feedback_log`: the `Site` column reads `KMG-IPS` on all 277 rows — one site.
+  - `North QLD`: the `Site` column holds exactly six spellings across all four sheets — `Rockhampton`/`Rocky`/`ROK` (202 rows) and `Townsville`/`TSV`/`Tsv` (354 rows), totalling 556. No other values, so the split is exact.
+- **Corrections to the owner's approval, recorded because the codes matter:** the owner wrote "QLD 02 Ipswich" — Ipswich is **QLD03**; QLD02 is Springwood, which has its own file (`Springwood feedback.xlsx`). The owner also wrote "QLD 07 is the combination of Rockhampton & Townsville" — QLD07 is Rockhampton **only** and QLD08 is Townsville; it is the *file* that combines the two. The table above is what the mapping implements.
+- **Consequence for Wave 3:** with the file → code map approved by hand, no fuzzy matching of dealership names is needed, because no file contains a free-text dealership column that reaches the output (`Dealer` and `Site` are both dropped). `thresholds.dealer_match_min_confidence` in `config.yaml` can be retired rather than set. Wave 3's fuzzy matching is removed from scope unless a later file turns out to need it.
+
+### D-035 · Department and rating normalisation stay in Wave 3; ratings convert at ingestion · Decided · 29 Oct 2026
+- **Question asked:** should Wave 2's ingest agent also do Wave 3's department and rating normalisation, to save a handoff before the Friday freeze?
+- **Decision (owner):** no — keep normalisation in Wave 3, with one exception that is forced by a decision already made.
+- **What this means concretely:**
+  - **Departments:** ingestion writes `department_raw` exactly as the source spelled it ("Svc", "SERVICE", "Workshop", "New Cars", "P&A", "SV", …). Wave 3 adds the `department` column by mapping those to Service / Sales / Parts. Nothing in Wave 2 depends on knowing which is which.
+  - **Ratings:** ingestion must still convert to 1–5, because D-031 drops rows with no usable rating and that cannot be decided without reading and converting the rating. The conversion rules are already the owner's (D-020, D-030), so ingestion is applying an approved table, not making a judgement. Both `rating_raw` and `rating_1to5` are written, so the conversion stays auditable.
+  - **Validation:** the pandera data-quality suite stays in Wave 3, written by a different agent. Under D-017 the agent that builds something does not grade it, and ingest grading its own output would weaken the evidence reviewers look for.
+- **Why this split:** the schema (`src/schema.py`) carries `department` as an optional column, so Wave 3 fills it in without any change to the Wave 2 contract (gate G3 untouched).
+
 ## Outputs
 
 ### D-007 · Two reports · Decided · 29 Oct 2026
@@ -172,6 +196,11 @@ Source: `agents/reports/w1_profilers.md` (15 findings). Wave 2 ingestion applies
     - Claude does not edit tracked files in the laptop folder, so `git pull` there never conflicts. Lock files generated on the laptop (`uv.lock`) are committed and pushed by the owner.
     - Profiling and other pandas/openpyxl-only work runs in the cloud workspace.
   - **Scope limits:** bridge access is limited to `C:\PS-Kestral-Group`. Claude runs no Docker commands; the owner runs `docker compose` for this project only.
+- **Revision 2 (29 Oct 2026, afternoon):** the "owner runs, Claude reads logs" arrangement above was a workaround for a sandboxed bridge shell with no Python 3.12 and no project environment. The Claude Code session running in the desktop app does not have that limitation: it works directly in `C:\PS-Kestral-Group`, runs `uv` (0.13.6) and the project virtual environment, and so can execute the pipeline and the tests itself.
+  - **Arrangement from here:** Claude writes code and runs it in the laptop repository on the agent's own branch, including `pytest`, `ruff`, `pre-commit` and the pipeline stages. The owner still runs anything involving Docker or Ollama, and still reviews and merges every branch (G5).
+  - **Why it changed:** the log round-trip cost roughly a full cycle per command with a Friday 3pm freeze, and the reason for it no longer applied once the session had a working environment.
+  - **What did not change:** the gates. Nothing reaches `main` without the owner's review, the owner still approves each brief and each threshold, and raw data still never enters git (now enforced by a pre-commit hook as well as `.gitignore`).
+  - **Unchanged constraint:** Hugging Face and PyPI remain unreachable from the cloud workspace, so the laptop stays the reference environment for `uv lock`, `uv sync` and the NLP models.
 
 ### D-014 · Tech stack · Decided · 29 Oct 2026
 - See PLAN.md §5. Key reasons: `uv` for exact reproducibility; Parquet + DuckDB for typed, inspectable stages; pandera for declarative validation; cached model outputs committed so results reproduce without re-running models.

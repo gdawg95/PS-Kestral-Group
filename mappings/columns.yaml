@@ -1,0 +1,872 @@
+# ============================================================================
+# columns.yaml - source -> canonical column map
+# ============================================================================
+# STATUS: DRAFT. Nothing is ingested until the owner approves this file
+#         line by line (PLAN.md Checkpoint 2, gate G3).
+#
+# Drafted from reports/profiles/*.json (Wave 1), which were built from the
+# spreadsheets themselves - not from guesses about the file names.
+#
+# HOW TO READ IT
+#   layouts:  31 named table shapes. Each source column gets a role, or is
+#             listed under `dropped`. Review these 31 blocks and you have
+#             reviewed every column in the pack.
+#
+# VERIFY IT: `uv run python scripts/check_mapping.py` cross-checks every line
+#            below against the Wave 1 profiles - files, sheets, header rows,
+#            row counts and column accounting. It passes as of 29 Oct 2026.
+#   files:    all 52 files, grouped by dealer, each pointing its sheet(s) at
+#             a layout. Review these for "right dealer, right sheets".
+#
+# ROLES - only these six exist (src/pii.py KEEP_ROLES + TRANSIENT_ROLES):
+#   date         -> feedback_date
+#   department   -> department_raw   (normalised to Service/Sales/Parts in Wave 3)
+#   rating       -> rating_raw + rating_1to5 (converted per rating_scale, D-020)
+#   comment      -> comment          (redacted per D-026)
+#   redact_name  -> transient: used to strip that row's own name from its comment,
+#                   then discarded. Never written. (D-003 exception)
+#   redact_rego  -> transient: same, for the registration plate
+#
+# EVERYTHING ELSE IS DROPPED. `dropped:` is not instructions to the pipeline -
+# the allowlist drops anything unmapped anyway (D-003). It is a completeness
+# check: src/ingest.py asserts every column in the source appears either in
+# `columns` or in `dropped`, so a new column in a re-sent file stops the run
+# instead of being silently ignored.
+#
+# staff_columns: read in memory only, to build the [STAFF] roster for redaction
+#                (D-026). Never written out. Not a role - passed separately.
+#
+# date_format: excel         real Excel date cells
+#              excel_serial  Excel serial numbers stored as plain numbers
+#              month_pivot   month labels like "Oct-25" (summary file only)
+#              otherwise a strptime pattern, e.g. %d/%m/%Y
+#
+# rating_scale: one of the values in src/schema.py RatingScale.
+# ============================================================================
+
+version: 1
+status: draft - awaiting owner approval (Checkpoint 2)
+drafted: 2026-10-29
+source_of_truth: reports/profiles/
+
+# ---------------------------------------------------------------------------
+# LAYOUTS
+# ---------------------------------------------------------------------------
+layouts:
+
+  # --- VIC ----------------------------------------------------------------
+
+  ballarat:
+    header_row: 2                  # two-row header: group labels sit above the names
+    date_format: excel
+    rating_scale: words-5          # Very dissatisfied .. Very satisfied (D-020)
+    columns:
+      Date: date
+      Dept: department
+      "How satisfied?": rating
+      Comments: comment
+      Name: redact_name
+    staff_columns: []
+    dropped: [Phone]
+    notes: 3 merged cell ranges in the header area; the data itself is not merged.
+
+  dandenong:
+    header_row: 4                  # 3 title/note rows above the header
+    date_format: excel
+    rating_scale: "1-5"
+    columns:
+      Date: date
+      Dept: department
+      "Rating (1-5)": rating
+      Comments: comment
+      Customer: redact_name
+      Rego: redact_rego
+    staff_columns: []
+    dropped: [Vehicle, "Action taken"]
+
+  dandenong_may:                   # same table, one extra note row above it
+    header_row: 5
+    date_format: excel
+    rating_scale: "1-5"
+    columns:
+      Date: date
+      Dept: department
+      "Rating (1-5)": rating
+      Comments: comment
+      Customer: redact_name
+      Rego: redact_rego
+    staff_columns: []
+    dropped: [Vehicle, "Action taken"]
+    notes: >
+      The extra row reads "NOTE: new online booking system went live 5 May.
+      Expect some teething issues - log everything!". Worth keeping for the
+      Wave 5 trend narrative; it is an event, not data.
+
+  essendon:
+    header_row: 1
+    date_format: "%d/%m/%Y"
+    rating_scale: "1-5"
+    department_from_sheet_name: true   # D-032 #9: the sheet IS the department
+    columns:
+      Date: date
+      "Customer said": comment
+      Score: rating
+    staff_columns: ["Taken by"]
+    dropped: [Action]
+
+  frankston_v1:
+    header_row: 1
+    date_format: excel
+    rating_scale: "1-5"
+    columns:
+      Date: date
+      Area: department
+      Rating: rating
+      Comments: comment
+    staff_columns: []
+    dropped: []
+    unnamed_columns: drop          # 3 empty columns to the right of Comments
+    drop_rows:
+      - blank
+      - summary_or_note            # D-032 #10: 12 monthly "Total ..." rows
+
+  frankston_v2:
+    header_row: 160                # D-032 #10: the layout changes mid-sheet
+    date_format: excel
+    rating_scale: "1-5"
+    columns:
+      Date: date
+      Area: department
+      CSAT: rating
+      "Customer comments": comment
+      Customer: redact_name
+      Rego: redact_rego
+    staff_columns: []
+    dropped: [Source]
+    drop_rows:
+      - blank
+      - summary_or_note
+
+  geelong_2025:
+    header_row: 4
+    date_format: "%d/%m/%y"
+    rating_scale: 1-5-reversed     # D-030: sheet title says 1 = Excellent, 5 = Poor
+    columns:
+      Date: date
+      Department: department
+      Rating: rating
+      Feedback: comment
+      Customer: redact_name
+    staff_columns: []
+    dropped: []
+    notes: The reversal applies to THIS sheet only. tests/test_ingest.py must assert that.
+
+  geelong_2026:
+    header_row: 4
+    date_format: "%d/%m/%y"
+    rating_scale: "1-5"            # sheet title: new head office scale
+    columns:
+      Date: date
+      Department: department
+      Rating: rating
+      Feedback: comment
+      Customer: redact_name
+    staff_columns: []
+    dropped: []
+
+  ringwood_5pt:
+    header_row: 1
+    date_format: "%d/%m/%Y"
+    rating_scale: "1-5"
+    columns:
+      "Date Received": date
+      Department: department
+      "Score (1-5)": rating
+      "Customer comments": comment
+    staff_columns: []
+    dropped: ["Followed up?"]
+    unnamed_columns: drop          # 2 empty columns in Q1 2026
+    drop_rows:
+      - blank
+      - summary_or_note            # the "*** NEW TEMPLATE FROM FEB" row (D-031)
+
+  ringwood_10pt:
+    header_row: 1
+    date_format: "%d/%m/%Y"
+    rating_scale: "1-10"           # D-020: 1-2->1, 3-4->2, 5-6->3, 7-8->4, 9-10->5
+    columns:
+      Date: date
+      Department: department
+      "Score (out of 10)": rating
+      "Customer comments": comment
+    staff_columns: [Staff]
+    dropped: [Model, "Follow up (Y/N)"]
+
+  ringwood_10pt_mid:               # same table, but it starts part-way down the sheet
+    header_row: 37
+    date_format: "%d/%m/%Y"
+    rating_scale: "1-10"
+    columns:
+      Date: date
+      Department: department
+      "Score (out of 10)": rating
+      "Customer comments": comment
+    staff_columns: [Staff]
+    dropped: [Model, "Follow up (Y/N)"]
+
+  shepparton:
+    header_row: 1
+    date_format: "%d/%m/%Y"
+    rating_scale: "1-5"
+    columns:
+      Date: date
+      Dept: department
+      Rating: rating
+      Comment: comment
+    staff_columns: []
+    dropped: []
+    date_fixes:
+      year_typo:                   # D-032 #3: 6 dates land Oct-Dec 2026, after closure
+        when: date after 2026-09-30
+        action: subtract one year
+        flag: date_corrected
+    drop_rows:
+      - blank
+      - summary_or_note            # "Site closed 31/3/26 ... - Trish" (D-031)
+
+  bendigo:
+    header_row: 1
+    csv: {delimiter: ",", encoding: utf-8-sig}   # byte-order mark on the header
+    date_format: "%d %b %y"
+    rating_scale: stars-5          # D-020: count the filled stars
+    columns:
+      Date: date
+      Dept: department
+      Stars: rating
+      "What did they say?": comment
+    staff_columns: []
+    dropped: []
+    notes: >
+      Department is coded SV / S / P, not words - the only file that does this.
+      Needs an owner decision before ingestion (see QUESTIONS, Q4).
+
+  boxhill:
+    header_row: 1
+    csv: {delimiter: ",", encoding: utf-8}
+    date_format: "%Y-%m-%d %H:%M:%S"
+    rating_scale: "1-5"
+    columns:
+      submitted_at: date
+      department: department
+      csat: rating
+      verbatim: comment
+    staff_columns: []
+    dropped: [response_id, vehicle, dms_customer_no]
+    notes: Survey-tool export; the timestamp is truncated to a date.
+
+  # --- NSW ----------------------------------------------------------------
+
+  hunter:
+    header_row: 3                  # 2 title rows above the header
+    date_format: excel
+    rating_scale: "1-5"
+    columns:
+      Date: date
+      Department: department
+      Rating: rating
+      Comments: comment
+    staff_columns: []
+    dropped: [Dealer, Vehicle]
+    notes: >
+      `Dealer` is "HUNTER" on all 303 rows, so it is dropped rather than used
+      as a site column. Confirms one site per file (see D-034).
+
+  parramatta_v1:
+    header_row: 1
+    date_format: excel
+    rating_scale: "1-5"
+    columns:
+      Date: date
+      Department: department
+      Rating: rating
+      Comments: comment
+    staff_columns: [Staff]
+    dropped: ["Cust No", Mobile]
+
+  parramatta_v2:                   # from May 2026: adds a booking reference
+    header_row: 1
+    date_format: excel
+    rating_scale: "1-5"
+    columns:
+      Date: date
+      Department: department
+      Rating: rating
+      Comments: comment
+    staff_columns: [Staff]
+    dropped: ["Cust No", Mobile, "Booking ref"]
+
+  penrith:
+    header_row: 1
+    date_format: excel
+    rating_scale: "1-5"
+    columns:
+      Date: date
+      Department: department       # "Sales - New"/"Sales - Used" -> Sales in Wave 3 (D-028)
+      Score: rating
+      Comments: comment
+      Customer: redact_name
+    staff_columns: []
+    dropped: []
+
+  chatswood:
+    header_row: 1
+    csv: {delimiter: ";", encoding: utf-8}   # semicolon-delimited, all four files
+    date_format: "%d/%m/%Y"
+    rating_scale: "1-5"
+    columns:
+      Date: date
+      Dept: department
+      Score: rating
+      Comment: comment
+    staff_columns: []
+    dropped: [Vehicle]
+
+  liverpool:
+    header_row: 1
+    csv: {delimiter: ",", encoding: utf-8}
+    date_format: "%d/%m/%Y"
+    rating_scale: "1-5"
+    columns:
+      Date: date
+      Department: department
+      Rating: rating
+      Feedback: comment
+      Customer: redact_name
+      Rego: redact_rego
+    staff_columns: []
+    dropped: [Phone]
+
+  liverpool_q3:                    # D-032 #2: this one file is month-first
+    header_row: 1
+    csv: {delimiter: ",", encoding: utf-8}
+    date_format: "%m/%d/%Y"
+    rating_scale: "1-5"
+    columns:
+      Date: date
+      Department: department
+      Rating: rating
+      Feedback: comment
+      Customer: redact_name
+      Rego: redact_rego
+    staff_columns: []
+    dropped: [Phone]
+    assert_date_range: ["2026-07-01", "2026-09-30"]
+    notes: >
+      Verified 29 Oct 2026: month-first parses 85/85 rows, all inside Jul-Sep 2026.
+      Day-first parses only 29/85 and scatters them across the year. No ambiguity left.
+
+  wollongong:
+    header_row: 1
+    csv: {delimiter: ",", encoding: utf-8}
+    date_format: "%d-%b-%y"
+    rating_scale: "1-5"
+    columns:
+      Date: date
+      Dept: department
+      Rating: rating
+      "Customer feedback": comment
+      Name: redact_name
+    staff_columns: []
+    dropped: [Mobile]
+
+  tamworth:
+    header_row: 1
+    date_format: "%d/%m/%Y"
+    rating_scale: words-3          # D-020: Bad 1 / OK 3 / Good 5
+    columns:
+      DATE: date
+      DEPT: department
+      "HOW WAS IT": rating
+      COMMENTS: comment
+    staff_columns: []
+    dropped: []
+    notes: >
+      10 rows have a blank rating and a real comment; D-031 drops them.
+      The stretched 3-point scale is flagged for reporting in D-020.
+
+  # --- QLD ----------------------------------------------------------------
+
+  chermside:
+    header_row: 1
+    date_format: excel
+    rating_scale: "1-5"
+    columns:
+      Date: date
+      Department: department
+      Rating: rating
+      Comments: comment
+    staff_columns: []
+    dropped: [Model, Ref, "Customer No"]
+
+  springwood:
+    header_row: 1
+    date_format: excel
+    rating_scale: "1-5"
+    columns:
+      Date: date
+      Department: department
+      Rating: rating
+      Comments: comment
+      Name: redact_name
+    staff_columns: []
+    dropped: [Mobile, Email]
+
+  ips:
+    header_row: 1
+    date_format: "%d/%m/%Y"
+    rating_scale: "1-5"
+    columns:
+      Date: date
+      Dept: department
+      Rating: rating
+      Notes: comment
+    staff_columns: ["Logged by"]
+    dropped: [Site]
+    date_fixes:
+      approximate:                 # D-032 #4: "early Oct", "wk1 Feb", 10 rows
+        action: 1st/8th/15th/22nd/29th of the stated month, year from neighbouring rows
+        flag: date_approx
+    notes: >
+      `Site` is "KMG-IPS" on all 277 rows, so it is dropped rather than used as a
+      site column. Confirms one site per file (see D-034).
+
+  southport:
+    header_row: 1
+    date_format: excel
+    rating_scale: "1-5"
+    columns:
+      Date: date
+      Department: department
+      Rating: rating
+      Comments: comment
+      "Customer name": redact_name
+      Rego: redact_rego
+    staff_columns: []
+    dropped: [Vehicle, Email]
+    drop_rows:
+      - test_row                   # D-032 #5: "asdf", "TEST", 01/01/1900
+    notes: >
+      One further row (source row 165) has no date but a valid rating of 3 for Sales.
+      Not covered by D-032 #5. Needs an owner decision (see QUESTIONS, Q5).
+
+  noosa:
+    header_row: 1
+    date_format: excel
+    rating_scale: "1-5"
+    columns:
+      Date: date
+      Department: department
+      Rating: rating
+      Comments: comment
+    staff_columns: ["Card given by"]
+    dropped: []
+    notes: >
+      49 rows for a full year, mean 4.63, cards handed out by staff. D-020 flags
+      the likely selection bias for the report.
+
+  toowoomba_2026:
+    header_row: 1
+    date_format: excel
+    rating_scale: "1-5"
+    columns:
+      Date: date
+      Department: department
+      Rating: rating
+      Comments: comment
+    staff_columns: []
+    dropped: []
+
+  toowoomba_summary:               # D-032 #1: counts, not rows
+    header_row: 3
+    date_format: month_pivot       # "Oct-25", "Nov-25", "Dec-25"
+    rating_scale: pivot-1-5
+    expand_pivot:
+      month_column: Month
+      department_column: Department
+      count_columns: ["1", "2", "3", "4", "5"]
+      day_of_month: 15             # mid-month, since the real day is unknown
+      expected_rows: 71
+      flag: from_summary
+      comment: null                # no comments exist in a summary
+    columns: {}                    # handled by expand_pivot, not by role mapping
+    staff_columns: []
+    dropped: ["Grand Total"]
+    drop_rows:
+      - summary_or_note            # the "Grand Total" row at the bottom
+    notes: >
+      6 month x department rows summing to 71. Parts and Service only - Toowoomba
+      logged no Sales feedback in Q4 2025. Excluded from NLP (no text).
+
+  northqld:
+    header_row: 1
+    date_format: excel_serial
+    rating_scale: "1-5"
+    site_column: Site              # D-032 #6: two dealers in one file
+    site_map:
+      Rockhampton: QLD07
+      Rocky: QLD07
+      ROK: QLD07
+      Townsville: QLD08
+      TSV: QLD08
+      Tsv: QLD08
+    columns:
+      Date: date
+      Department: department
+      Rating: rating
+      Comments: comment
+    staff_columns: []
+    dropped: []
+    notes: >
+      Verified 29 Oct 2026: exactly those 6 spellings, no others, across all four
+      sheets. Split is 202 rows Rockhampton / 354 Townsville = 556.
+
+# ---------------------------------------------------------------------------
+# FILES - all 52, grouped by dealer code. Excel lock files (~$*) are skipped.
+# `sheets` maps sheet name -> layout name. For CSVs the single sheet key is
+# `null`. A sheet can instead be `skip: <reason>`.
+# ---------------------------------------------------------------------------
+files:
+
+  # === VIC01 Kestrel Dandenong ===============================================
+  "Dandenong Customer Feedback 2025-26.xlsx":
+    dealer_code: VIC01
+    sheets:
+      "Oct 25": dandenong
+      "Nov 25": dandenong
+      "Dec 25": dandenong
+      "Jan 26": dandenong
+      "Feb 26": dandenong
+      "Mar 26": dandenong
+      "Apr 26": dandenong
+      "May 26": dandenong_may
+      "Jun 26": dandenong
+      "Jul 26": dandenong
+      "Aug 26": dandenong
+      "Sep 26": dandenong
+      "Sheet3": {skip: empty sheet, no tabular data}
+    expected_rows: 484
+
+  # === VIC02 Kestrel Ringwood ================================================
+  "Ringwood feedback Q4 2025.xlsx":
+    dealer_code: VIC02
+    sheets: {"Feedback": ringwood_5pt}
+    expected_rows: 100
+  "Ringwood feedback Q1 2026.xlsx":
+    dealer_code: VIC02
+    sheets:
+      "Feedback [layout 1, from row 1]": ringwood_5pt
+      "Feedback [layout 2, from row 37]": ringwood_10pt_mid
+    expected_rows: 113
+    notes: One sheet, two templates. The 10-point template starts at row 37 (Feb 2026).
+  "Ringwood feedback Q2 2026.xlsx":
+    dealer_code: VIC02
+    sheets: {"Feedback": ringwood_10pt}
+    expected_rows: 115
+  "Ringwood feedback Q3 2026.xlsx":
+    dealer_code: VIC02
+    sheets: {"Feedback": ringwood_10pt}
+    expected_rows: 127
+
+  # === VIC03 Kestrel Essendon ================================================
+  "ESSENDON - feedback register.xlsx":
+    dealer_code: VIC03
+    sheets:
+      "Sales": essendon      # department = Sales
+      "Service": essendon    # department = Service
+      "Parts": essendon      # department = Parts
+    expected_rows: 346
+
+  # === VIC04 Kestrel Frankston ===============================================
+  "Frankston_CX_tracker.xlsx":
+    dealer_code: VIC04
+    sheets:
+      "Tracker [layout 1, from row 1]": frankston_v1
+      "Tracker [layout 2, from row 160]": frankston_v2
+    expected_rows: 308
+
+  # === VIC05 Kestrel Box Hill ================================================
+  "boxhill_survey_export_2025Q4.csv":
+    dealer_code: VIC05
+    sheets: {~: boxhill}
+    expected_rows: 64
+  "boxhill_survey_export_2026Q1.csv":
+    dealer_code: VIC05
+    sheets: {~: boxhill}
+    expected_rows: 77
+  "boxhill_survey_export_2026Q2.csv":
+    dealer_code: VIC05
+    sheets: {~: boxhill}
+    expected_rows: 83
+  "boxhill_survey_export_2026Q3.csv":
+    dealer_code: VIC05
+    sheets: {~: boxhill}
+    expected_rows: 85
+
+  # === VIC06 Kestrel Geelong =================================================
+  "Geelong Feedback.xlsx":
+    dealer_code: VIC06
+    sheets:
+      "2025": geelong_2025   # reversed scale (D-030)
+      "2026": geelong_2026
+    expected_rows: 304
+
+  # === VIC07 Kestrel Ballarat ================================================
+  "Ballarat - Customer Satisfaction.xlsx":
+    dealer_code: VIC07
+    sheets: {"Responses": ballarat}
+    expected_rows: 292
+
+  # === VIC08 Kestrel Bendigo =================================================
+  "bendigo feedback.csv":
+    dealer_code: VIC08
+    sheets: {~: bendigo}
+    expected_rows: 144
+
+  # === VIC09 Kestrel Shepparton (closed 31 Mar 2026, D-005) ==================
+  "Shepparton feedback FINAL - site closed.xlsx":
+    dealer_code: VIC09
+    sheets: {"Log": shepparton}
+    expected_rows: 53
+    notes: 53 source rows; 2 are not feedback (blank row, closure note) and drop under D-031.
+
+  # === NSW01 Kestrel Parramatta ==============================================
+  "Parramatta_Feedback_2025-10.xlsx":
+    dealer_code: NSW01
+    sheets: {"Oct 25": parramatta_v1}
+    expected_rows: 47
+  "Parramatta_Feedback_2025-11.xlsx":
+    dealer_code: NSW01
+    sheets: {"Nov 25": parramatta_v1}
+    expected_rows: 36
+  "Parramatta_Feedback_2025-12.xlsx":
+    dealer_code: NSW01
+    sheets: {"Dec 25": parramatta_v1}
+    expected_rows: 37
+  "Parramatta_Feedback_2026-01.xlsx":
+    dealer_code: NSW01
+    sheets: {"Jan 26": parramatta_v1}
+    expected_rows: 42
+  "Parramatta_Feedback_2026-02.xlsx":
+    dealer_code: NSW01
+    sheets: {"Feb 26": parramatta_v1}
+    expected_rows: 33
+  "Parramatta_Feedback_2026-03.xlsx":
+    dealer_code: NSW01
+    sheets: {"Mar 26": parramatta_v1}
+    expected_rows: 40
+  "Parramatta_Feedback_2026-04.xlsx":
+    dealer_code: NSW01
+    sheets: {"Apr 26": parramatta_v1}
+    expected_rows: 34
+  "Parramatta_Feedback_2026-05.xlsx":
+    dealer_code: NSW01
+    sheets: {"May 26": parramatta_v2}   # Booking ref appears here
+    expected_rows: 45
+  "Parramatta_Feedback_2026-06.xlsx":
+    dealer_code: NSW01
+    sheets: {"Jun 26": parramatta_v2}
+    expected_rows: 49
+  "Parramatta_Feedback_2026-07.xlsx":
+    dealer_code: NSW01
+    sheets: {"Jul 26": parramatta_v2}
+    expected_rows: 37
+  "Parramatta_Feedback_2026-08.xlsx":
+    dealer_code: NSW01
+    sheets: {"Aug 26": parramatta_v2}
+    expected_rows: 39
+  "Parramatta_Feedback_2026-09.xlsx":
+    dealer_code: NSW01
+    sheets: {"Sep 26": parramatta_v2}
+    expected_rows: 40
+
+  # === NSW02 Kestrel Penrith =================================================
+  "Penrith Feedback.xlsx":
+    dealer_code: NSW02
+    sheets:
+      "Oct 25": penrith
+      "Nov 25": penrith
+      "Dec 25": penrith
+      "Jan 26": penrith
+      "Feb 26": penrith
+      "Mar 26": penrith
+      "Apr 26": penrith
+      "May 26": penrith
+      "Jun 26": {skip: "D-029 - identical copy of Jul 26; real June data is missing from the pack"}
+      "Jul 26": penrith
+      "Aug 26": penrith
+      "Sep 26": penrith
+    expected_rows: 497
+    notes: 497 source rows minus the 43 skipped Jun 26 rows = 454 ingested. June 2026 is a reported gap.
+
+  # === NSW03 Kestrel Chatswood ===============================================
+  "chatswood_2025_q4.csv":
+    dealer_code: NSW03
+    sheets: {~: chatswood}
+    expected_rows: 68
+  "chatswood_2026_q1.csv":
+    dealer_code: NSW03
+    sheets: {~: chatswood}
+    expected_rows: 56
+  "chatswood_2026_q2.csv":
+    dealer_code: NSW03
+    sheets: {~: chatswood}
+    expected_rows: 76
+  "chatswood_2026_q3.csv":
+    dealer_code: NSW03
+    sheets: {~: chatswood}
+    expected_rows: 78
+
+  # === NSW04 Kestrel Liverpool ===============================================
+  "liverpool_q4_2025.csv":
+    dealer_code: NSW04
+    sheets: {~: liverpool}
+    expected_rows: 82
+  "liverpool_q1_2026.csv":
+    dealer_code: NSW04
+    sheets: {~: liverpool}
+    expected_rows: 73
+  "liverpool_q2_2026.csv":
+    dealer_code: NSW04
+    sheets: {~: liverpool}
+    expected_rows: 71
+  "liverpool_q3_2026.csv":
+    dealer_code: NSW04
+    sheets: {~: liverpool_q3}   # month-first dates
+    expected_rows: 85
+
+  # === NSW05 Kestrel Newcastle (D-034) =======================================
+  "Hunter Motors feedback 25-26.xlsx":
+    dealer_code: NSW05
+    sheets: {"Feedback": hunter}
+    expected_rows: 303
+
+  # === NSW06 Kestrel Wollongong ==============================================
+  "Wollongong_Oct25-Mar26.csv":
+    dealer_code: NSW06
+    sheets: {~: wollongong}
+    expected_rows: 138
+  "Wollongong_Apr26-Sep26.csv":
+    dealer_code: NSW06
+    sheets: {~: wollongong}
+    expected_rows: 147
+
+  # === NSW07 Kestrel Tamworth ================================================
+  "Tamworth.xlsx":
+    dealer_code: NSW07
+    sheets: {"Sheet1": tamworth}
+    expected_rows: 143
+
+  # === QLD01 Kestrel Chermside ===============================================
+  "Chermside Q4 2025.xlsx":
+    dealer_code: QLD01
+    sheets: {"Feedback": chermside}
+    expected_rows: 102
+  "Chermside Q1 2026 FINAL.xlsx":
+    dealer_code: QLD01
+    skip: "D-027 - superseded by FINAL v2, every row of which contains these 112"
+  "Chermside Q1 2026 FINAL v2.xlsx":
+    dealer_code: QLD01
+    sheets: {"Feedback": chermside}
+    expected_rows: 118
+  "Chermside Q2 2026.xlsx":
+    dealer_code: QLD01
+    sheets: {"Feedback": chermside}
+    expected_rows: 116
+  "Chermside Q3 2026.xlsx":
+    dealer_code: QLD01
+    sheets: {"Feedback": chermside}
+    expected_rows: 124
+
+  # === QLD02 Kestrel Springwood ==============================================
+  "Springwood feedback.xlsx":
+    dealer_code: QLD02
+    sheets: {"All": springwood}
+    expected_rows: 310
+
+  # === QLD03 Kestrel Ipswich (D-034) =========================================
+  "IPS_feedback_log.xlsx":
+    dealer_code: QLD03
+    sheets: {"Log": ips}
+    expected_rows: 277
+
+  # === QLD04 Kestrel Southport ===============================================
+  "Southport Feedback Tracker.xlsx":
+    dealer_code: QLD04
+    sheets:
+      "Feedback": southport
+      "Google reviews (copied)": {skip: "D-032 #5 - copied public reviews, not Kestrel's own feedback"}
+    expected_rows: 262
+    notes: 254 rows on the Feedback sheet; the 8 Google-review rows are excluded.
+
+  # === QLD05 Kestrel Noosa ===================================================
+  "Noosa feedback cards.xlsx":
+    dealer_code: QLD05
+    sheets: {"Cards": noosa}
+    expected_rows: 49
+
+  # === QLD06 Kestrel Toowoomba ===============================================
+  "Toowoomba Q4 2025 summary.xlsx":
+    dealer_code: QLD06
+    sheets: {"Summary": toowoomba_summary}
+    expected_rows: 7
+    notes: 7 source rows (6 month x department + 1 Grand Total) expand to 71 feedback rows.
+  "Toowoomba feedback 2026.xlsx":
+    dealer_code: QLD06
+    sheets: {"2026": toowoomba_2026}
+    expected_rows: 250
+
+  # === QLD07 Rockhampton + QLD08 Townsville (one file, split by Site) ========
+  "North QLD feedback (Rocky + TSV).xlsx":
+    dealer_code: split_by_site      # see layouts.northqld.site_map
+    sheets:
+      "Q4 2025": northqld
+      "Q1 2026": northqld
+      "Q2 2026": northqld
+      "Q3 2026": northqld
+    expected_rows: 556
+
+# ---------------------------------------------------------------------------
+# ROW ARITHMETIC the reconciliation report must reproduce (D-002 (c))
+# ---------------------------------------------------------------------------
+row_budget:
+  # Verified against the profiles on 29 Oct 2026.
+  source_rows_in_scope: 7162        # sum of expected_rows over the 51 ingested files
+  excluded_whole_file:
+    "Chermside Q1 2026 FINAL": 112  # D-027; not counted in the 7162 above
+  excluded_whole_sheet:
+    "Penrith Jun 26": 43            # D-029
+    "Southport Google reviews (copied)": 8   # D-032 #5
+  pivot:
+    toowoomba_summary_source_rows: 7   # these 7 do not become feedback rows
+    toowoomba_summary_expanded_rows: 71
+  dropped_rows:
+    tamworth_no_rating: 10          # D-031
+    shepparton_closure_note: 1      # D-031 (no rating)
+    ringwood_q1_template_note: 1    # D-031 (no rating)
+    southport_asdf: 1               # D-031 (no rating) AND a test row
+    southport_test_and_1900: 2      # D-032 #5 test rows that DO carry a rating
+    blank_and_total_rows: pilot      # Frankston and Ringwood; exact count set by the pilot
+    southport_no_date: pending       # 1 row, rating but no date - see QUESTIONS Q5
+  identity_the_pipeline_must_prove: >
+    rows_out = source_rows_in_scope
+             - excluded_whole_sheet (51)
+             - toowoomba_summary_source_rows (7)
+             + toowoomba_summary_expanded_rows (71)
+             - dropped_rows (by reason, each counted once)
+    i.e. 7175 candidate rows before drops. The reconciliation report must show every
+    drop with its reason, and no row may be counted under two reasons.
+  notes: >
+    These are the numbers src/ingest.py must land on. Any difference is a bug in the
+    mapping or in the code and blocks the merge (PLAN.md stop rules). Note that
+    Southport's "asdf" row is both a D-031 no-rating row and a D-032 #5 test row;
+    the report counts it once, under test_row.

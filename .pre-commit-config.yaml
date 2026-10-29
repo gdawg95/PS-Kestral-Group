@@ -1,0 +1,28 @@
+# Every hook is local and runs from the project venv, because the laptop has no
+# network access to the pre-commit hook repositories (DECISIONS.md D-013).
+# gitleaks is NOT a hook for the same reason; it is a manual pre-public step (D-015).
+fail_fast: false
+repos:
+  - repo: local
+    hooks:
+      - id: no-data-files
+        name: block raw or interim data files
+        entry: uv run --no-sync python scripts/check_no_data.py
+        language: system
+        pass_filenames: true
+        always_run: false
+
+      - id: ruff
+        name: ruff (lint)
+        entry: uv run --no-sync ruff check --force-exclude
+        language: system
+        types_or: [python, pyi]
+
+      # No `ruff format` gate: pyproject configures ruff.lint only, and turning on
+      # formatting now would rewrite src/pii.py, which belongs to the w1_pii agent.
+
+      - id: nbstripout
+        name: strip notebook outputs
+        entry: uv run --no-sync nbstripout
+        language: system
+        files: \.ipynb$

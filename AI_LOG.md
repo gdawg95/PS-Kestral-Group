@@ -25,6 +25,9 @@ Fill this in as you go. It becomes the "where AI got it wrong" section of the te
 | 6 | AI-004 | Redactor missed "Raj" and lower-case "dave", and redacted the ordinary words "Spooky" and "Keys" | **Owner's laptop pilot run**; AI traced each sample back to its cause | Staff roster, sentence-start guard, corpus name pass; tests for each case |
 | 7 | AI-004 | Tests could not import the code on the laptop (`No module named 'src'`): AI had only run them with a different command | Owner's laptop run | `pythonpath` set in pyproject |
 | 8 | AI-004 | spaCy redacted the model code "HiLux SR5 4WD" as a person, and the new guard skipped "Dave in service" | Owner's laptop run of the spaCy tests | Digits never in names; staff cue overrides the guard |
+| 9 | AI-005 | Wave 1 was reported complete while four items from the w1_scaffold brief had never been delivered: Makefile, pre-commit guardrail, the scaffold's own report, and the pydantic schema PLAN.md promised. Checkpoint 1's force-add test had therefore never been run | AI re-checked each brief's done-when list against the repository at the owner's request | Delivered on `w1-wrapup`; both Checkpoint 1 criteria now demonstrated |
+| 10 | AI-005 | The `w2-ingest` branch carried an older AI_LOG in which the owner's four verdicts were back to `<owner to complete>` placeholders. Merging it would have erased the sign-offs | AI diffed the branch against `main` before recommending a merge | Only the brief was taken across; the branch is to be discarded rather than merged |
+| 11 | AI-005 | The AI's own first draft of `columns.yaml` had two errors: Ringwood Q1 2026's second layout was given header row 1 instead of 37 (which would have misread 79 rows as out-of-5 instead of out-of-10), and North QLD's `Site` column was unaccounted for | `scripts/check_mapping.py`, written to cross-check the draft against the profiles before the owner read it | Both fixed; the checker now passes on all 52 files |
 
 ---
 
@@ -108,3 +111,23 @@ Verified by: S Gyaw, 29/10/2026
   
 Verdict: Corrected the issuse that pilot 1 found misses; accepted after pilot 2.
 Verified by: S Gyaw, 29/10/2026
+
+### AI-005 · Wave 1 wrap-up and Wave 2 mapping · Claude Code (desktop app, laptop repo) · 29 Oct 2026
+- **Tool / model:** Claude Opus 5, running in the laptop repository `C:\PS-Kestral-Group` with the project virtual environment (see D-013 revision 2). Branch `w1-wrapup`.
+- **Task / key prompts:** "Read & explain what needs to be done for Wave 2 ... are there any dependencies on wave 1?" then "let's first fix the opened/unresolved stuff from Wave 1 ... Create the mapping of columns so that I can check before you do your thing. for those that you struggle with, pls list some suggestions or questions".
+- **Output:**
+  - Wave 1 gaps closed: `Makefile` + `scripts/run.ps1`, `.pre-commit-config.yaml` + `scripts/check_no_data.py`, `src/schema.py`, `agents/reports/w1_scaffold.md`, brief and report templates.
+  - Wave 2 step 1: `mappings/columns.yaml` (31 layouts, all 52 files), `mappings/QUESTIONS.md` (8 open questions), `scripts/check_mapping.py`.
+  - Decisions recorded: D-034 (file → dealer code), D-035 (Wave 2/3 scope split), D-013 revision 2.
+- **Checks performed:**
+  - Checkpoint 1, both criteria: `git add data/raw/test.xlsx` refused by `.gitignore`; `git add -f` then the hook refused with exit 1. Test file removed afterwards.
+  - `pre-commit run --all-files`: data guardrail Passed, ruff lint Passed.
+  - `pytest -q`: 66 passed, 2 skipped (unchanged by this work).
+  - `scripts/check_mapping.py`: 52/52 files, every sheet, header row, row count and column reconcile against the Wave 1 profiles.
+  - Three mapping assumptions converted from inference to evidence by reading the data: Liverpool Q3 is month-first (85/85 parse into Jul–Sep 2026; day-first parses 29/85), Hunter Motors' `Dealer` is `HUNTER` on all 303 rows and IPS's `Site` is `KMG-IPS` on all 277, and North QLD's `Site` holds exactly six spellings splitting 202/354.
+- **Issues found:** see summary rows 9–11.
+- **Where the owner's instruction was corrected:** the owner approved the dealer codes as "QLD 02 Ipswich" and "QLD 07 is the combination of Rockhampton & Townsville". Ipswich is QLD03 (QLD02 is Springwood, which has its own file) and QLD07 is Rockhampton with QLD08 Townsville. D-034 records both the approval and the correction; the mapping implements the corrected codes.
+- **Owner decisions arising:** D-034, D-035, D-013 revision 2. Eight further questions are open in `mappings/QUESTIONS.md`, three of which (Q1 Bendigo codes, Q2 Southport no-date row, Q3 Toowoomba missing Sales) change rows in the dataset.
+- **Not done / not verified:** the Makefile itself is untested because the laptop has no `make`; the pipeline stage modules it calls do not exist yet. No data has been ingested — Checkpoint 2 blocks it.
+- **Verdict:** <owner to complete>
+- **Verified by:** <owner, date>
