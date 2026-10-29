@@ -17,7 +17,11 @@ Fill this in as you go. It becomes the "where AI got it wrong" section of the te
 
 | # | Entry | What the AI got wrong | How it was caught | Fix |
 |---|---|---|---|---|
-| | | | | |
+| 1 | AI-002 | Recommended running agents on the laptop (option C) before testing what the bridge could do; the bridge shell turned out to have no network, Docker or package access | AI tested it after the owner agreed | Arrangement revised: owner runs, Claude reads logs (D-013 revision) |
+| 2 | AI-002 | Said Scaffold had started when it had not, and said the 52 feedback files were not available when they were already in the project | AI noticed on the next turns | Corrected in conversation |
+| 3 | AI-003 | Staff first names ("Taken by", "Logged by", "Card given by", Southport "Reviewer") listed in profiles, against the privacy rule | AI's own review of the full run, before the owner saw it | Withhold person-like columns; name scans added |
+| 4 | AI-003 | **Tamworth:** a text-date data row (row 10) mistaken for a second header. Profile reported 142 rows instead of 143, a false "format change", wrong empty % for HOW WAS IT, and one comment's text written as a column name | **Owner's spot-check** against the spreadsheet | Header detection rejects dates, numbers and sentences; regression tests; only Tamworth changed on re-run |
+| 5 | AI-003 | First full run missed Geelong 2025's **reversed scale** (note above the header) and Penrith's **"Jun 26" sheet copied from "Jul 26"** | Rating sanity check the **owner asked for**; AI investigated two suspicious numbers | Profiler reads scale notes and compares sheets within a file; D-029, D-030 |
 
 ---
 
@@ -57,3 +61,31 @@ Fill this in as you go. It becomes the "where AI got it wrong" section of the te
   
 Verdict: Plan established. Start Wave 1 so that further information can be discovered for other decisions.
 Verified by: S Gyaw
+
+### AI-002 · Wave 1 · Scaffold and NLP environment check · 28–29 Oct 2026
+- **Tool / model:** Claude Opus 5.5 (cloud workspace + desktop-app bridge to the owner's laptop).
+- **Task / key prompt:** "Time to start Wave 1. Explain what needs to be done, the tools and architecture." Then: scaffold the repo (brief `agents/briefs/w1_scaffold.md`) and check whether the NLP models can run in the workspace.
+- **Output:** branch `w1-scaffold`: folder tree, `pyproject.toml`, `uv.lock` (generated on the laptop), `config.yaml`, pinned `docker-compose.yml`, `.gitignore` / `.gitattributes`; D-013 revision.
+- **Checks performed:**
+  - Workspace: Hugging Face (403), PyPI and the PyTorch index unreachable; GitHub reachable.
+  - Laptop (owner): WSL2 limited to 8 CPUs / 24 GB (`docker info`); Ollama `qwen2.5:3b` at 12.83 tokens/s; image digest and model ID pinned.
+  - Laptop bridge (AI): Linux sandbox, 2 CPUs / 3 GB, sees only `C:\PS-Kestral-Group`, no network or Docker.
+  - `uv sync --group nlp` on the laptop: 123 packages installed, log read by the AI.
+- **Issues found:** see summary rows 1–2. The owner chose option C on the AI's recommendation; testing showed it could not work as described, so it became "owner runs, Claude reads logs".
+- **Verdict:** <owner to complete>
+- **Verified by:** <owner, date>
+
+### AI-003 · Wave 1 · w1_profilers (structure profiles of all 52 feedback files) · 29 Oct 2026
+- **Tool / model:** Claude Opus 5.5, cloud workspace (pandas + openpyxl). Brief `agents/briefs/w1_profilers.md`, approved by the owner.
+- **Task / key prompt:** profile each file's sheets, headers, columns, null rates, date formats and rating/department values, with no PII in the output; pilot on 4 awkward files first (gate G1).
+- **Output:** branch `w1-profilers`: `scripts/profile_file.py`, `scripts/check_ratings.py`, `reports/profiles/` (52 profiles, index, overlaps, review sheet), `reports/rating_check.md`, `tests/test_profile_file.py`, `agents/reports/w1_profilers.md`.
+- **Checks performed:**
+  - **Pilot (owner):** 4 profiles compared with the spreadsheets, 43/43 lines confirmed (`agents/reports/w1_profilers_pilot_review.md`). Chermside Q1 FINAL found to be fully contained in FINAL v2 → D-027.
+  - **Spot-checks (owner):** Bendigo, Frankston, Tamworth, all confirmed after the fix below (`agents/reports/w1_profilers_spotcheck.md`).
+  - **Tamworth issue (owner):** the owner's first spot-check found the profile said 142 data rows when the spreadsheet has 143, that HOW WAS IT showed no empty values when some are empty, and that the "format change" in the review didn't exist. Cause: the AI's new "second header" check mistook data row 10 for a header because its text date "27/10/2025" matched the "/10" rating pattern. The bug also wrote one comment's text (no personal details) into the profile as a column name; that text remains in this branch's history and is kept out of `main` by squash-merging. Fixed and re-run; only Tamworth changed (now 143 rows, HOW WAS IT 7.0% empty, recognised as a rating). Six regression tests added.
+  - **Privacy (AI):** withheld-column check (0 leaks); email/phone pattern scan (0); 2,674 raw name tokens cross-checked against the profiles (only generic words such as "Service").
+  - **Rating sanity check (owner request):** every rating column in every sheet mapped to 1–5; no values failed to map. Two suspicious results investigated → Geelong 2025 reversed scale (D-030), Penrith Jun = Jul copy (D-029).
+- **Issues found:** see summary rows 3–5.
+- **Owner decisions arising:** D-020 (all ratings to 1–5, incl. 10-point rule), D-027, D-028, D-029, D-030, D-031 (drop 13 rows without a rating), D-032 (15 findings, defaults accepted).
+- **Verdict:** <owner to complete, e.g. "Corrected: Tamworth profile wrong until fixed; re-checked">
+- **Verified by:** <owner, date>
