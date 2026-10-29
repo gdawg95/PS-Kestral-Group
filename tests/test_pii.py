@@ -154,3 +154,55 @@ def test_extra_names_any_case_with_context():
     out, _ = redact("as a retiree, dave was a delight. Thanks Dave!", use_ner=False,
                     extra_names={"Dave"})
     assert out == "as a retiree, [NAME] was a delight. Thanks [STAFF]!"
+
+
+# ------------------------------------------------- the "<name> - <note>" opening (D-051)
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        # Two capitalised tokens then a dash: the convention in several logs.
+        ("Carmen Gomes - Reckons it was easy to understand.",
+         "[NAME] - Reckons it was easy to understand."),
+        # Three tokens (double-barrelled or middle name) still qualify.
+        ("Mary Anne Fitzgerald - Said the quote was clear.",
+         "[NAME] - Said the quote was clear."),
+        # An en dash and an em dash are the same convention.
+        ("Yianni Pappas – Tradie, needed the ute back.",
+         "[NAME] – Tradie, needed the ute back."),
+    ],
+)
+def test_name_prefix_redacted(text, expected):
+    out, counts = redact(text, use_ner=False)
+    assert out == expected
+    assert counts["[NAME]"] == 1
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        # One leading word is ordinary prose, not a name. This is the case that keeps the
+        # rule honest: "Sarcastic - ..." appears four times in the data.
+        "Sarcastic - 'great to see the filter I ordered is still on its holiday'",
+        "Great service - thanks heaps.",
+        # A department name is not a person, even in the two-token shape.
+        "Service Dept - fine as always.",
+        # No dash separator, so no attribution prefix.
+        "Carmen Gomes was lovely to deal with.",
+        # The dash has to follow the name, not sit mid-sentence.
+        "Booked in Monday - Carmen Gomes called back.",
+    ],
+)
+def test_name_prefix_leaves_prose_alone(text):
+    out, counts = redact(text, use_ner=False)
+    assert out == text
+    assert counts["[NAME]"] == 0
+
+
+def test_name_prefix_beats_the_staff_roster_for_the_customers_own_name():
+    """The person opening the comment is the customer, so [NAME], even if a staff member
+    shares the first name."""
+    out, _ = redact("Aroha Williams - Said the service was quick.",
+                    staff_names={"Aroha"}, use_ner=False)
+    assert out == "[NAME] - Said the service was quick."

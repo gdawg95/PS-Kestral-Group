@@ -1,7 +1,9 @@
 # ============================================================================
 # departments.yaml - the 16 department spellings -> Service / Sales / Parts
 # ============================================================================
-# STATUS: DRAFT, awaiting the owner's approval. Wave 3 fills schema.department
+# STATUS: APPROVED by the owner at Checkpoint 3, 29 Oct 2026 (D-050). Gate G3
+#         applies: any further change needs the owner's approval.
+#         Wave 3 fills schema.department
 #         from this file; Wave 2 wrote department_raw exactly as each site
 #         spelled it (D-035). Nothing departmental is reported until this is
 #         approved, because every per-department number depends on it (gate G3).
@@ -18,7 +20,7 @@
 # ============================================================================
 
 version: 1
-status: draft - awaiting owner approval
+status: approved (Checkpoint 3, 29 Oct 2026, D-050)
 drafted: 2026-10-29
 built_from: data/interim/consolidated.parquet (7,159 rows, 29 Oct 2026)
 
@@ -33,6 +35,9 @@ mapping:
   SERVICE:        {to: Service, rows: 350,  dealers: 10, mean: 3.64}
   "Service Dept": {to: Service, rows: 334,  dealers: 10, mean: 3.65}
   service:        {to: Service, rows: 317,  dealers: 10, mean: 3.69}
+  # Workshop -> Service is evidence-backed, not assumed: the six service spellings
+  # are statistically indistinguishable (ANOVA F=1.55, p=0.170) and all 10 sites that
+  # write "Workshop" use all six in near-equal sixths. See D-048.
   Workshop:       {to: Service, rows: 311,  dealers: 10, mean: 3.86}
   Svc:            {to: Service, rows: 297,  dealers: 10, mean: 3.56}
 
@@ -43,6 +48,9 @@ mapping:
   "Used Cars":    {to: Sales, rows: 104,  dealers: 10, mean: 4.34, subtype: used}
   "Sales - Used": {to: Sales, rows: 60,   dealers: 1,  mean: 4.27, subtype: used}
   "Sales - New":  {to: Sales, rows: 55,   dealers: 1,  mean: 4.22, subtype: new}
+  # `subtype` is carried for traceability only. One Sales department is used for every
+  # headline number and no new-versus-used cut is published: the gap is not significant
+  # (p=0.221) and the 11 sites that record it out-perform the other 13 (p=0.006). See D-049.
 
   # --- Parts: 706 rows across 4 spellings ---------------------------------
   Parts:                 {to: Parts, rows: 508, dealers: 23, mean: 3.95}

@@ -109,7 +109,7 @@ Source: `agents/reports/w1_profilers.md` (15 findings). Wave 2 ingestion applies
 | 1 | Toowoomba Q4 2025 summary | Expand the pivot counts into 71 rows dated mid-month, no comment, flag `from_summary=true`; use in score trends, exclude from NLP |
 | 2 | liverpool_q3_2026.csv | Parse dates month-first (US format); assert every date falls in Jul–Sep 2026 |
 | 3 | Shepparton | 6 dates in Oct–Dec 2026 (after closure) treated as year typos → 2025, flag `date_corrected=true`; drop the note row |
-| 4 | IPS_feedback_log | 10 vague dates ("early Oct", "wk1 Feb") assigned to the 1st/8th/15th/22nd/29th of the month, year from neighbouring rows, flag `date_approx=true` |
+| 4 | IPS_feedback_log | 10 vague dates ("early Oct", "wk1 Feb") assigned to the 1st/8th/15th/22nd/29th of the month, year from neighbouring rows, flag `date_approx=true` — **superseded by D-040**, which takes the day from the midpoint of the nearest dated rows above and below instead of a fixed day. D-040 is what the code does; `reports/date_edge_cases.md` shows the neighbours for all 10 |
 | 5 | Southport | Drop 3 test rows ("asdf", "TEST", 01/01/1900); exclude the "Google reviews (copied)" sheet |
 | 6 | North QLD (Rocky + TSV) | Split into two dealers using the Site column (Rockhampton/Rocky/ROK, Townsville/TSV/Tsv) |
 | 7 | Ringwood | Keep both templates; 10-point ratings mapped per D-020 |
@@ -238,6 +238,167 @@ Source: `agents/reports/w1_profilers.md` (15 findings). Wave 2 ingestion applies
 - **Carried forward to Wave 5:** Rockhampton (QLD07) is a candidate for the weakest-performing site. It must be re-checked against all 24 dealerships before it appears in either report, and against the volume floor in `thresholds.trend_evidence`, since 202 rows across 12 months is a median of 17 a month.
 - **What this does not cover:** the owner checked the pilot's six dealer codes. The 18 dealerships ingested afterwards were not individually reviewed; the evidence for those is the reconciliation's arithmetic, the four D-002 join proofs and the test suite, not a human read of each file.
 
+### D-047 · Springwood duplicates: drop the second row of each pair · Decided · 29 Oct 2026
+- **Closes D-019.** Wave 2's exact-match duplicate check found 9 groups, all in
+  `Springwood feedback.xlsx` (QLD02), each a pair sharing dealership, date, department,
+  rating and comment text, and **every pair on consecutive spreadsheet rows** (source
+  rows 18/19, 16/17, 30/31, 61/62, 95/96, 137/138, 139/140, 163/164, 186/187). One pair
+  repeats a 463-character comment.
+- **Decision:** drop the second row of each pair — 9 rows. Flag them as their own rule in
+  the data-quality waterfall with a count of 9, and state Springwood's mean both ways in
+  the report so the choice is auditable.
+- **Effect, measured before deciding:** 310 → 301 rows; mean 4.0032 → 4.0100; negative
+  rate (≤2) 17.10% → 16.94%; Springwood stays 3rd of 24 by mean either way. The brief had
+  warned this "moves a dealership's published score"; it does not, so the decision was
+  taken on correctness grounds rather than on its effect on the number.
+- **Why it still matters:** the effect lands in Wave 4, not Wave 5. Two of the nine pairs
+  are negative (ratings 2 and 2), one of them the 463-character complaint, so keeping both
+  copies would double-weight that customer in theme frequencies and sentiment — the exact
+  quantity the business question asks about.
+- **Not treated as duplicates:** the 85 comment-less rows across 16 dealerships that match
+  on everything else (only 60% adjacent — consistent with two customers rating Service 5
+  on the same busy day), and the 63 rows identical by construction from the Toowoomba pivot
+  (D-032 #1). Both are reported, not removed.
+
+### D-048 · "Workshop" is Service; the six service spellings are one department · Decided · 29 Oct 2026
+- **The concern:** "Workshop" covers 311 rows at 10 dealerships with a mean of 3.86 against
+  plain "Service" at 3.51 — a 0.35 gap worth checking before it was folded away.
+- **Decision:** map `Workshop` to Service, with the other five spellings (`Service`,
+  `SERVICE`, `Service Dept`, `service`, `Svc`). One decision covers 4,909 rows.
+- **Evidence, not assumption:**
+  1. All 10 sites that write "Workshop" use **all six** spellings, in near-equal sixths
+     (18.4% / 17.6% / 16.7% / 16.3% / 15.6% / 15.4%). This is row-level spelling variation
+     inside the same sheets, not 10 sites that name the department differently. No site
+     uses "Workshop" and "Service" as though they were different things.
+  2. The 0.35 gap is mostly a between-dealer artifact: the 3,300-row "Service" bucket is
+     dominated by the 14 sites that only ever write "Service" (n=3,006, mean 3.503).
+     Comparing within the 10 sites that use both, the gap falls to +0.231.
+  3. Across all six spellings inside those 10 sites, **one-way ANOVA gives F=1.55,
+     p=0.170** — not significant. Workshop is the highest of six statistically
+     indistinguishable groups. Testing it alone against the pooled other five returns
+     p=0.008, but that is the artifact of choosing the winner before testing it.
+  4. Per site the ordering is inconsistent: Workshop is above that site's other-service
+     mean at 7 of 10, below at 3. NSW05's Workshop is its lowest spelling; NSW06's is its
+     highest; VIC09's is 2 rows with a mean of 1.0.
+  5. Content agrees: 37.4% of Workshop comments use service vocabulary (bookings, loan
+     cars, technicians, invoices) against 34.1% of Service comments, and 1.7% use sales
+     vocabulary against Sales' 12.5%.
+
+### D-049 · One Sales department; the new/used subtype is carried but not published · Decided · 29 Oct 2026
+- **Decision:** every headline number uses a single Sales department. `departments.yaml`
+  keeps `subtype: new` / `subtype: used` for traceability. No new-versus-used cut appears
+  in either report unless it is asked for, and if it is, it carries the caveat below.
+  Consistent with D-028, which already folded Penrith's two Sales spellings into one.
+- **Scale:** 326 of 1,544 Sales rows (21%) carry the distinction, at 11 of 24 sites.
+- **Why not publish it:**
+  1. The gap is not significant — new 4.457 (n=162) vs used 4.311 (n=164), **Welch
+     p=0.221**.
+  2. The direction does not hold per site: new higher at 6 sites, used at 3, tied at 2.
+     Four of the 11 sites contribute fewer than five rows. Penrith (NSW02) is 35% of all
+     subtype data and has used marginally *ahead* (4.27 vs 4.22), opposite to the pooled gap.
+  3. **The self-selection is measurable.** The 11 sites that record the subtype have a
+     higher Sales mean than the 13 that do not: 4.354 (n=628) vs 4.192 (n=916), **Welch
+     p=0.006**. A group-wide new-versus-used claim from those rows would be reporting that
+     selection effect, not a difference between new and used.
+
+### D-050 · Checkpoint 3: `mappings/departments.yaml` approved · Decided · 29 Oct 2026
+- The owner reviewed the 16 department spellings and approved the mapping to
+  Service / Sales / Parts, including the two substantive calls recorded as D-048 and D-049.
+- `mappings/departments.yaml` moves from `draft` to `approved (Checkpoint 3)`. Gate G3
+  applies from here: any further change to it needs the owner's approval.
+- Totals the fill must reproduce: **Service 4,909 · Sales 1,544 · Parts 706 = 7,159**,
+  asserted by `uv run python scripts/check_departments.py`.
+- **Still open at the end of this review:** the `w3_validate` brief itself has not been
+  approved (gate G2). The four questions it asked are answered; the brief is not yet signed.
+
+### D-051 · The "<customer name> – <note>" comment opening is redacted structurally · Decided · 29 Oct 2026
+- **Owner's instruction:** the owner confirmed that rows 35 and 40 of `IPS_feedback_log.xlsx`
+  do contain real names and asked for them redacted before Wave 4.
+- **What was actually wrong.** Both rows use a convention several logs share — the comment
+  opens with the customer's own name, then a dash, then the note:
+  *"Carmen Gomes - Reckons [STAFF] made it all easy to understand."* **55 of the 5,386 raw
+  comments are written that way.** spaCy caught 52 of them, but only because the customer's
+  first name also appeared in some file's name column; where it did not, the sentence-start
+  guard in `_redact_people` (a deliberate false-positive brake — spaCy tags "Spooky",
+  "Keys", "Lovely" as PERSON at the start of a sentence) let the name through.
+- **A third leak was found this way:** `Yianni Pappas`, which the Wave 2 report had not
+  identified. The owner knew about two; there were three.
+- **Decision:** redact the opening by its shape rather than by the roster. `pii.NAME_PREFIX`
+  matches two or three capitalised tokens at the start of a comment followed by a dash, and
+  replaces them with `[NAME]`, before the staff roster and spaCy see the text — so the
+  person giving the feedback is `[NAME]` (a customer) even when they share a first name with
+  a staff member.
+- **Why two tokens and not one.** A single leading capitalised word is ordinary prose. The
+  rule was sized against the corpus before being written: the two-token shape matches 55
+  comments and every one is a real name; the one-token shape matches only
+  `"Sarcastic - ..."` (4 comments), which is not a name. Precision on this data is 55/55.
+- **No names are stored anywhere.** The alternative — a list of confirmed names in a
+  committed YAML file — would have put real names into git history, which is exactly what
+  D-003, D-026 and the pre-public scan (D-015) exist to prevent. A structural rule needs no
+  such list.
+- **Gate G3 exception, authorised by the owner.** `src/pii.py` belongs to Wave 1 and the
+  `w3_validate` brief says propose, do not edit. The owner instructed this change directly,
+  so it was made, tested and re-run rather than proposed.
+- **Effect, verified:** `python -m src.ingest` re-run in full. **7,159 rows, 24 dealerships,
+  5,362 comments — identical to before**; only comment text changed. 8 new tests in
+  `tests/test_pii.py` (69 passed, 2 skipped). The reconciliation's leak check now reports
+  **0 probably-real missed names, down from 2**, and no comment in the dataset still opens
+  with a name.
+
+### D-052 · `thresholds.trend_evidence` is set; `dealer_match_min_confidence` is retired · Decided · 29 Oct 2026
+- **Closes D-021,** on the evidence in `reports/trend_evidence.md` rather than ahead of it
+  (D-044, gate G7). Committed before any trend result exists.
+- **The rule:**
+  | Setting | Value |
+  |---|---|
+  | `min_month_responses` | 20 — below this a dealership's month is reported as a count, never as a movement |
+  | `min_change_1to5` | 0.5 — the smallest month-on-month change reported as a trend |
+  | `thin_dealer_basis` | `quarterly` — NSW07, QLD05, QLD07, VIC08 and VIC09 have a median month under 20 and are compared by quarter instead, so they appear in the trend section rather than being silently dropped |
+- **Why these numbers.** Ratings have SD 1.44 across 7,159 rows, so a change between two
+  20-response months carries ±0.46 of noise; 0.5 sits just outside it. The rejected
+  candidate — 10 rows and 0.5 stars — would have called a move inside its own ±0.64 noise
+  band a trend. 74% of dealer-months have 20 or more responses, so the floor keeps most of
+  the data. The rule calls 33 of 257 consecutive month pairs a trend, at 16 of 24 sites:
+  enough to report, not so many that everything looks like a trend.
+- **`dealer_match_min_confidence` is removed from `config.yaml`, not given a value.** It was
+  the confidence floor for PLAN.md's Wave 3 "dealership matching" agent, which was to
+  fuzzy-match free-text dealership names to official codes. That agent has nothing to do:
+  D-034 approved the file → dealer code map by hand, and no free-text dealership column
+  survives ingestion (D-003), so there are no strings to score. Leaving it as `TBD` would
+  have read as an unresolved threshold for the rest of the project.
+- **Still `TBD`:** `nlp_pass_mark` only (D-022, Wave 4).
+
+### D-053 · Checkpoint 3: the 16 corrected and imputed dates are approved · Decided · 29 Oct 2026
+- **Owner's words:** "the 16 date rows - i approve the changes."
+- **What was approved:** all sixteen rows whose date the pipeline changed or invented, read
+  with their source values beside them in `reports/date_edge_cases.md` — not a sample of
+  twenty arbitrary rows, but every row of this kind in the dataset.
+  - **6 rows, Shepparton (VIC09), `date_corrected`.** Dates in Oct–Dec 2026, after the site
+    closed on 30 Mar 2026, with the day and month plausible for a year earlier. Read as year
+    typos and moved to 2025 (D-032 #3). One consistent pattern across all six.
+  - **10 rows, Ipswich (QLD03), `date_approx`.** The only non-date values in a column of
+    277: `early Oct`, `mid Nov`, `early Jan`, `wk1 Feb`, `wk5 Mar`, `early Apr`, `mid Jun`,
+    `Aug?`, `Aug?`, `mid Sep`. The day comes from the midpoint of the nearest dated rows
+    above and below, the year with them, the month from the written label (D-040).
+- **What the review added that the earlier report could not show.** The source value does not
+  survive ingestion, so `reports/data_quality.md` could only print the resolved date, which
+  is an assertion rather than evidence. `scripts/date_edge_cases.py` reads the two raw
+  workbooks read-only and puts the source text and the bracketing dated rows beside each
+  row. Every one of the ten is bracketed within a few days.
+- **It also corrected the AI's own framing.** The two `Aug?` rows had been flagged to the
+  owner as the weakest of the set, on the reasoning that a question mark is doubt about the
+  month rather than the day. They are the best supported: row 248 sits between two rows both
+  dated 12 Aug, leaving nothing to guess. The rows where label and day genuinely disagree are
+  `mid Nov` (resolved to the 3rd) and `early Apr` (the 21st) — D-040's own cross-check, and
+  label and position agree on the *month* for all ten, which is the only thing a monthly
+  analysis uses.
+- **Flags stay on.** All 16 rows keep `date_corrected` / `date_approx`, so any day-level
+  claim can exclude them. No published figure in this project is day-level.
+- **Checkpoint 3 after this:** `departments.yaml` approved (D-050), the Springwood duplicates
+  decided (D-047), the dates approved here. What remains is the data-quality waterfall and
+  the five example rows per rule, which need the full validate run over all 7,159 rows —
+  gate G1 still holds it.
+
 ## Outputs
 
 ### D-007 · Two reports · Decided · 29 Oct 2026
@@ -315,9 +476,9 @@ Source: `agents/reports/w1_profilers.md` (15 findings). Wave 2 ingestion applies
 
 | ID | Decision | Revisit |
 |---|---|---|
-| D-019 | Duplicate check result (confirms or overturns D-002 assumption) | After Wave 2 |
-| D-021 | Evidence threshold for calling a trend real | After basic EDA |
-| D-022 | NLP pass mark (e.g. sentiment agreement ≥ X%, theme F1 ≥ Y) and fallback | Before hand-labelling |
+| D-019 | Duplicate check result (confirms or overturns D-002 assumption) | **Closed 29 Oct 2026 — see D-047.** D-002 holds; the only true duplicates were 9 double-entered pairs at Springwood |
+| D-021 | Evidence threshold for calling a trend real | **Closed 29 Oct 2026 — see D-052.** 20 responses a month, 0.5 stars, thin sites quarterly |
+| D-022 | NLP pass mark and fallback | **Still deferred.** Put to the owner on 29 Oct 2026 with the baseline evidence (`reports/nlp_pass_mark_evidence.md`); the owner chose to set it in Wave 4, before hand-labelling, rather than now. `thresholds.nlp_pass_mark` stays `TBD` and gate G7 still applies — it must be committed before any evaluation result exists |
 | D-023 | Final theme list (fixed + discovered mix) | After theme discovery |
 | D-024 | LLM in or out | After the 20-comment pilot |
 | D-025 | Value benchmarks and assumptions (low/mid/high) | Wave 5 |

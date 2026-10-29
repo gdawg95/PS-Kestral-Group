@@ -27,7 +27,20 @@ models:
 
 thresholds:
   negative_score_max_1to5: 2        # D-004 (provisional)
-  dealer_match_min_confidence: TBD  # Wave 3
-  nlp_pass_mark: TBD                # D-022, before hand-labelling
-  trend_evidence: TBD               # D-021
+
+  # Retired, not set: `dealer_match_min_confidence` was the fuzzy-match confidence floor
+  # for PLAN.md's Wave 3 "dealership matching" agent, which turned out to have nothing to
+  # match. D-034 approved the file -> dealer code map by hand and no free-text dealership
+  # column survives ingestion (D-003), so there are no names to score. See D-050.
+
+  # What counts as a real month-on-month move (D-052, closes D-021). Evidence:
+  # reports/trend_evidence.md - ratings have SD 1.44, so a change between two 20-response
+  # months carries +/-0.46 of noise. 0.5 sits just outside that; 20 responses or more is
+  # 74% of dealer-months. This rule calls 33 of 257 month pairs a trend, at 16 of 24 sites.
+  trend_evidence:
+    min_month_responses: 20         # below this, report the month as a count, never a move
+    min_change_1to5: 0.5            # smallest change reported as a trend
+    thin_dealer_basis: quarterly    # NSW07, QLD05, QLD07, VIC08, VIC09: median month < 20
+
+  nlp_pass_mark: TBD                # D-022, set in Wave 4 before hand-labelling (gate G7)
   llm_max_projected_hours: 2        # D-011 cut-off rule

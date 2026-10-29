@@ -1,6 +1,6 @@
 # Brief: w3_validate
-**Status:** draft, awaiting owner approval (gate G2)
-<!-- When approved, replace with: **Approved by:** owner (gdawg95), <date>, <where> -->
+**Approved by:** owner (gdawg95), 29 Oct 2026, in conversation — after answering Q1–Q4
+below (recorded as D-047 – D-050; Q4 deferred to Wave 4, D-022 stays open).
 
 **Drafted 29 Oct 2026, after Wave 2 finished.** Two of PLAN.md section 8's four Wave 3
 agents have been removed from scope and one has shrunk, because Wave 2 settled their work:

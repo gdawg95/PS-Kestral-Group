@@ -83,6 +83,18 @@ STAFF_AFTER = re.compile(
     r"(?i)^[\s,]*(?:\(?(?:from|in|at|on)\s+(?:the\s+)?"
     r"(?:service|sales|parts|reception|front\s*desk|workshop|desk|counter|finance)\b)"
 )
+# Several logs open a comment with the customer's own name and then a dash:
+# "Carmen Gomes - Reckons Aroha made it all easy to understand." 55 of the 5,386 raw
+# comments use that convention. spaCy catches most of them, but only because the first
+# name happens to sit in a name column too — where it does not, the sentence-start guard
+# in _redact_people lets the name through (D-051). This pattern is deterministic and does
+# not depend on the roster. Two or three capitalised tokens are required, which is what
+# keeps "Sarcastic - 'great to see the filter...'" out of it: a single leading word is
+# ordinary prose, a first name plus a surname is not.
+NAME_PREFIX = re.compile(
+    r"^\s*([A-Z][a-z'’-]+(?:\s+[A-Z][a-z'’-]+){1,2})\s+[-–—]\s+"
+)
+
 # Words spaCy may tag as PERSON that are not people in this data.
 NOT_NAMES = {
     "service", "sales", "parts", "workshop", "kestrel", "voltra", "veyra", "arc",
@@ -278,6 +290,14 @@ def redact(text, row_values: Mapping[str, Iterable] | None = None, use_ner: bool
     t = _sub(ADDRESS, "[ADDRESS]", t, counts)
     t = _sub(REGO_CUED, "[REGO]", t, counts, group=1, skip=NOT_REGO)
     t = _sub(REGO_SHAPE, "[REGO]", t, counts, skip=NOT_REGO)
+    # The "<customer name> - <note>" opening, before the roster and spaCy see the text, so
+    # the person giving the feedback is [NAME] rather than a [STAFF] match on their first
+    # name (D-051).
+    m = NAME_PREFIX.match(t)
+    if m and not any(w.lower() in NOT_NAMES for w in m.group(1).split()):
+        t = t[: m.start(1)] + "[NAME]" + t[m.end(1):]
+        counts["[NAME]"] += 1
+
     roster = _roster_pattern(frozenset(staff_names or ()))
     if roster is not None:
         t = _sub(roster, "[STAFF]", t, counts)
