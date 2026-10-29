@@ -62,8 +62,10 @@ def test_owner_cases(case):
     assert out == case["expected"]
 
 
+@pytest.mark.skip(reason="owner waived extra cases on 29 Oct 2026 (D-033); "
+                         "compensating control: owner read 40 redacted pilot comments")
 def test_owner_has_added_cases():
-    """Done-when criterion in agents/briefs/w1_pii.md."""
+    """Done-when criterion in agents/briefs/w1_pii.md, waived by the owner (D-033)."""
     assert len(CASES.get("owner_cases") or []) >= 3, "owner to add at least 3 cases"
 
 

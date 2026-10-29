@@ -22,6 +22,9 @@ Fill this in as you go. It becomes the "where AI got it wrong" section of the te
 | 3 | AI-003 | Staff first names ("Taken by", "Logged by", "Card given by", Southport "Reviewer") listed in profiles, against the privacy rule | AI's own review of the full run, before the owner saw it | Withhold person-like columns; name scans added |
 | 4 | AI-003 | **Tamworth:** a text-date data row (row 10) mistaken for a second header. Profile reported 142 rows instead of 143, a false "format change", wrong empty % for HOW WAS IT, and one comment's text written as a column name | **Owner's spot-check** against the spreadsheet | Header detection rejects dates, numbers and sentences; regression tests; only Tamworth changed on re-run |
 | 5 | AI-003 | First full run missed Geelong 2025's **reversed scale** (note above the header) and Penrith's **"Jun 26" sheet copied from "Jul 26"** | Rating sanity check the **owner asked for**; AI investigated two suspicious numbers | Profiler reads scale notes and compares sheets within a file; D-029, D-030 |
+| 6 | AI-004 | Redactor missed "Raj" and lower-case "dave", and redacted the ordinary words "Spooky" and "Keys" | **Owner's laptop pilot run**; AI traced each sample back to its cause | Staff roster, sentence-start guard, corpus name pass; tests for each case |
+| 7 | AI-004 | Tests could not import the code on the laptop (`No module named 'src'`): AI had only run them with a different command | Owner's laptop run | `pythonpath` set in pyproject |
+| 8 | AI-004 | spaCy redacted the model code "HiLux SR5 4WD" as a person, and the new guard skipped "Dave in service" | Owner's laptop run of the spaCy tests | Digits never in names; staff cue overrides the guard |
 
 ---
 
@@ -88,4 +91,17 @@ Verified by: S Gyaw
 - **Issues found:** see summary rows 3–5.
 - **Owner decisions arising:** D-020 (all ratings to 1–5, incl. 10-point rule), D-027, D-028, D-029, D-030, D-031 (drop 13 rows without a rating), D-032 (15 findings, defaults accepted).
 - **Verdict:** <owner to complete, e.g. "Corrected: Tamworth profile wrong until fixed; re-checked">
+- **Verified by:** <owner, date>
+
+### AI-004 · Wave 1 · w1_pii (allowlist + comment redaction) · 29 Oct 2026
+- **Tool / model:** Claude Opus 5.5 wrote the code; spaCy `en_core_web_sm` 3.8.0 does the name detection (on the owner's laptop).
+- **Task / key prompt:** build `src/pii.py` per brief `agents/briefs/w1_pii.md`: keep only date, department, rating and comment; redact names, staff, plates, phones, emails and addresses in comments (D-003, D-026).
+- **Output:** branch `w1-pii`: `src/pii.py`, `tests/test_pii.py`, `tests/fixtures/pii_cases.yaml`, `scripts/pii_pilot.py`, `agents/reports/w1_pii.md`.
+- **Checks performed:**
+  - Pattern tests in the workspace; full suite including spaCy tests on the laptop (logs read by the AI).
+  - **Two pilots (owner):** 20 redacted comments each from Liverpool Q1 2026 and Bendigo. Pilot 1 showed misses and false positives; after fixes the owner read pilot 2: "all legible and understandable", no visible personal data.
+  - Leak check (AI): 0 staff names left in either case; 2 known first names left, both ordinary words.
+- **Issues found:** see summary rows 6–8. Also: the owner's assumption that `[STAFF]` would be rare was wrong; 13% of comments mention a staff name.
+- **Owner decisions arising:** D-026 method update accepted; D-033 (owner test cases waived, residual risk accepted).
+- **Verdict:** <owner to complete, e.g. "Corrected: pilot 1 found misses; accepted after pilot 2">
 - **Verified by:** <owner, date>
