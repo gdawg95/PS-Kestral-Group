@@ -172,13 +172,18 @@ def _redact_people(text: str, counts: Counter, known_names: frozenset[str] = fro
         if (not surface or surface.startswith("[") or surface.lower() in NOT_NAMES
                 or not any(ch.isupper() for ch in surface)):
             continue
-        # spaCy often tags a capitalised word that opens a sentence ("Spooky good timing.",
-        # "Keys weren't ready"). Trust a one-word, sentence-initial PERSON only if it is a
-        # first name actually seen in the data's name or staff columns.
-        if len(ent) == 1 and _at_sentence_start(ent) and surface not in known_names:
+        # Names don't contain digits ("HiLux SR5 4WD" was tagged PERSON).
+        if any(ch.isdigit() for ch in surface):
             continue
         before, after = text[: ent.start_char], text[ent.end_char:]
         is_staff = STAFF_BEFORE.search(before) or STAFF_AFTER.search(after)
+        # spaCy often tags a capitalised word that opens a sentence ("Spooky good timing.",
+        # "Keys weren't ready"). Trust a sentence-initial PERSON only if its first word is a
+        # first name seen in the data's name or staff columns, or a staff cue follows it
+        # ("Dave in service was great").
+        first = ent[0].text
+        if _at_sentence_start(ent) and first not in known_names and not is_staff:
+            continue
         token = "[STAFF]" if is_staff else "[NAME]"
         out.append(text[last: ent.start_char])
         out.append(token)
