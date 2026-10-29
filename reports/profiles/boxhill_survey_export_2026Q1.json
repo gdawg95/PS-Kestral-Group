@@ -1,0 +1,143 @@
+{
+  "file": "boxhill_survey_export_2026Q1.csv",
+  "type": "csv",
+  "bytes": 11366,
+  "sha256": "6ad256c96b97c475a6191d763a2584fa04ef601f8d5b7f29a9cfa521ad8cf97c",
+  "bom": false,
+  "encoding": "utf-8-sig",
+  "delimiter": ",",
+  "sheets": [
+    {
+      "name": null,
+      "state": "n/a (csv)",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 78,
+        "cols": 7
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 7 text cells, followed by data",
+      "data_rows": 77,
+      "columns": [
+        {
+          "name": "response_id",
+          "proposed_role": "identifier",
+          "null_pct": 0.0,
+          "n_distinct": 77,
+          "types": {
+            "text": 77
+          },
+          "length": {
+            "min": 8,
+            "median": 8,
+            "max": 8
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "submitted_at",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 77,
+          "types": {
+            "date text": 77
+          },
+          "date_formats": {
+            "%Y-%m-%d %H:%M:%S": 77
+          },
+          "date_min": "2026-01-02",
+          "date_max": "2026-03-31",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "department",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 3,
+          "types": {
+            "text": 77
+          },
+          "values": {
+            "Service": 57,
+            "Sales": 14,
+            "Parts": 6
+          }
+        },
+        {
+          "name": "csat",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "numeric text": 77
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 26,
+            "4": 22,
+            "1": 13,
+            "3": 8,
+            "2": 8
+          }
+        },
+        {
+          "name": "verbatim",
+          "proposed_role": "comment",
+          "null_pct": 18.2,
+          "n_distinct": 63,
+          "types": {
+            "text": 63
+          },
+          "length": {
+            "min": 19,
+            "median": 108,
+            "max": 240
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "vehicle",
+          "proposed_role": "vehicle",
+          "null_pct": 0.0,
+          "n_distinct": 4,
+          "types": {
+            "text": 77
+          },
+          "length": {
+            "min": 8,
+            "median": 8,
+            "max": 10
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "dms_customer_no",
+          "proposed_role": "identifier",
+          "null_pct": 0.0,
+          "n_distinct": 77,
+          "types": {
+            "numeric text": 77
+          },
+          "length": {
+            "min": 5,
+            "median": 5,
+            "max": 5
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": []
+    }
+  ],
+  "data_rows_total": 77,
+  "oddities": []
+}

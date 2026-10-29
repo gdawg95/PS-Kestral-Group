@@ -1,0 +1,325 @@
+{
+  "file": "ESSENDON - feedback register.xlsx",
+  "type": "xlsx",
+  "bytes": 30117,
+  "sha256": "3499bf40e2b544e86669734af6c6abbed76e106e128cafde56362b97f4e45911",
+  "sheets": [
+    {
+      "name": "Sales",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 92,
+        "cols": 5
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 5 text cells, followed by data",
+      "data_rows": 91,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 81,
+          "types": {
+            "date text": 91
+          },
+          "date_formats": {
+            "%d/%m/%Y": 91
+          },
+          "date_min": "2025-10-04",
+          "date_max": "2026-09-29",
+          "unparseable": 0,
+          "ambiguous_day_month": 35,
+          "length": {
+            "min": 10,
+            "median": 10,
+            "max": 10
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Taken by",
+          "proposed_role": "other",
+          "null_pct": 0.0,
+          "n_distinct": 6,
+          "types": {
+            "text": 91
+          },
+          "length": {
+            "min": 3,
+            "median": 4,
+            "max": 5
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Customer said",
+          "proposed_role": "comment",
+          "null_pct": 29.7,
+          "n_distinct": 64,
+          "types": {
+            "text": 64
+          },
+          "length": {
+            "min": 15,
+            "median": 101,
+            "max": 490
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Score",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 91
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 52,
+            "4": 21,
+            "1": 7,
+            "3": 7,
+            "2": 4
+          }
+        },
+        {
+          "name": "Action",
+          "proposed_role": "other",
+          "null_pct": 80.2,
+          "n_distinct": 4,
+          "types": {
+            "text": 18
+          },
+          "length": {
+            "min": 3,
+            "median": 33,
+            "max": 33
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": [
+        "no column proposed as 'department'"
+      ]
+    },
+    {
+      "name": "Service",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 226,
+        "cols": 5
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 5 text cells, followed by data",
+      "data_rows": 225,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 152,
+          "types": {
+            "date text": 225
+          },
+          "date_formats": {
+            "%d/%m/%Y": 225
+          },
+          "date_min": "2025-10-01",
+          "date_max": "2026-09-30",
+          "unparseable": 0,
+          "ambiguous_day_month": 93,
+          "length": {
+            "min": 10,
+            "median": 10,
+            "max": 10
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Taken by",
+          "proposed_role": "other",
+          "null_pct": 0.0,
+          "n_distinct": 6,
+          "types": {
+            "text": 225
+          },
+          "length": {
+            "min": 3,
+            "median": 4,
+            "max": 5
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Customer said",
+          "proposed_role": "comment",
+          "null_pct": 19.1,
+          "n_distinct": 182,
+          "types": {
+            "text": 182
+          },
+          "length": {
+            "min": 13,
+            "median": 105,
+            "max": 490
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Score",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 225
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 78,
+            "4": 47,
+            "1": 46,
+            "3": 32,
+            "2": 22
+          }
+        },
+        {
+          "name": "Action",
+          "proposed_role": "other",
+          "null_pct": 56.4,
+          "n_distinct": 9,
+          "types": {
+            "text": 98
+          },
+          "length": {
+            "min": 3,
+            "median": 10,
+            "max": 28
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": [
+        "no column proposed as 'department'"
+      ]
+    },
+    {
+      "name": "Parts",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 31,
+        "cols": 5
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 5 text cells, followed by data",
+      "data_rows": 30,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 25,
+          "types": {
+            "date text": 30
+          },
+          "date_formats": {
+            "%d/%m/%Y": 30
+          },
+          "date_min": "2025-10-31",
+          "date_max": "2026-09-09",
+          "unparseable": 0,
+          "ambiguous_day_month": 15,
+          "length": {
+            "min": 10,
+            "median": 10,
+            "max": 10
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Taken by",
+          "proposed_role": "other",
+          "null_pct": 0.0,
+          "n_distinct": 6,
+          "types": {
+            "text": 30
+          },
+          "length": {
+            "min": 3,
+            "median": 5,
+            "max": 5
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Customer said",
+          "proposed_role": "comment",
+          "null_pct": 23.3,
+          "n_distinct": 23,
+          "types": {
+            "text": 23
+          },
+          "length": {
+            "min": 6,
+            "median": 107,
+            "max": 205
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Score",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 30
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 14,
+            "4": 7,
+            "2": 4,
+            "3": 3,
+            "1": 2
+          }
+        },
+        {
+          "name": "Action",
+          "proposed_role": "other",
+          "null_pct": 66.7,
+          "n_distinct": 6,
+          "types": {
+            "text": 10
+          },
+          "values": {
+            "Left VM": 4,
+            "TBC": 2,
+            "Called cust": 1,
+            "Apologised": 1,
+            "Passed to SM": 1,
+            "Escalated to GM": 1
+          }
+        }
+      ],
+      "oddities": [
+        "no column proposed as 'department'"
+      ]
+    }
+  ],
+  "data_rows_total": 346,
+  "oddities": [
+    "[Sales] no column proposed as 'department'",
+    "[Service] no column proposed as 'department'",
+    "[Parts] no column proposed as 'department'"
+  ]
+}

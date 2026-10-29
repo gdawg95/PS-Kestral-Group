@@ -1,0 +1,470 @@
+{
+  "file": "North QLD feedback (Rocky + TSV).xlsx",
+  "type": "xlsx",
+  "bytes": 43979,
+  "sha256": "97dfac2e31f29f08c0e385777ad6748111e9ac50c97305811ce94401aefbe4ec",
+  "sheets": [
+    {
+      "name": "Q4 2025",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 147,
+        "cols": 5
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 5 text cells, followed by data",
+      "data_rows": 146,
+      "columns": [
+        {
+          "name": "Site",
+          "proposed_role": "site",
+          "null_pct": 0.0,
+          "n_distinct": 6,
+          "types": {
+            "text": 146
+          },
+          "values": {
+            "Tsv": 33,
+            "TSV": 31,
+            "Townsville": 31,
+            "Rockhampton": 26,
+            "Rocky": 13,
+            "ROK": 12
+          }
+        },
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 65,
+          "types": {
+            "number": 146
+          },
+          "date_formats": {
+            "excel serial number": 146
+          },
+          "date_min": "2025-10-02",
+          "date_max": "2025-12-31",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 5,
+            "median": 5,
+            "max": 5
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Department",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 12,
+          "types": {
+            "text": 146
+          },
+          "values": {
+            "Service Dept": 27,
+            "service": 26,
+            "Workshop": 23,
+            "SERVICE": 18,
+            "Svc": 18,
+            "Service": 8,
+            "Parts & Accessories": 8,
+            "parts counter": 7,
+            "Parts": 5,
+            "P&A": 3,
+            "Sales": 2,
+            "Used Cars": 1
+          }
+        },
+        {
+          "name": "Rating",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 146
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 52,
+            "4": 41,
+            "1": 21,
+            "3": 18,
+            "2": 14
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 27.4,
+          "n_distinct": 106,
+          "types": {
+            "text": 106
+          },
+          "length": {
+            "min": 8,
+            "median": 113,
+            "max": 598
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": [
+        "site column has 6 distinct spellings (possibly more than one site)"
+      ]
+    },
+    {
+      "name": "Q1 2026",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 134,
+        "cols": 5
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 5 text cells, followed by data",
+      "data_rows": 133,
+      "columns": [
+        {
+          "name": "Site",
+          "proposed_role": "site",
+          "null_pct": 0.0,
+          "n_distinct": 6,
+          "types": {
+            "text": 133
+          },
+          "values": {
+            "TSV": 31,
+            "Tsv": 29,
+            "Townsville": 26,
+            "Rocky": 17,
+            "ROK": 16,
+            "Rockhampton": 14
+          }
+        },
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 66,
+          "types": {
+            "number": 133
+          },
+          "date_formats": {
+            "excel serial number": 133
+          },
+          "date_min": "2026-01-02",
+          "date_max": "2026-03-31",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 5,
+            "median": 5,
+            "max": 5
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Department",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 13,
+          "types": {
+            "text": 133
+          },
+          "values": {
+            "Service Dept": 24,
+            "service": 22,
+            "Workshop": 21,
+            "Svc": 21,
+            "SERVICE": 16,
+            "Service": 13,
+            "Parts": 4,
+            "P&A": 4,
+            "sales": 3,
+            "parts counter": 2,
+            "New Cars": 1,
+            "Parts & Accessories": 1,
+            "Sales": 1
+          }
+        },
+        {
+          "name": "Rating",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 133
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 56,
+            "4": 30,
+            "1": 18,
+            "3": 16,
+            "2": 13
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 26.3,
+          "n_distinct": 98,
+          "types": {
+            "text": 98
+          },
+          "length": {
+            "min": 25,
+            "median": 105,
+            "max": 426
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": [
+        "site column has 6 distinct spellings (possibly more than one site)"
+      ]
+    },
+    {
+      "name": "Q2 2026",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 139,
+        "cols": 5
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 5 text cells, followed by data",
+      "data_rows": 138,
+      "columns": [
+        {
+          "name": "Site",
+          "proposed_role": "site",
+          "null_pct": 0.0,
+          "n_distinct": 6,
+          "types": {
+            "text": 138
+          },
+          "values": {
+            "Tsv": 31,
+            "TSV": 29,
+            "Rockhampton": 25,
+            "Townsville": 22,
+            "ROK": 17,
+            "Rocky": 14
+          }
+        },
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 60,
+          "types": {
+            "number": 138
+          },
+          "date_formats": {
+            "excel serial number": 138
+          },
+          "date_min": "2026-04-01",
+          "date_max": "2026-06-30",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 5,
+            "median": 5,
+            "max": 5
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Department",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 14,
+          "types": {
+            "text": 138
+          },
+          "values": {
+            "SERVICE": 31,
+            "Svc": 19,
+            "Service": 18,
+            "service": 16,
+            "Service Dept": 16,
+            "Workshop": 14,
+            "Parts & Accessories": 6,
+            "parts counter": 6,
+            "Parts": 5,
+            "P&A": 3,
+            "sales": 1,
+            "New Cars": 1,
+            "Sales": 1,
+            "Used Cars": 1
+          }
+        },
+        {
+          "name": "Rating",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 138
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 53,
+            "4": 30,
+            "3": 20,
+            "1": 19,
+            "2": 16
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 21.0,
+          "n_distinct": 109,
+          "types": {
+            "text": 109
+          },
+          "length": {
+            "min": 12,
+            "median": 99,
+            "max": 269
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": [
+        "site column has 6 distinct spellings (possibly more than one site)"
+      ]
+    },
+    {
+      "name": "Q3 2026",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 140,
+        "cols": 5
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 5 text cells, followed by data",
+      "data_rows": 139,
+      "columns": [
+        {
+          "name": "Site",
+          "proposed_role": "site",
+          "null_pct": 0.0,
+          "n_distinct": 6,
+          "types": {
+            "text": 139
+          },
+          "values": {
+            "Townsville": 34,
+            "TSV": 30,
+            "Tsv": 27,
+            "ROK": 21,
+            "Rockhampton": 15,
+            "Rocky": 12
+          }
+        },
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 71,
+          "types": {
+            "number": 139
+          },
+          "date_formats": {
+            "excel serial number": 139
+          },
+          "date_min": "2026-07-01",
+          "date_max": "2026-09-30",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 5,
+            "median": 5,
+            "max": 5
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Department",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 12,
+          "types": {
+            "text": 139
+          },
+          "values": {
+            "SERVICE": 23,
+            "Workshop": 21,
+            "Service Dept": 20,
+            "Service": 18,
+            "Svc": 15,
+            "service": 15,
+            "Parts & Accessories": 9,
+            "parts counter": 6,
+            "P&A": 5,
+            "Parts": 4,
+            "Sales": 2,
+            "sales": 1
+          }
+        },
+        {
+          "name": "Rating",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 139
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 63,
+            "4": 31,
+            "1": 18,
+            "3": 14,
+            "2": 13
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 23.7,
+          "n_distinct": 106,
+          "types": {
+            "text": 106
+          },
+          "length": {
+            "min": 9,
+            "median": 94,
+            "max": 262
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": [
+        "site column has 6 distinct spellings (possibly more than one site)"
+      ]
+    }
+  ],
+  "data_rows_total": 556,
+  "oddities": [
+    "[Q4 2025] site column has 6 distinct spellings (possibly more than one site)",
+    "[Q1 2026] site column has 6 distinct spellings (possibly more than one site)",
+    "[Q2 2026] site column has 6 distinct spellings (possibly more than one site)",
+    "[Q3 2026] site column has 6 distinct spellings (possibly more than one site)"
+  ]
+}

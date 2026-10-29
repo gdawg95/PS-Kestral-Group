@@ -1,0 +1,137 @@
+{
+  "file": "Hunter Motors feedback 25-26.xlsx",
+  "type": "xlsx",
+  "bytes": 26158,
+  "sha256": "29dc2079b8caae38b1f43ebc35f55260bcde48144e75012a252b53657e8fea17",
+  "sheets": [
+    {
+      "name": "Feedback",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 306,
+        "cols": 6
+      },
+      "header_row": 3,
+      "header_reason": "row 3: 6 text cells, followed by data",
+      "data_rows": 303,
+      "columns": [
+        {
+          "name": "Dealer",
+          "proposed_role": "site",
+          "null_pct": 0.0,
+          "n_distinct": 1,
+          "types": {
+            "text": 303
+          },
+          "values": {
+            "HUNTER": 303
+          }
+        },
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 187,
+          "types": {
+            "date": 303
+          },
+          "date_formats": {
+            "excel datetime": 303
+          },
+          "date_min": "2025-10-01",
+          "date_max": "2026-09-29",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Department",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 14,
+          "types": {
+            "text": 303
+          },
+          "values": {
+            "Service Dept": 37,
+            "SERVICE": 36,
+            "service": 35,
+            "Service": 34,
+            "Svc": 34,
+            "Sales": 30,
+            "Workshop": 28,
+            "sales": 18,
+            "New Cars": 13,
+            "parts counter": 9,
+            "Parts & Accessories": 8,
+            "Used Cars": 8,
+            "P&A": 7,
+            "Parts": 6
+          }
+        },
+        {
+          "name": "Rating",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 303
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 141,
+            "4": 66,
+            "1": 44,
+            "3": 29,
+            "2": 23
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 26.4,
+          "n_distinct": 223,
+          "types": {
+            "text": 223
+          },
+          "length": {
+            "min": 7,
+            "median": 99,
+            "max": 412
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Vehicle",
+          "proposed_role": "vehicle",
+          "null_pct": 10.2,
+          "n_distinct": 16,
+          "types": {
+            "text": 272
+          },
+          "length": {
+            "min": 2,
+            "median": 5,
+            "max": 12
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": [
+        "2 row(s) above the header (titles or notes)"
+      ]
+    }
+  ],
+  "data_rows_total": 303,
+  "oddities": [
+    "[Feedback] 2 row(s) above the header (titles or notes)"
+  ]
+}

@@ -1,0 +1,151 @@
+{
+  "file": "Springwood feedback.xlsx",
+  "type": "xlsx",
+  "bytes": 33556,
+  "sha256": "0dbc5d660a0d4978643905965dfda60a733c9751574f33267ef96c6a81472375",
+  "sheets": [
+    {
+      "name": "All",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 311,
+        "cols": 7
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 7 text cells, followed by data",
+      "data_rows": 310,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 189,
+          "types": {
+            "date": 310
+          },
+          "date_formats": {
+            "excel datetime": 310
+          },
+          "date_min": "2025-10-02",
+          "date_max": "2026-09-30",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Department",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 14,
+          "types": {
+            "text": 310
+          },
+          "values": {
+            "service": 42,
+            "SERVICE": 39,
+            "Workshop": 38,
+            "Sales": 31,
+            "Service Dept": 29,
+            "Service": 28,
+            "Svc": 26,
+            "New Cars": 20,
+            "Used Cars": 17,
+            "sales": 11,
+            "P&A": 10,
+            "Parts & Accessories": 8,
+            "Parts": 7,
+            "parts counter": 4
+          }
+        },
+        {
+          "name": "Name",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 291,
+          "types": {
+            "text": 310
+          },
+          "length": {
+            "min": 7,
+            "median": 12,
+            "max": 25
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Mobile",
+          "proposed_role": "contact",
+          "null_pct": 16.8,
+          "n_distinct": 245,
+          "types": {
+            "numeric text": 258
+          },
+          "length": {
+            "min": 10,
+            "median": 10,
+            "max": 10
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Email",
+          "proposed_role": "contact",
+          "null_pct": 40.3,
+          "n_distinct": 178,
+          "types": {
+            "text": 185
+          },
+          "length": {
+            "min": 17,
+            "median": 24,
+            "max": 33
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rating",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 310
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 161,
+            "4": 75,
+            "1": 33,
+            "3": 21,
+            "2": 20
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 24.2,
+          "n_distinct": 226,
+          "types": {
+            "text": 235
+          },
+          "length": {
+            "min": 17,
+            "median": 104,
+            "max": 525
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": []
+    }
+  ],
+  "data_rows_total": 310,
+  "oddities": []
+}

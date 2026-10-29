@@ -1,0 +1,111 @@
+{
+  "file": "Shepparton feedback FINAL - site closed.xlsx",
+  "type": "xlsx",
+  "bytes": 8318,
+  "sha256": "bc49d798accfe531c0a14e0c0841fb045156e71bb67668d5944c421d66fe359d",
+  "sheets": [
+    {
+      "name": "Log",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 55,
+        "cols": 4
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 4 text cells, followed by data",
+      "data_rows": 53,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 48,
+          "types": {
+            "date text": 52,
+            "text": 1
+          },
+          "date_formats": {
+            "%d/%m/%Y": 52
+          },
+          "date_min": "2025-10-12",
+          "date_max": "2026-12-01",
+          "unparseable": 1,
+          "ambiguous_day_month": 18,
+          "length": {
+            "min": 10,
+            "median": 10,
+            "max": 66
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Dept",
+          "proposed_role": "department",
+          "null_pct": 1.9,
+          "n_distinct": 14,
+          "types": {
+            "text": 52
+          },
+          "values": {
+            "SERVICE": 11,
+            "Service": 7,
+            "Service Dept": 6,
+            "Svc": 5,
+            "service": 4,
+            "Sales": 4,
+            "sales": 3,
+            "Workshop": 2,
+            "New Cars": 2,
+            "parts counter": 2,
+            "Used Cars": 2,
+            "Parts": 2,
+            "P&A": 1,
+            "Parts & Accessories": 1
+          }
+        },
+        {
+          "name": "Rating",
+          "proposed_role": "rating",
+          "null_pct": 1.9,
+          "n_distinct": 5,
+          "types": {
+            "number": 52
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 28,
+            "4": 10,
+            "1": 7,
+            "3": 6,
+            "2": 1
+          }
+        },
+        {
+          "name": "Comment",
+          "proposed_role": "comment",
+          "null_pct": 32.1,
+          "n_distinct": 36,
+          "types": {
+            "text": 36
+          },
+          "length": {
+            "min": 28,
+            "median": 94,
+            "max": 210
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": [
+        "1 blank row(s) inside the data"
+      ]
+    }
+  ],
+  "data_rows_total": 53,
+  "oddities": [
+    "[Log] 1 blank row(s) inside the data"
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "file": "Tamworth.xlsx",
+  "type": "xlsx",
+  "bytes": 13931,
+  "sha256": "a5f8f55f29dce7072b7c835240db672e21f18f3165ed12b2c590a69b5c9cb3bd",
+  "sheets": [
+    {
+      "name": "Sheet1",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 144,
+        "cols": 4
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 4 text cells, followed by data",
+      "data_rows": 143,
+      "columns": [
+        {
+          "name": "DATE",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 118,
+          "types": {
+            "date text": 143
+          },
+          "date_formats": {
+            "%d/%m/%Y": 143
+          },
+          "date_min": "2025-10-02",
+          "date_max": "2026-09-30",
+          "unparseable": 0,
+          "ambiguous_day_month": 59,
+          "length": {
+            "min": 10,
+            "median": 10,
+            "max": 10
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "DEPT",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 13,
+          "types": {
+            "text": 143
+          },
+          "values": {
+            "Svc": 20,
+            "Workshop": 18,
+            "SERVICE": 18,
+            "Service Dept": 18,
+            "Service": 17,
+            "service": 13,
+            "New Cars": 10,
+            "Used Cars": 9,
+            "Sales": 9,
+            "sales": 6,
+            "Parts & Accessories": 2,
+            "P&A": 2,
+            "parts counter": 1
+          }
+        },
+        {
+          "name": "HOW WAS IT",
+          "proposed_role": "rating",
+          "null_pct": 7.0,
+          "n_distinct": 3,
+          "types": {
+            "text": 133
+          },
+          "numeric_share": 0.0,
+          "values": {
+            "Good": 93,
+            "Bad": 21,
+            "OK": 19
+          }
+        },
+        {
+          "name": "COMMENTS",
+          "proposed_role": "comment",
+          "null_pct": 28.7,
+          "n_distinct": 102,
+          "types": {
+            "text": 102
+          },
+          "length": {
+            "min": 10,
+            "median": 96,
+            "max": 272
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": []
+    }
+  ],
+  "data_rows_total": 143,
+  "oddities": []
+}
