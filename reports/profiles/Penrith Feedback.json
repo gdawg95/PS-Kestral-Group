@@ -1,0 +1,1222 @@
+{
+  "file": "Penrith Feedback.xlsx",
+  "type": "xlsx",
+  "bytes": 48324,
+  "sha256": "67c96e5ec9ea054d1b9887fda845d90fbe8324ddfc3523a8bef2bb920384a75d",
+  "sheets": [
+    {
+      "name": "Oct 25",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 33,
+        "cols": 5
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 5 text cells, followed by data",
+      "data_rows": 32,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 19,
+          "types": {
+            "date": 32
+          },
+          "date_formats": {
+            "excel datetime": 32
+          },
+          "date_min": "2025-10-01",
+          "date_max": "2025-10-31",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Department",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 4,
+          "types": {
+            "text": 32
+          },
+          "values": {
+            "Service": 20,
+            "Sales - New": 7,
+            "Sales - Used": 3,
+            "Parts": 2
+          }
+        },
+        {
+          "name": "Score",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 32
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 15,
+            "4": 10,
+            "1": 5,
+            "3": 1,
+            "2": 1
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 34.4,
+          "n_distinct": 21,
+          "types": {
+            "text": 21
+          },
+          "length": {
+            "min": 10,
+            "median": 100,
+            "max": 214
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Customer",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 32,
+          "types": {
+            "text": 32
+          },
+          "length": {
+            "min": 3,
+            "median": 6,
+            "max": 9
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": []
+    },
+    {
+      "name": "Nov 25",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 43,
+        "cols": 5
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 5 text cells, followed by data",
+      "data_rows": 42,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 21,
+          "types": {
+            "date": 42
+          },
+          "date_formats": {
+            "excel datetime": 42
+          },
+          "date_min": "2025-11-01",
+          "date_max": "2025-11-30",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Department",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 4,
+          "types": {
+            "text": 42
+          },
+          "values": {
+            "Service": 23,
+            "Sales - Used": 10,
+            "Parts": 6,
+            "Sales - New": 3
+          }
+        },
+        {
+          "name": "Score",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 42
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 19,
+            "4": 13,
+            "1": 5,
+            "3": 4,
+            "2": 1
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 11.9,
+          "n_distinct": 37,
+          "types": {
+            "text": 37
+          },
+          "length": {
+            "min": 11,
+            "median": 92,
+            "max": 462
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Customer",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 40,
+          "types": {
+            "text": 42
+          },
+          "length": {
+            "min": 3,
+            "median": 5,
+            "max": 9
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": []
+    },
+    {
+      "name": "Dec 25",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 37,
+        "cols": 5
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 5 text cells, followed by data",
+      "data_rows": 36,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 17,
+          "types": {
+            "date": 36
+          },
+          "date_formats": {
+            "excel datetime": 36
+          },
+          "date_min": "2025-12-01",
+          "date_max": "2025-12-29",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Department",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 4,
+          "types": {
+            "text": 36
+          },
+          "values": {
+            "Service": 17,
+            "Sales - Used": 8,
+            "Sales - New": 7,
+            "Parts": 4
+          }
+        },
+        {
+          "name": "Score",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 36
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 23,
+            "1": 5,
+            "4": 5,
+            "2": 2,
+            "3": 1
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 27.8,
+          "n_distinct": 26,
+          "types": {
+            "text": 26
+          },
+          "length": {
+            "min": 19,
+            "median": 102,
+            "max": 234
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Customer",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 35,
+          "types": {
+            "text": 36
+          },
+          "length": {
+            "min": 3,
+            "median": 5,
+            "max": 9
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": []
+    },
+    {
+      "name": "Jan 26",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 31,
+        "cols": 5
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 5 text cells, followed by data",
+      "data_rows": 30,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 18,
+          "types": {
+            "date": 30
+          },
+          "date_formats": {
+            "excel datetime": 30
+          },
+          "date_min": "2026-01-03",
+          "date_max": "2026-01-31",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Department",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 4,
+          "types": {
+            "text": 30
+          },
+          "values": {
+            "Service": 20,
+            "Sales - Used": 4,
+            "Sales - New": 3,
+            "Parts": 3
+          }
+        },
+        {
+          "name": "Score",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 30
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 12,
+            "1": 6,
+            "3": 5,
+            "4": 5,
+            "2": 2
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 33.3,
+          "n_distinct": 20,
+          "types": {
+            "text": 20
+          },
+          "length": {
+            "min": 32,
+            "median": 127,
+            "max": 382
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Customer",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 29,
+          "types": {
+            "text": 30
+          },
+          "length": {
+            "min": 3,
+            "median": 5,
+            "max": 8
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": []
+    },
+    {
+      "name": "Feb 26",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 46,
+        "cols": 5
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 5 text cells, followed by data",
+      "data_rows": 45,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 23,
+          "types": {
+            "date": 45
+          },
+          "date_formats": {
+            "excel datetime": 45
+          },
+          "date_min": "2026-02-01",
+          "date_max": "2026-02-28",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Department",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 4,
+          "types": {
+            "text": 45
+          },
+          "values": {
+            "Service": 29,
+            "Sales - Used": 7,
+            "Parts": 5,
+            "Sales - New": 4
+          }
+        },
+        {
+          "name": "Score",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 45
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 20,
+            "4": 13,
+            "3": 5,
+            "1": 4,
+            "2": 3
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 24.4,
+          "n_distinct": 34,
+          "types": {
+            "text": 34
+          },
+          "length": {
+            "min": 40,
+            "median": 99,
+            "max": 192
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Customer",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 43,
+          "types": {
+            "text": 45
+          },
+          "length": {
+            "min": 3,
+            "median": 5,
+            "max": 9
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": []
+    },
+    {
+      "name": "Mar 26",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 46,
+        "cols": 5
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 5 text cells, followed by data",
+      "data_rows": 45,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 24,
+          "types": {
+            "date": 45
+          },
+          "date_formats": {
+            "excel datetime": 45
+          },
+          "date_min": "2026-03-01",
+          "date_max": "2026-03-31",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Department",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 4,
+          "types": {
+            "text": 45
+          },
+          "values": {
+            "Service": 33,
+            "Sales - Used": 5,
+            "Sales - New": 4,
+            "Parts": 3
+          }
+        },
+        {
+          "name": "Score",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 45
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 20,
+            "4": 8,
+            "2": 7,
+            "1": 7,
+            "3": 3
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 28.9,
+          "n_distinct": 32,
+          "types": {
+            "text": 32
+          },
+          "length": {
+            "min": 23,
+            "median": 101,
+            "max": 227
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Customer",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 44,
+          "types": {
+            "text": 45
+          },
+          "length": {
+            "min": 2,
+            "median": 5,
+            "max": 9
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": []
+    },
+    {
+      "name": "Apr 26",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 38,
+        "cols": 5
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 5 text cells, followed by data",
+      "data_rows": 37,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 23,
+          "types": {
+            "date": 37
+          },
+          "date_formats": {
+            "excel datetime": 37
+          },
+          "date_min": "2026-04-01",
+          "date_max": "2026-04-29",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Department",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 4,
+          "types": {
+            "text": 37
+          },
+          "values": {
+            "Service": 25,
+            "Parts": 5,
+            "Sales - Used": 5,
+            "Sales - New": 2
+          }
+        },
+        {
+          "name": "Score",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 37
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 17,
+            "4": 8,
+            "1": 5,
+            "3": 4,
+            "2": 3
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 18.9,
+          "n_distinct": 30,
+          "types": {
+            "text": 30
+          },
+          "length": {
+            "min": 21,
+            "median": 82,
+            "max": 299
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Customer",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 37,
+          "types": {
+            "text": 37
+          },
+          "length": {
+            "min": 3,
+            "median": 6,
+            "max": 8
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": []
+    },
+    {
+      "name": "May 26",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 44,
+        "cols": 5
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 5 text cells, followed by data",
+      "data_rows": 43,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 25,
+          "types": {
+            "date": 43
+          },
+          "date_formats": {
+            "excel datetime": 43
+          },
+          "date_min": "2026-05-01",
+          "date_max": "2026-05-30",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Department",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 4,
+          "types": {
+            "text": 43
+          },
+          "values": {
+            "Service": 25,
+            "Sales - Used": 8,
+            "Parts": 6,
+            "Sales - New": 4
+          }
+        },
+        {
+          "name": "Score",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 43
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 21,
+            "4": 10,
+            "2": 5,
+            "1": 5,
+            "3": 2
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 16.3,
+          "n_distinct": 36,
+          "types": {
+            "text": 36
+          },
+          "length": {
+            "min": 29,
+            "median": 122,
+            "max": 290
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Customer",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 39,
+          "types": {
+            "text": 43
+          },
+          "length": {
+            "min": 3,
+            "median": 5,
+            "max": 8
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": []
+    },
+    {
+      "name": "Jun 26",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 44,
+        "cols": 5
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 5 text cells, followed by data",
+      "data_rows": 43,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 24,
+          "types": {
+            "date": 43
+          },
+          "date_formats": {
+            "excel datetime": 43
+          },
+          "date_min": "2026-07-01",
+          "date_max": "2026-07-31",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Department",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 4,
+          "types": {
+            "text": 43
+          },
+          "values": {
+            "Service": 22,
+            "Sales - New": 12,
+            "Parts": 8,
+            "Sales - Used": 1
+          }
+        },
+        {
+          "name": "Score",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 43
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 15,
+            "4": 13,
+            "1": 9,
+            "3": 4,
+            "2": 2
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 39.5,
+          "n_distinct": 26,
+          "types": {
+            "text": 26
+          },
+          "length": {
+            "min": 13,
+            "median": 129,
+            "max": 294
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Customer",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 42,
+          "types": {
+            "text": 43
+          },
+          "length": {
+            "min": 3,
+            "median": 5,
+            "max": 9
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": []
+    },
+    {
+      "name": "Jul 26",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 44,
+        "cols": 5
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 5 text cells, followed by data",
+      "data_rows": 43,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 24,
+          "types": {
+            "date": 43
+          },
+          "date_formats": {
+            "excel datetime": 43
+          },
+          "date_min": "2026-07-01",
+          "date_max": "2026-07-31",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Department",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 4,
+          "types": {
+            "text": 43
+          },
+          "values": {
+            "Service": 22,
+            "Sales - New": 12,
+            "Parts": 8,
+            "Sales - Used": 1
+          }
+        },
+        {
+          "name": "Score",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 43
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 15,
+            "4": 13,
+            "1": 9,
+            "3": 4,
+            "2": 2
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 39.5,
+          "n_distinct": 26,
+          "types": {
+            "text": 26
+          },
+          "length": {
+            "min": 13,
+            "median": 129,
+            "max": 294
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Customer",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 42,
+          "types": {
+            "text": 43
+          },
+          "length": {
+            "min": 3,
+            "median": 5,
+            "max": 9
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": []
+    },
+    {
+      "name": "Aug 26",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 57,
+        "cols": 5
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 5 text cells, followed by data",
+      "data_rows": 56,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 22,
+          "types": {
+            "date": 56
+          },
+          "date_formats": {
+            "excel datetime": 56
+          },
+          "date_min": "2026-08-03",
+          "date_max": "2026-08-31",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Department",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 4,
+          "types": {
+            "text": 56
+          },
+          "values": {
+            "Service": 37,
+            "Parts": 8,
+            "Sales - Used": 6,
+            "Sales - New": 5
+          }
+        },
+        {
+          "name": "Score",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 56
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 22,
+            "4": 16,
+            "3": 7,
+            "1": 6,
+            "2": 5
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 28.6,
+          "n_distinct": 40,
+          "types": {
+            "text": 40
+          },
+          "length": {
+            "min": 14,
+            "median": 100,
+            "max": 218
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Customer",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 52,
+          "types": {
+            "text": 56
+          },
+          "length": {
+            "min": 3,
+            "median": 5,
+            "max": 10
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": []
+    },
+    {
+      "name": "Sep 26",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 46,
+        "cols": 5
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 5 text cells, followed by data",
+      "data_rows": 45,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 22,
+          "types": {
+            "date": 45
+          },
+          "date_formats": {
+            "excel datetime": 45
+          },
+          "date_min": "2026-09-01",
+          "date_max": "2026-09-30",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Department",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 4,
+          "types": {
+            "text": 45
+          },
+          "values": {
+            "Service": 34,
+            "Sales - New": 4,
+            "Parts": 4,
+            "Sales - Used": 3
+          }
+        },
+        {
+          "name": "Score",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 45
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 19,
+            "4": 13,
+            "1": 6,
+            "2": 4,
+            "3": 3
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 26.7,
+          "n_distinct": 33,
+          "types": {
+            "text": 33
+          },
+          "length": {
+            "min": 14,
+            "median": 82,
+            "max": 359
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Customer",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 43,
+          "types": {
+            "text": 45
+          },
+          "length": {
+            "min": 3,
+            "median": 6,
+            "max": 12
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": []
+    }
+  ],
+  "data_rows_total": 497,
+  "oddities": []
+}

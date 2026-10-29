@@ -31,7 +31,10 @@ RAW = ROOT / "data" / "raw" / "feedback"
 OUT = ROOT / "reports" / "profiles"
 
 ROLE_PATTERNS = [  # first match wins; checked against the lower-cased header
-    ("comment", r"comment|feedback|verbatim|remark|note|text|what could|why"),
+    (
+        "comment",
+        r"comment|feedback|verbatim|remark|note|text|what could|why|say|said|tell us|anything else",
+    ),
     ("rating", r"rating|score|satisf|nps|stars?\b|csat|out of|/\s*10|/\s*5"),
     ("date", r"date|when|day|time|period|month|submitted|received"),
     ("department", r"dept|department|area|division|team|section|^svc$"),
@@ -42,12 +45,60 @@ ROLE_PATTERNS = [  # first match wins; checked against the lower-cased header
     ("identifier", r"\bid\b|_id|id$|no\.?$|number|ref|dms|job|ro\b|invoice|account|cust"),
 ]
 LISTABLE_ROLES = {"department", "rating", "site"}
-PERSONAL_HINT = re.compile(r"name|phone|mobile|email|address|cust|client|rego|vin|staff|advisor", re.I)
-SUMMARY_ROW = re.compile(r"^\s*(total|average|avg|mean|count|summary|note|notes|nps|overall)\b", re.I)
+PERSONAL_HINT = re.compile(
+    r"name|phone|mobile|email|address|cust|client|rego|vin|staff|advisor|\bby\b|taken|logged|"
+    r"given|handled|served|owner|assigned|rep\b|who|reviewer|author|user",
+    re.I,
+)
+# Values that look like first names are withheld even when the header gives no hint.
+FIRST_NAME_LIKE = re.compile(r"^[A-Z][a-z]{1,11}$")
+SAFE_WORDS = {
+    "Good",
+    "Bad",
+    "Ok",
+    "Okay",
+    "Yes",
+    "No",
+    "Card",
+    "Email",
+    "Phone",
+    "Sms",
+    "Walk",
+    "Web",
+    "Online",
+    "Service",
+    "Sales",
+    "Parts",
+    "Workshop",
+    "Closed",
+    "Open",
+    "Pending",
+    "Done",
+    "Source",
+    "Staff",
+}
+SUMMARY_ROW = re.compile(
+    r"^\s*(total|average|avg|mean|count|summary|note|notes|nps|overall)\b", re.I
+)
 DATE_FORMATS = [
-    "%Y-%m-%d", "%d/%m/%Y", "%d/%m/%y", "%d-%m-%Y", "%d.%m.%Y", "%m/%d/%Y", "%Y/%m/%d",
-    "%d %b %Y", "%d %B %Y", "%b %d %Y", "%d-%b-%Y", "%d-%b-%y", "%Y-%m-%d %H:%M:%S",
-    "%d/%m/%Y %H:%M", "%d/%m/%Y %H:%M:%S", "%Y-%m-%dT%H:%M:%S", "%Y%m%d",
+    "%Y-%m-%d",
+    "%d/%m/%Y",
+    "%d/%m/%y",
+    "%d-%m-%Y",
+    "%d.%m.%Y",
+    "%m/%d/%Y",
+    "%Y/%m/%d",
+    "%d %b %Y",
+    "%d %B %Y",
+    "%d %b %y",
+    "%b %d %Y",
+    "%d-%b-%Y",
+    "%d-%b-%y",
+    "%Y-%m-%d %H:%M:%S",
+    "%d/%m/%Y %H:%M",
+    "%d/%m/%Y %H:%M:%S",
+    "%Y-%m-%dT%H:%M:%S",
+    "%Y%m%d",
 ]
 MAX_LISTED = 40
 
@@ -57,6 +108,7 @@ def sha256(path: Path) -> str:
 
 
 # ---------- reading ----------
+
 
 def read_csv(path: Path) -> tuple[list[dict], dict]:
     raw = path.read_bytes()
@@ -84,16 +136,19 @@ def read_xlsx(path: Path) -> tuple[list[dict], dict]:
     sheets = []
     for ws in wb.worksheets:
         rows = [list(r) for r in ws.iter_rows(values_only=True)]
-        sheets.append({
-            "name": ws.title,
-            "state": ws.sheet_state,
-            "rows": rows,
-            "merged": len(ws.merged_cells.ranges),
-        })
+        sheets.append(
+            {
+                "name": ws.title,
+                "state": ws.sheet_state,
+                "rows": rows,
+                "merged": len(ws.merged_cells.ranges),
+            }
+        )
     return sheets, {}
 
 
 # ---------- structure ----------
+
 
 def is_blank(row) -> bool:
     return all(v is None or (isinstance(v, str) and not v.strip()) for v in row)
@@ -121,6 +176,7 @@ def classify_role(header: str | None) -> str:
 
 
 # ---------- value parsing ----------
+
 
 def parse_date(v) -> tuple[dt.date | None, str | None]:
     if v is None:
@@ -186,6 +242,14 @@ def norm_listed(v):
     return v if not isinstance(v, str) else v
 
 
+def _mostly_first_names(values: list) -> bool:
+    texts = [str(v).strip() for v in values if isinstance(v, str)]
+    if not texts:
+        return False
+    hits = sum(1 for t in texts if FIRST_NAME_LIKE.match(t) and t.title() not in SAFE_WORDS)
+    return hits / len(texts) >= 0.5
+
+
 def profile_column(name, values: list, n_rows: int) -> dict:
     role = classify_role(name)
     non_null = [v for v in values if v is not None and not (isinstance(v, str) and not v.strip())]
@@ -214,7 +278,10 @@ def profile_column(name, values: list, n_rows: int) -> dict:
         col["unparseable"] = len(non_null) - len(ok)
         if ok:
             col["ambiguous_day_month"] = sum(
-                1 for v in non_null if isinstance(v, str) and re.match(r"^\s*(0?[1-9]|1[0-2])[/-](0?[1-9]|1[0-2])[/-]", v)
+                1
+                for v in non_null
+                if isinstance(v, str)
+                and re.match(r"^\s*(0?[1-9]|1[0-2])[/-](0?[1-9]|1[0-2])[/-]", v)
             )
     if role == "rating":
         nums = [to_number(v) for v in non_null]
@@ -228,6 +295,7 @@ def profile_column(name, values: list, n_rows: int) -> dict:
         and col["n_distinct"] <= 12
         and not PERSONAL_HINT.search(str(name or ""))
         and all(len(str(v)) <= 25 for v in non_null)
+        and not _mostly_first_names(non_null)
     )
     if listable:
         counts = Counter(norm_listed(v.strip() if isinstance(v, str) else v) for v in non_null)
@@ -279,7 +347,8 @@ def profile_sheet(sheet: dict) -> tuple[dict, list[tuple]]:
 
     blank_idx = [i for i, r in enumerate(body) if is_blank(r)]
     summary_idx = [
-        i for i, r in enumerate(body)
+        i
+        for i, r in enumerate(body)
         if not is_blank(r) and any(isinstance(v, str) and SUMMARY_ROW.match(v) for v in r[:3])
     ]
     data = [r for i, r in enumerate(body) if i not in set(blank_idx) | set(summary_idx)]
@@ -294,7 +363,9 @@ def profile_sheet(sheet: dict) -> tuple[dict, list[tuple]]:
         oddities.append(f"{len(summary_idx)} summary/notes-like row(s) (e.g. Total, Average, Note)")
 
     # drop fully empty columns but record them
-    empty_cols = [header[j] or f"col{j + 1}" for j in range(width) if all(r[j] is None for r in data)]
+    empty_cols = [
+        header[j] or f"col{j + 1}" for j in range(width) if all(r[j] is None for r in data)
+    ]
     keep = [j for j in range(width) if not all(r[j] is None for r in data)]
     if empty_cols:
         oddities.append(f"{len(empty_cols)} empty column(s)")
@@ -315,13 +386,61 @@ def profile_sheet(sheet: dict) -> tuple[dict, list[tuple]]:
         elif roles[need] > 1:
             oddities.append(f"{roles[need]} columns proposed as '{need}' (pick one)")
     site_cols = [c for c in out["columns"] if c["proposed_role"] == "site"]
-    if site_cols and isinstance(site_cols[0].get("values"), dict) and len(site_cols[0]["values"]) > 1:
-        oddities.append(f"site column has {len(site_cols[0]['values'])} distinct spellings (possibly more than one site)")
+    if (
+        site_cols
+        and isinstance(site_cols[0].get("values"), dict)
+        and len(site_cols[0]["values"]) > 1
+    ):
+        oddities.append(
+            f"site column has {len(site_cols[0]['values'])} distinct spellings "
+            "(possibly more than one site)"
+        )
     out["oddities"] = oddities
 
     # row fingerprints for cross-file duplicate checks (kept in memory only, never written)
     fps = [tuple(str(r[j]).strip() if r[j] is not None else "" for j in keep) for r in data]
     return out, fps
+
+
+def _header_like(row) -> bool:
+    cells = [v for v in row if v is not None and not (isinstance(v, str) and not v.strip())]
+    if len(cells) < 3 or not all(isinstance(v, str) and len(v.strip()) <= 40 for v in cells):
+        return False
+    core = {"date", "department", "rating", "comment"}
+    return sum(classify_role(v) in core for v in cells) >= 2
+
+
+def split_blocks(sheet: dict) -> list[dict]:
+    """Split a sheet wherever a second header row appears (the layout changes mid-sheet)."""
+    rows = sheet["rows"]
+    h, _ = find_header(rows)
+    if h is None:
+        return [sheet]
+    starts = [h] + [i for i in range(h + 1, len(rows)) if _header_like(rows[i])]
+    # A header directly above another header is a two-row header (group labels on top), not a
+    # layout change: keep the lower row as the real header.
+    multi = [s for s, nxt in zip(starts, starts[1:], strict=False) if nxt == s + 1]
+    starts = [s for s in starts if s not in multi]
+    if multi:
+        sheet = {**sheet, "two_row_header": True}
+    if len(starts) == 1:
+        if multi:
+            return [{**sheet, "rows": sheet["rows"][starts[0] :], "row_offset": starts[0]}]
+        return [sheet]
+    blocks = []
+    for k, start in enumerate(starts):
+        end = starts[k + 1] if k + 1 < len(starts) else len(rows)
+        lead = rows[:start] if k == 0 else []
+        blocks.append(
+            {
+                **sheet,
+                "name": f"{sheet['name'] or 'csv'} [layout {k + 1}, from row {start + 1}]",
+                "rows": lead + rows[start:end],
+                "row_offset": 0 if k == 0 else start,
+                "layout_change": k > 0,
+            }
+        )
+    return blocks
 
 
 def profile_file(path: Path) -> tuple[dict, dict]:
@@ -340,16 +459,26 @@ def profile_file(path: Path) -> tuple[dict, dict]:
         "sheets": [],
     }
     fingerprints: dict = {}
-    for s in sheets:
-        sp, fps = profile_sheet(s)
-        prof["sheets"].append(sp)
-        fingerprints[s["name"] or "csv"] = fps
+    for whole in sheets:
+        for s in split_blocks(whole):
+            sp, fps = profile_sheet(s)
+            if s.get("row_offset") and sp.get("header_row"):
+                sp["header_row"] += s["row_offset"]
+            if s.get("two_row_header"):
+                sp["oddities"].insert(0, "two-row header (group labels above the column names)")
+            if s.get("layout_change"):
+                sp["oddities"].insert(0, "second header row: column layout changes from here")
+            prof["sheets"].append(sp)
+            fingerprints[s["name"] or "csv"] = fps
     prof["data_rows_total"] = sum(s.get("data_rows", 0) for s in prof["sheets"])
-    prof["oddities"] = [f"[{s['name'] or 'csv'}] {o}" for s in prof["sheets"] for o in s["oddities"]]
+    prof["oddities"] = [
+        f"[{s['name'] or 'csv'}] {o}" for s in prof["sheets"] for o in s["oddities"]
+    ]
     return prof, fingerprints
 
 
 # ---------- cross-file checks ----------
+
 
 def overlap_report(fp_by_file: dict[str, dict]) -> list[dict]:
     """Pairs of files that share data rows (exact match on all kept cells)."""
@@ -362,32 +491,61 @@ def overlap_report(fp_by_file: dict[str, dict]) -> list[dict]:
                 continue
             shared = len(flat[a] & flat[b])
             if shared:
-                out.append({
-                    "file_a": a, "file_b": b, "shared_rows": shared,
-                    "rows_a": len(flat[a]), "rows_b": len(flat[b]),
-                    "a_contained_in_b": flat[a] <= flat[b],
-                    "b_contained_in_a": flat[b] <= flat[a],
-                })
+                out.append(
+                    {
+                        "file_a": a,
+                        "file_b": b,
+                        "shared_rows": shared,
+                        "rows_a": len(flat[a]),
+                        "rows_b": len(flat[b]),
+                        "a_contained_in_b": flat[a] <= flat[b],
+                        "b_contained_in_a": flat[b] <= flat[a],
+                    }
+                )
     return out
 
 
 def write_index(profiles: list[dict], overlaps: list[dict]) -> None:
     with open(OUT / "_index.csv", "w", newline="", encoding="utf-8") as fh:
         w = csv.writer(fh)
-        w.writerow(["file", "type", "sheets", "hidden_sheets", "data_rows", "date_min", "date_max",
-                    "rating_values", "n_oddities"])
+        w.writerow(
+            [
+                "file",
+                "type",
+                "sheets",
+                "hidden_sheets",
+                "data_rows",
+                "date_min",
+                "date_max",
+                "rating_values",
+                "n_oddities",
+            ]
+        )
         for p in sorted(profiles, key=lambda x: x["file"].lower()):
             cols = [c for s in p["sheets"] for c in s.get("columns", [])]
             dmins = [c["date_min"] for c in cols if c.get("date_min")]
             dmaxs = [c["date_max"] for c in cols if c.get("date_max")]
-            rvals = sorted({k for c in cols if c["proposed_role"] == "rating" and isinstance(c.get("values"), dict)
-                            for k in c["values"]})
-            w.writerow([
-                p["file"], p["type"], len(p["sheets"]),
-                sum(s["state"] not in ("visible", "n/a (csv)") for s in p["sheets"]),
-                p["data_rows_total"], min(dmins) if dmins else "", max(dmaxs) if dmaxs else "",
-                "|".join(rvals[:15]), len(p["oddities"]),
-            ])
+            rvals = sorted(
+                {
+                    k
+                    for c in cols
+                    if c["proposed_role"] == "rating" and isinstance(c.get("values"), dict)
+                    for k in c["values"]
+                }
+            )
+            w.writerow(
+                [
+                    p["file"],
+                    p["type"],
+                    len(p["sheets"]),
+                    sum(s["state"] not in ("visible", "n/a (csv)") for s in p["sheets"]),
+                    p["data_rows_total"],
+                    min(dmins) if dmins else "",
+                    max(dmaxs) if dmaxs else "",
+                    "|".join(rvals[:15]),
+                    len(p["oddities"]),
+                ]
+            )
     (OUT / "_overlaps.json").write_text(json.dumps(overlaps, indent=2))
 
 
@@ -396,17 +554,28 @@ def main(argv=None) -> int:
     ap.add_argument("files", nargs="*")
     ap.add_argument("--all", action="store_true")
     args = ap.parse_args(argv)
-    paths = sorted(p for p in RAW.iterdir() if p.suffix.lower() in (".csv", ".xlsx")
-                   and not p.name.startswith("~$")) if args.all else [Path(f) for f in args.files]
+    paths = (
+        sorted(
+            p
+            for p in RAW.iterdir()
+            if p.suffix.lower() in (".csv", ".xlsx") and not p.name.startswith("~$")
+        )
+        if args.all
+        else [Path(f) for f in args.files]
+    )
     OUT.mkdir(parents=True, exist_ok=True)
     profiles, fps = [], {}
     for p in paths:
         prof, fp = profile_file(p)
         profiles.append(prof)
         fps[p.name] = fp
-        (OUT / f"{p.stem}.json").write_text(json.dumps(prof, indent=2, default=str), encoding="utf-8")
-        print(f"{p.name}: {prof['data_rows_total']} rows, {len(prof['sheets'])} sheet(s), "
-              f"{len(prof['oddities'])} oddities")
+        (OUT / f"{p.stem}.json").write_text(
+            json.dumps(prof, indent=2, default=str), encoding="utf-8"
+        )
+        print(
+            f"{p.name}: {prof['data_rows_total']} rows, {len(prof['sheets'])} sheet(s), "
+            f"{len(prof['oddities'])} oddities"
+        )
     overlaps = overlap_report(fps)
     write_index(profiles, overlaps)
     for o in overlaps:
@@ -414,5 +583,48 @@ def main(argv=None) -> int:
     return 0
 
 
+def write_review(out: Path = OUT) -> Path:
+    """Human-readable checklist of every profile, for the owner's spot-checks (Checkpoint 1)."""
+    lines = [
+        "# Profiles: review sheet",
+        "",
+        "Pick any 3 files, open them in Excel, and tick the lines that match (put Y in the box).",
+        "",
+    ]
+    for f in sorted(out.glob("*.json"), key=lambda p: p.name.lower()):
+        if f.name.startswith("_"):
+            continue
+        p = json.loads(f.read_text(encoding="utf-8"))
+        lines += [f"## {p['file']}", ""]
+        if p.get("delimiter"):
+            lines.append(f"- [ ] CSV separated by `{p['delimiter']}`")
+        lines.append(f"- [ ] {p['data_rows_total']} data rows in total")
+        for s in p["sheets"]:
+            lines.append(
+                f"- [ ] Sheet **{s['name'] or 'csv'}**: header in row {s['header_row']}, "
+                f"**{s.get('data_rows', 0)} data rows**"
+            )
+            for c in s.get("columns", []):
+                bits = [f"`{c['name']}` → {c['proposed_role']}", f"{c['null_pct']}% empty"]
+                if c.get("date_min"):
+                    bits.append(f"dates {c['date_min']} to {c['date_max']}")
+                if isinstance(c.get("values"), dict) and c["proposed_role"] in LISTABLE_ROLES:
+                    bits.append(
+                        "values: " + ", ".join(f"{k} ({v})" for k, v in c["values"].items())
+                    )
+                lines.append("    - [ ] " + "; ".join(bits))
+        if p["oddities"]:
+            lines.append("- Oddities: " + "; ".join(p["oddities"]))
+        lines.append("")
+    path = out / "_review.md"
+    path.write_text("\n".join(lines), encoding="utf-8")
+    return path
+
+
 if __name__ == "__main__":
-    sys.exit(main())
+    if "--review" in sys.argv:
+        print(write_review())
+        sys.exit(0)
+    rc = main()
+    write_review()
+    sys.exit(rc)

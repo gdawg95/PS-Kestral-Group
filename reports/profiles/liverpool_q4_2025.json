@@ -1,0 +1,143 @@
+{
+  "file": "liverpool_q4_2025.csv",
+  "type": "csv",
+  "bytes": 10273,
+  "sha256": "2aae28a8a49a90d06177267d7451a703929d99653d82745797dc91094df5167b",
+  "bom": false,
+  "encoding": "utf-8-sig",
+  "delimiter": ",",
+  "sheets": [
+    {
+      "name": null,
+      "state": "n/a (csv)",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 83,
+        "cols": 7
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 7 text cells, followed by data",
+      "data_rows": 82,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 50,
+          "types": {
+            "date text": 82
+          },
+          "date_formats": {
+            "%d/%m/%Y": 82
+          },
+          "date_min": "2025-10-01",
+          "date_max": "2025-12-31",
+          "unparseable": 0,
+          "ambiguous_day_month": 26,
+          "length": {
+            "min": 10,
+            "median": 10,
+            "max": 10
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Department",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 3,
+          "types": {
+            "text": 82
+          },
+          "values": {
+            "Service": 55,
+            "Sales": 23,
+            "Parts": 4
+          }
+        },
+        {
+          "name": "Customer",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 81,
+          "types": {
+            "text": 82
+          },
+          "length": {
+            "min": 6,
+            "median": 12,
+            "max": 18
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Phone",
+          "proposed_role": "contact",
+          "null_pct": 15.9,
+          "n_distinct": 68,
+          "types": {
+            "numeric text": 69
+          },
+          "length": {
+            "min": 10,
+            "median": 10,
+            "max": 10
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rego",
+          "proposed_role": "vehicle",
+          "null_pct": 18.3,
+          "n_distinct": 67,
+          "types": {
+            "text": 67
+          },
+          "length": {
+            "min": 6,
+            "median": 6,
+            "max": 6
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rating",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "numeric text": 82
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 44,
+            "4": 19,
+            "3": 7,
+            "2": 6,
+            "1": 6
+          }
+        },
+        {
+          "name": "Feedback",
+          "proposed_role": "comment",
+          "null_pct": 31.7,
+          "n_distinct": 56,
+          "types": {
+            "text": 56
+          },
+          "length": {
+            "min": 5,
+            "median": 98,
+            "max": 297
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": []
+    }
+  ],
+  "data_rows_total": 82,
+  "oddities": []
+}

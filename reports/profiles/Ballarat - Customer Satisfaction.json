@@ -1,0 +1,129 @@
+{
+  "file": "Ballarat - Customer Satisfaction.xlsx",
+  "type": "xlsx",
+  "bytes": 29263,
+  "sha256": "dde2565ee73aad4209994ca4d5a00f587b70c253a79391bee324cf9777d2f99e",
+  "sheets": [
+    {
+      "name": "Responses",
+      "state": "visible",
+      "merged_cells": 3,
+      "dimensions_raw": {
+        "rows": 293,
+        "cols": 6
+      },
+      "header_row": 2,
+      "header_reason": "row 1: 6 text cells, followed by data",
+      "data_rows": 292,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 200,
+          "types": {
+            "date": 292
+          },
+          "date_formats": {
+            "excel datetime": 292
+          },
+          "date_min": "2025-10-01",
+          "date_max": "2026-09-23",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Dept",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 3,
+          "types": {
+            "text": 292
+          },
+          "values": {
+            "Service": 194,
+            "Sales": 61,
+            "Parts": 37
+          }
+        },
+        {
+          "name": "Name",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 286,
+          "types": {
+            "text": 292
+          },
+          "length": {
+            "min": 6,
+            "median": 12,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Phone",
+          "proposed_role": "contact",
+          "null_pct": 14.7,
+          "n_distinct": 248,
+          "types": {
+            "numeric text": 249
+          },
+          "length": {
+            "min": 10,
+            "median": 10,
+            "max": 10
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "How satisfied?",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "text": 292
+          },
+          "numeric_share": 0.0,
+          "values": {
+            "Very satisfied": 130,
+            "Satisfied": 63,
+            "Very dissatisfied": 35,
+            "Neutral": 34,
+            "Dissatisfied": 30
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 22.3,
+          "n_distinct": 227,
+          "types": {
+            "text": 227
+          },
+          "length": {
+            "min": 5,
+            "median": 95,
+            "max": 255
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": [
+        "two-row header (group labels above the column names)",
+        "3 merged cell ranges"
+      ]
+    }
+  ],
+  "data_rows_total": 292,
+  "oddities": [
+    "[Responses] two-row header (group labels above the column names)",
+    "[Responses] 3 merged cell ranges"
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "file": "Noosa feedback cards.xlsx",
+  "type": "xlsx",
+  "bytes": 9432,
+  "sha256": "df4def416c8cfab5721bacb65489adec708fdd2cd9fe6759bddc157cc4bf9e3c",
+  "sheets": [
+    {
+      "name": "Cards",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 50,
+        "cols": 5
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 5 text cells, followed by data",
+      "data_rows": 49,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 48,
+          "types": {
+            "date": 49
+          },
+          "date_formats": {
+            "excel datetime": 49
+          },
+          "date_min": "2025-10-01",
+          "date_max": "2026-09-26",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Department",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 3,
+          "types": {
+            "text": 49
+          },
+          "values": {
+            "Service": 27,
+            "Sales": 16,
+            "Parts": 6
+          }
+        },
+        {
+          "name": "Rating",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 3,
+          "types": {
+            "number": 49
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 34,
+            "4": 14,
+            "1": 1
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 24.5,
+          "n_distinct": 37,
+          "types": {
+            "text": 37
+          },
+          "length": {
+            "min": 14,
+            "median": 84,
+            "max": 162
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Card given by",
+          "proposed_role": "other",
+          "null_pct": 0.0,
+          "n_distinct": 6,
+          "types": {
+            "text": 49
+          },
+          "length": {
+            "min": 3,
+            "median": 3,
+            "max": 5
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": []
+    }
+  ],
+  "data_rows_total": 49,
+  "oddities": []
+}
