@@ -3,8 +3,8 @@
 **Owner:** gdawg95 (sole human contributor)
 **Repo:** https://github.com/gdawg95/PS-Kestral-Group (private until reviewers approve)
 **Code freeze:** Friday 30 Oct 2026, 3:00pm (then proofread and edit until COB)
-**Last updated:** Thursday 29 Oct 2026 · **Waves 1–3 complete, Wave 4 next.** Everything is
-on the `w1-wrapup` branch; nothing from Wave 2 or Wave 3 has reached `main` yet (gate G5).
+**Last updated:** Thursday 29 Oct 2026 · **Waves 1–3 complete, Wave 4 next.** Waves 1–3 are
+reviewed and merged to `main` (gate G5); `main` and `w1-wrapup` are level.
 
 This is the single source of truth for the project. Every new conversation and every agent brief starts from this file and `DECISIONS.md`.
 
