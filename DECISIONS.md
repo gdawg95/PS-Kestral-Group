@@ -56,6 +56,13 @@ Format: `D-NNN · Title · Status · Date`
 - **Method:** (1) exact-match redaction of that row's own name/rego values (where the source has those columns); (2) regex for phones, emails, addresses and Australian rego formats; (3) spaCy NER for remaining person names.
 - **[STAFF] vs [NAME]:** an NER person name is tagged `[STAFF]` only when it appears in a staff context (e.g. "Dave in service", "my salesperson Priya"); otherwise `[NAME]`. Owner expects `[STAFF]` to be rare, so imprecision here is low-impact.
 - **Known risk:** rego regex can false-positive on model and part codes (e.g. RAV4, CX5, V8). The test suite must include these as must-*not*-redact cases.
+- **Method update after the PII pilot (29 Oct 2026, proposed, owner to approve):** the first laptop pilot missed "Raj" and a lower-case "dave", and redacted the ordinary words "Spooky" and "Keys". Three steps added:
+  1. **Staff roster:** the 16 first names in the data's staff columns ("Taken by", "Logged by", "Card given by", "Staff") are redacted as `[STAFF]` in any letter case.
+  2. **Sentence-start guard:** a one-word spaCy PERSON at the start of a sentence is redacted only if it is a first name seen in a name or staff column.
+  3. **Corpus pass:** names spaCy tags mid-sentence in ≥ 2 comments, and that are capitalised in ≥ 60% of their uses, are redacted in any case ("Dave" yes; "Will", "Lovely" no). Token chosen by context.
+  - Name lists are built in memory at each run and never written out (D-003 exception).
+  - **Correction to the assumption above:** `[STAFF]` is not rare. 728 of 5,412 comments (13%) mention a staff-roster name.
+  - **Residual risk:** a name used only once, in lower case, and not in any staff column can still get through. Reported in the data-quality report; the owner's read of pilot samples is the backstop.
 
 ### D-027 · Chermside Q1 2026: use FINAL v2 only · Decided · 29 Oct 2026
 - **Decision:** `Chermside Q1 2026 FINAL v2.xlsx` (118 rows) is the source for Chermside Q1. `Chermside Q1 2026 FINAL.xlsx` (112 rows) is excluded from ingestion.

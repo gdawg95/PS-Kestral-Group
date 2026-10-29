@@ -68,6 +68,24 @@ must_redact:
   - id: two_things
     input: "email a@b.com or call 0400 111 222"
     expected: "email [EMAIL] or call [PHONE]"
+  # Staff roster (first names from the data's staff columns). Added after the PII pilot missed
+  # "Raj" and a lower-case staff name.
+  - id: staff_roster_capitalised
+    input: "Raj held up the old part and it clicked straight away"
+    staff_names: ["Raj", "Bec"]
+    expected: "[STAFF] held up the old part and it clicked straight away"
+  - id: staff_roster_lowercase
+    input: "stepped in and raj had a chat with me"
+    staff_names: ["Raj"]
+    expected: "stepped in and [STAFF] had a chat with me"
+  - id: staff_roster_after_thanks
+    input: "Super speedy, thanks Ben!"
+    staff_names: ["Ben"]
+    expected: "Super speedy, thanks [STAFF]!"
+  - id: staff_roster_whole_word_only
+    input: "Bec was great, the Becker bike rack too"
+    staff_names: ["Bec"]
+    expected: "[STAFF] was great, the Becker bike rack too"
 
 must_not_redact:
   - id: model_codes
@@ -107,6 +125,19 @@ ner_cases:  # need spaCy en_core_web_sm; run on the laptop
   - id: other_person
     input: "My wife Jennifer Brown picked it up"
     expected: "My wife [NAME] picked it up"
+  # Sentence-initial capitalised words spaCy mistook for names in the pilot ("Spooky", "Keys").
+  - id: sentence_start_word_not_a_name
+    input: "My phone buzzed with an update. Spooky good timing."
+    known_names: ["Dave", "Ben"]
+    expected: "My phone buzzed with an update. Spooky good timing."
+  - id: sentence_start_plural_not_a_name
+    input: "Keys weren't ready at the time I was told."
+    known_names: ["Dave", "Ben"]
+    expected: "Keys weren't ready at the time I was told."
+  - id: sentence_start_known_name_is_redacted
+    input: "Josh was wonderful."
+    known_names: ["Josh"]
+    expected: "[NAME] was wonderful."
 
 owner_cases:  # OWNER: add yours here (same shape as above; use expected: "<same as input>" for must-not-redact)
   []
