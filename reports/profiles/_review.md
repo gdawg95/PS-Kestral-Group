@@ -787,18 +787,12 @@ Pick any 3 files, open them in Excel, and tick the lines that match (put Y in th
 
 ## Tamworth.xlsx
 
-- [ ] 142 data rows in total
-- [ ] Sheet **Sheet1 [layout 1, from row 1]**: header in row 1, **8 data rows**
-    - [ ] `DATE` → date; 0.0% empty; dates 2025-10-02 to 2025-10-27
-    - [ ] `DEPT` → department; 0.0% empty; values: Workshop (2), service (2), New Cars (2), SERVICE (1), Used Cars (1)
-    - [ ] `HOW WAS IT` → other; 0.0% empty
-    - [ ] `COMMENTS` → comment; 37.5% empty
-- [ ] Sheet **Sheet1 [layout 2, from row 10]**: header in row 10, **134 data rows**
-    - [ ] `27/10/2025` → rating; 0.0% empty; values: 02/01/2026 (3), 03/11/2025 (2), 08/11/2025 (2), 11/11/2025 (2), 06/12/2025 (2), 02/02/2026 (2), 06/02/2026 (2), 11/02/2026 (2), 27/02/2026 (2), 15/03/2026 (2), 25/03/2026 (2), 14/04/2026 (2), 16/04/2026 (2), 20/04/2026 (2), 30/04/2026 (2), 21/05/2026 (2), 27/05/2026 (2), 05/06/2026 (2), 13/07/2026 (2), 29/07/2026 (2), 27/10/2025 (1), 12/11/2025 (1), 15/11/2025 (1), 19/11/2025 (1), 26/11/2025 (1), 27/11/2025 (1), 28/11/2025 (1), 08/12/2025 (1), 12/12/2025 (1), 18/12/2025 (1), 19/12/2025 (1), 20/12/2025 (1), 22/12/2025 (1), 29/12/2025 (1), 05/01/2026 (1), 08/01/2026 (1), 13/01/2026 (1), 16/01/2026 (1), 19/01/2026 (1), 24/01/2026 (1)
-    - [ ] `Svc` → department; 0.0% empty; values: Svc (19), Service Dept (18), Service (17), SERVICE (17), Workshop (16), service (11), Sales (9), Used Cars (8), New Cars (8), sales (6), Parts & Accessories (2), P&A (2), parts counter (1)
-    - [ ] `Bad` → other; 7.5% empty
-    - [ ] `Rang twice. No call back.` → other; 28.4% empty
-- Oddities: [Sheet1 [layout 1, from row 1]] no column proposed as 'rating'; [Sheet1 [layout 2, from row 10]] second header row: column layout changes from here; [Sheet1 [layout 2, from row 10]] no column proposed as 'date'; [Sheet1 [layout 2, from row 10]] no column proposed as 'comment'
+- [ ] 143 data rows in total
+- [ ] Sheet **Sheet1**: header in row 1, **143 data rows**
+    - [ ] `DATE` → date; 0.0% empty; dates 2025-10-02 to 2026-09-30
+    - [ ] `DEPT` → department; 0.0% empty; values: Svc (20), Workshop (18), SERVICE (18), Service Dept (18), Service (17), service (13), New Cars (10), Used Cars (9), Sales (9), sales (6), Parts & Accessories (2), P&A (2), parts counter (1)
+    - [ ] `HOW WAS IT` → rating; 7.0% empty; values: Good (93), Bad (21), OK (19)
+    - [ ] `COMMENTS` → comment; 28.7% empty
 
 ## Toowoomba feedback 2026.xlsx
 
