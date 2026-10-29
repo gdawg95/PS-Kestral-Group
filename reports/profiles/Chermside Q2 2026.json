@@ -1,0 +1,140 @@
+{
+  "file": "Chermside Q2 2026.xlsx",
+  "type": "xlsx",
+  "bytes": 14465,
+  "sha256": "d32aca3660d78601ecce87af9a55b79d00babe06319a7513378b47d7618b5158",
+  "sheets": [
+    {
+      "name": "Feedback",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 117,
+        "cols": 7
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 7 text cells, followed by data",
+      "data_rows": 116,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 64,
+          "types": {
+            "date": 116
+          },
+          "date_formats": {
+            "excel datetime": 116
+          },
+          "date_min": "2026-04-01",
+          "date_max": "2026-06-30",
+          "unparseable": 0,
+          "ambiguous_day_month": 0,
+          "length": {
+            "min": 19,
+            "median": 19,
+            "max": 19
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Department",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 3,
+          "types": {
+            "text": 116
+          },
+          "values": {
+            "Service": 74,
+            "Sales": 35,
+            "Parts": 7
+          }
+        },
+        {
+          "name": "Model",
+          "proposed_role": "vehicle",
+          "null_pct": 11.2,
+          "n_distinct": 15,
+          "types": {
+            "text": 103
+          },
+          "length": {
+            "min": 2,
+            "median": 5,
+            "max": 12
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Rating",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 116
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 58,
+            "4": 23,
+            "2": 14,
+            "1": 13,
+            "3": 8
+          }
+        },
+        {
+          "name": "Comments",
+          "proposed_role": "comment",
+          "null_pct": 25.0,
+          "n_distinct": 87,
+          "types": {
+            "text": 87
+          },
+          "length": {
+            "min": 22,
+            "median": 98,
+            "max": 231
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Ref",
+          "proposed_role": "identifier",
+          "null_pct": 0.0,
+          "n_distinct": 116,
+          "types": {
+            "text": 116
+          },
+          "length": {
+            "min": 8,
+            "median": 8,
+            "max": 8
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Customer No",
+          "proposed_role": "identifier",
+          "null_pct": 0.0,
+          "n_distinct": 115,
+          "types": {
+            "number": 116
+          },
+          "length": {
+            "min": 5,
+            "median": 5,
+            "max": 5
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": []
+    }
+  ],
+  "data_rows_total": 116,
+  "oddities": []
+}

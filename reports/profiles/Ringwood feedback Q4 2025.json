@@ -1,0 +1,119 @@
+{
+  "file": "Ringwood feedback Q4 2025.xlsx",
+  "type": "xlsx",
+  "bytes": 11909,
+  "sha256": "e3b4e32f6e01413e8fbf9d988a663e099d2762453b706627df66272274354de0",
+  "sheets": [
+    {
+      "name": "Feedback",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 101,
+        "cols": 5
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 5 text cells, followed by data",
+      "data_rows": 100,
+      "columns": [
+        {
+          "name": "Date Received",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 61,
+          "types": {
+            "date text": 100
+          },
+          "date_formats": {
+            "%d/%m/%Y": 100
+          },
+          "date_min": "2025-10-01",
+          "date_max": "2025-12-31",
+          "unparseable": 0,
+          "ambiguous_day_month": 39,
+          "length": {
+            "min": 10,
+            "median": 10,
+            "max": 10
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Department",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 14,
+          "types": {
+            "text": 100
+          },
+          "values": {
+            "Svc": 14,
+            "Service": 11,
+            "Service Dept": 11,
+            "SERVICE": 10,
+            "Workshop": 10,
+            "Sales": 10,
+            "service": 9,
+            "Used Cars": 7,
+            "New Cars": 6,
+            "sales": 5,
+            "parts counter": 3,
+            "Parts & Accessories": 2,
+            "P&A": 1,
+            "Parts": 1
+          }
+        },
+        {
+          "name": "Score (1-5)",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 100
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 44,
+            "4": 29,
+            "3": 11,
+            "2": 9,
+            "1": 7
+          }
+        },
+        {
+          "name": "Customer comments",
+          "proposed_role": "comment",
+          "null_pct": 25.0,
+          "n_distinct": 75,
+          "types": {
+            "text": 75
+          },
+          "length": {
+            "min": 10,
+            "median": 111,
+            "max": 253
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Followed up?",
+          "proposed_role": "other",
+          "null_pct": 68.0,
+          "n_distinct": 2,
+          "types": {
+            "text": 32
+          },
+          "values": {
+            "Y": 17,
+            "N": 15
+          }
+        }
+      ],
+      "oddities": []
+    }
+  ],
+  "data_rows_total": 100,
+  "oddities": []
+}

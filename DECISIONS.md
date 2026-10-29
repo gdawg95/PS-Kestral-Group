@@ -57,6 +57,11 @@ Format: `D-NNN · Title · Status · Date`
 - **[STAFF] vs [NAME]:** an NER person name is tagged `[STAFF]` only when it appears in a staff context (e.g. "Dave in service", "my salesperson Priya"); otherwise `[NAME]`. Owner expects `[STAFF]` to be rare, so imprecision here is low-impact.
 - **Known risk:** rego regex can false-positive on model and part codes (e.g. RAV4, CX5, V8). The test suite must include these as must-*not*-redact cases.
 
+### D-027 · Chermside Q1 2026: use FINAL v2 only · Decided · 29 Oct 2026
+- **Decision:** `Chermside Q1 2026 FINAL v2.xlsx` (118 rows) is the source for Chermside Q1. `Chermside Q1 2026 FINAL.xlsx` (112 rows) is excluded from ingestion.
+- **Evidence:** the profiler's exact-row check found every row of FINAL inside v2; v2 adds 6 rows and extends the date range to 31 Mar. Owner checked the v2 profile against the spreadsheet (agents/reports/w1_profilers_pilot_review.md).
+- **Also found:** the two "extra" files in the owner's folder (54 vs the brief's 52) were Excel lock files (`~$...`), not data. The profiler skips `~$` files.
+
 ## Outputs
 
 ### D-007 · Two reports · Decided · 29 Oct 2026

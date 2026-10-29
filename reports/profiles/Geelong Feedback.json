@@ -1,0 +1,217 @@
+{
+  "file": "Geelong Feedback.xlsx",
+  "type": "xlsx",
+  "bytes": 27220,
+  "sha256": "b17e148804d10dbeae25baee0487677b0804d19cd857bdd13eb9ca543d111f42",
+  "sheets": [
+    {
+      "name": "2025",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 72,
+        "cols": 5
+      },
+      "header_row": 4,
+      "header_reason": "row 4: 5 text cells, followed by data",
+      "data_rows": 68,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 47,
+          "types": {
+            "date text": 68
+          },
+          "date_formats": {
+            "%d/%m/%y": 68
+          },
+          "date_min": "2025-10-01",
+          "date_max": "2025-12-24",
+          "unparseable": 0,
+          "ambiguous_day_month": 28,
+          "length": {
+            "min": 7,
+            "median": 8,
+            "max": 8
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Department",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 3,
+          "types": {
+            "text": 68
+          },
+          "values": {
+            "Service": 47,
+            "Sales": 14,
+            "Parts": 7
+          }
+        },
+        {
+          "name": "Rating",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 68
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "1": 26,
+            "2": 15,
+            "4": 12,
+            "3": 8,
+            "5": 7
+          }
+        },
+        {
+          "name": "Feedback",
+          "proposed_role": "comment",
+          "null_pct": 23.5,
+          "n_distinct": 52,
+          "types": {
+            "text": 52
+          },
+          "length": {
+            "min": 11,
+            "median": 94,
+            "max": 221
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Customer",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 63,
+          "types": {
+            "text": 68
+          },
+          "length": {
+            "min": 3,
+            "median": 6,
+            "max": 10
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": [
+        "3 row(s) above the header (titles or notes)"
+      ]
+    },
+    {
+      "name": "2026",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 240,
+        "cols": 5
+      },
+      "header_row": 4,
+      "header_reason": "row 4: 5 text cells, followed by data",
+      "data_rows": 236,
+      "columns": [
+        {
+          "name": "Date",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 142,
+          "types": {
+            "date text": 236
+          },
+          "date_formats": {
+            "%d/%m/%y": 236
+          },
+          "date_min": "2026-01-02",
+          "date_max": "2026-09-30",
+          "unparseable": 0,
+          "ambiguous_day_month": 97,
+          "length": {
+            "min": 6,
+            "median": 7,
+            "max": 7
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Department",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 3,
+          "types": {
+            "text": 236
+          },
+          "values": {
+            "Service": 157,
+            "Sales": 55,
+            "Parts": 24
+          }
+        },
+        {
+          "name": "Rating",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "number": 236
+          },
+          "numeric_share": 1.0,
+          "min": 1,
+          "max": 5,
+          "values": {
+            "5": 113,
+            "4": 48,
+            "1": 31,
+            "3": 25,
+            "2": 19
+          }
+        },
+        {
+          "name": "Feedback",
+          "proposed_role": "comment",
+          "null_pct": 24.2,
+          "n_distinct": 179,
+          "types": {
+            "text": 179
+          },
+          "length": {
+            "min": 10,
+            "median": 109,
+            "max": 406
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "Customer",
+          "proposed_role": "name",
+          "null_pct": 0.0,
+          "n_distinct": 174,
+          "types": {
+            "text": 236
+          },
+          "length": {
+            "min": 3,
+            "median": 5,
+            "max": 9
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": [
+        "3 row(s) above the header (titles or notes)"
+      ]
+    }
+  ],
+  "data_rows_total": 304,
+  "oddities": [
+    "[2025] 3 row(s) above the header (titles or notes)",
+    "[2026] 3 row(s) above the header (titles or notes)"
+  ]
+}

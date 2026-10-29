@@ -1,0 +1,223 @@
+{
+  "file": "Tamworth.xlsx",
+  "type": "xlsx",
+  "bytes": 13931,
+  "sha256": "a5f8f55f29dce7072b7c835240db672e21f18f3165ed12b2c590a69b5c9cb3bd",
+  "sheets": [
+    {
+      "name": "Sheet1 [layout 1, from row 1]",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 9,
+        "cols": 4
+      },
+      "header_row": 1,
+      "header_reason": "row 1: 4 text cells, followed by data",
+      "data_rows": 8,
+      "columns": [
+        {
+          "name": "DATE",
+          "proposed_role": "date",
+          "null_pct": 0.0,
+          "n_distinct": 6,
+          "types": {
+            "date text": 8
+          },
+          "date_formats": {
+            "%d/%m/%Y": 8
+          },
+          "date_min": "2025-10-02",
+          "date_max": "2025-10-27",
+          "unparseable": 0,
+          "ambiguous_day_month": 4,
+          "length": {
+            "min": 10,
+            "median": 10,
+            "max": 10
+          },
+          "values": "withheld (privacy rule)"
+        },
+        {
+          "name": "DEPT",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 5,
+          "types": {
+            "text": 8
+          },
+          "values": {
+            "Workshop": 2,
+            "service": 2,
+            "New Cars": 2,
+            "SERVICE": 1,
+            "Used Cars": 1
+          }
+        },
+        {
+          "name": "HOW WAS IT",
+          "proposed_role": "other",
+          "null_pct": 0.0,
+          "n_distinct": 2,
+          "types": {
+            "text": 8
+          },
+          "values": {
+            "OK": 4,
+            "Good": 4
+          }
+        },
+        {
+          "name": "COMMENTS",
+          "proposed_role": "comment",
+          "null_pct": 37.5,
+          "n_distinct": 5,
+          "types": {
+            "text": 5
+          },
+          "length": {
+            "min": 36,
+            "median": 87,
+            "max": 200
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": [
+        "no column proposed as 'rating'"
+      ]
+    },
+    {
+      "name": "Sheet1 [layout 2, from row 10]",
+      "state": "visible",
+      "merged_cells": 0,
+      "dimensions_raw": {
+        "rows": 135,
+        "cols": 4
+      },
+      "header_row": 10,
+      "header_reason": "row 1: 4 text cells, followed by data",
+      "data_rows": 134,
+      "columns": [
+        {
+          "name": "27/10/2025",
+          "proposed_role": "rating",
+          "null_pct": 0.0,
+          "n_distinct": 113,
+          "types": {
+            "date text": 134
+          },
+          "numeric_share": 0.0,
+          "values": {
+            "02/01/2026": 3,
+            "03/11/2025": 2,
+            "08/11/2025": 2,
+            "11/11/2025": 2,
+            "06/12/2025": 2,
+            "02/02/2026": 2,
+            "06/02/2026": 2,
+            "11/02/2026": 2,
+            "27/02/2026": 2,
+            "15/03/2026": 2,
+            "25/03/2026": 2,
+            "14/04/2026": 2,
+            "16/04/2026": 2,
+            "20/04/2026": 2,
+            "30/04/2026": 2,
+            "21/05/2026": 2,
+            "27/05/2026": 2,
+            "05/06/2026": 2,
+            "13/07/2026": 2,
+            "29/07/2026": 2,
+            "27/10/2025": 1,
+            "12/11/2025": 1,
+            "15/11/2025": 1,
+            "19/11/2025": 1,
+            "26/11/2025": 1,
+            "27/11/2025": 1,
+            "28/11/2025": 1,
+            "08/12/2025": 1,
+            "12/12/2025": 1,
+            "18/12/2025": 1,
+            "19/12/2025": 1,
+            "20/12/2025": 1,
+            "22/12/2025": 1,
+            "29/12/2025": 1,
+            "05/01/2026": 1,
+            "08/01/2026": 1,
+            "13/01/2026": 1,
+            "16/01/2026": 1,
+            "19/01/2026": 1,
+            "24/01/2026": 1
+          },
+          "values_truncated": 73
+        },
+        {
+          "name": "Svc",
+          "proposed_role": "department",
+          "null_pct": 0.0,
+          "n_distinct": 13,
+          "types": {
+            "text": 134
+          },
+          "values": {
+            "Svc": 19,
+            "Service Dept": 18,
+            "Service": 17,
+            "SERVICE": 17,
+            "Workshop": 16,
+            "service": 11,
+            "Sales": 9,
+            "Used Cars": 8,
+            "New Cars": 8,
+            "sales": 6,
+            "Parts & Accessories": 2,
+            "P&A": 2,
+            "parts counter": 1
+          }
+        },
+        {
+          "name": "Bad",
+          "proposed_role": "other",
+          "null_pct": 7.5,
+          "n_distinct": 3,
+          "types": {
+            "text": 124
+          },
+          "values": {
+            "Good": 89,
+            "Bad": 20,
+            "OK": 15
+          }
+        },
+        {
+          "name": "Rang twice. No call back.",
+          "proposed_role": "other",
+          "null_pct": 28.4,
+          "n_distinct": 96,
+          "types": {
+            "text": 96
+          },
+          "length": {
+            "min": 10,
+            "median": 97,
+            "max": 272
+          },
+          "values": "withheld (privacy rule)"
+        }
+      ],
+      "oddities": [
+        "second header row: column layout changes from here",
+        "no column proposed as 'date'",
+        "no column proposed as 'comment'"
+      ]
+    }
+  ],
+  "data_rows_total": 142,
+  "oddities": [
+    "[Sheet1 [layout 1, from row 1]] no column proposed as 'rating'",
+    "[Sheet1 [layout 2, from row 10]] second header row: column layout changes from here",
+    "[Sheet1 [layout 2, from row 10]] no column proposed as 'date'",
+    "[Sheet1 [layout 2, from row 10]] no column proposed as 'comment'"
+  ]
+}
