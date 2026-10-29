@@ -62,8 +62,8 @@ Fill this in as you go. It becomes the "where AI got it wrong" section of the te
 - **Where the owner pushed back and the AI held its position:** owner initially considered skipping duplicate checks; AI recommended a cheap verification step instead of an assumption (adopted as D-002).
 - **Checks performed:** owner reviewed each plan section and question in conversation.
   
--Verdict: Project plan established. Plan is to be updated as further information/issues arise. 
--Verified by: S Gyaw
+Verdict: Project plan established. Plan is to be updated as further information/issues arise. 
+Verified by: S Gyaw
 
 ### AI-002 · Wave 1 · Scaffold and NLP environment check · 28–29 Oct 2026
 - **Tool / model:** Claude Opus 5.5 (cloud workspace + desktop-app bridge to the owner's laptop).
@@ -76,8 +76,8 @@ Fill this in as you go. It becomes the "where AI got it wrong" section of the te
   - `uv sync --group nlp` on the laptop: 123 packages installed, log read by the AI.
 - **Issues found:** see summary rows 1–2. The owner chose option C on the AI's recommendation; testing showed it could not work as described, so it became "owner runs, Claude reads logs".
   
-- **Verdict:** Established required architecture and hardware to prepare fro overll project.
-- **Verified by: S Gyaw, 29/10/2026
+Verdict: Established required architecture and hardware to prepare fro overll project.
+Verified by: S Gyaw, 29/10/2026
 
 ### AI-003 · Wave 1 · w1_profilers (structure profiles of all 52 feedback files) · 29 Oct 2026
 - **Tool / model:** Claude Opus 5.5, cloud workspace (pandas + openpyxl). Brief `agents/briefs/w1_profilers.md`, approved by the owner.
@@ -92,8 +92,8 @@ Fill this in as you go. It becomes the "where AI got it wrong" section of the te
 - **Issues found:** see summary rows 3–5.
 - **Owner decisions arising:** D-020 (all ratings to 1–5, incl. 10-point rule), D-027, D-028, D-029, D-030, D-031 (drop 13 rows without a rating), D-032 (15 findings, defaults accepted).
 
-- **Verdict: Corrections from Tamworth profile wrong until fixed; re-checked".
-- **Verified by: S Gyaw, 29/10/2026
+Verdict: Corrections from Tamworth profile wrong until fixed; re-checked.
+Verified by: S Gyaw, 29/10/2026
 
 ### AI-004 · Wave 1 · w1_pii (allowlist + comment redaction) · 29 Oct 2026
 - **Tool / model:** Claude Opus 5.5 wrote the code; spaCy `en_core_web_sm` 3.8.0 does the name detection (on the owner's laptop).
@@ -106,5 +106,5 @@ Fill this in as you go. It becomes the "where AI got it wrong" section of the te
 - **Issues found:** see summary rows 6–8. Also: the owner's assumption that `[STAFF]` would be rare was wrong; 13% of comments mention a staff name.
 - **Owner decisions arising:** D-026 method update accepted; D-033 (owner test cases waived, residual risk accepted).
   
-- **Verdict: Corrected the issuse that pilot 1 found misses; accepted after pilot 2.
-- **Verified by: S Gyaw, 29/10/2026
+Verdict: Corrected the issuse that pilot 1 found misses; accepted after pilot 2.
+Verified by: S Gyaw, 29/10/2026
