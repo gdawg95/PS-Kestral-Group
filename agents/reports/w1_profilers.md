@@ -56,12 +56,21 @@ Each has a proposed default. Decisions go into DECISIONS.md before Wave 2.
 | 11 | Dandenong | 12 monthly sheets with 3 title rows each, plus an empty `Sheet3` | Header at row 4 of each sheet; ignore `Sheet3` |
 | 12 | Many sites | Department written ~20 ways (Svc, SV, Workshop, P&A, parts counter, New Cars, Used Cars, Sales - New ...) | Map in Wave 3 to Service / Sales / Parts; New/Used Cars → Sales |
 | 13 | Several | Extra free-text columns ("Action", "Action taken", "Followed up?") | Drop (allowlist, D-003) |
+| 14 | Geelong 2025 sheet | **Reversed scale**: a note above the header says "1 = Excellent, 5 = Poor" (2026 sheet: "1 = Poor ... 5 = Excellent"). Found by the rating sanity check | Convert with `6 − x` (D-030) |
+| 15 | Penrith | **"Jun 26" sheet is a copy of "Jul 26"** (43/43 rows identical, July dates). June 2026 is missing | Exclude the copy; report June as a gap (D-029) |
+
+Findings 14 and 15 were missed by the first full run. The profiler now records scale notes above
+headers and compares sheets within a file; `scripts/check_ratings.py` checks every rating column.
 
 ## Assumptions
 - The data period is 1 Oct 2025 – 30 Sep 2026; dates outside it are suspect.
 - Day-first dates everywhere except liverpool_q3 (all other `dd/mm` files fit their quarter).
 - A header row is the first row (in the top 20) with mostly short text cells followed by data.
 
+## Resolved by the owner
+- Ratings: all normalised to 1–5; 3-point Bad 1 / OK 3 / Good 5 (D-020).
+- Penrith Sales - New / Sales - Used → Sales (D-028).
+- Spot-checks: Bendigo, Frankston and Tamworth all confirmed (`w1_profilers_spotcheck.md`).
+
 ## Unresolved
-- Whether Good/OK/Bad (Tamworth) should be stretched to 1–5 or analysed as 3-point (D-020).
-- Penrith "Sales - New / Sales - Used": one Sales department, or keep the split?
+- Owner to confirm findings 1–15 (or accept the defaults) and the 10-point mapping (D-020).

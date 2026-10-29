@@ -101,6 +101,10 @@ DATE_FORMATS = [
     "%Y%m%d",
 ]
 MAX_LISTED = 40
+SCALE_NOTE = re.compile(
+    r"(rating|score|scale)\b.*\d\s*=|\d\s*=\s*(poor|excellent|best|worst)", re.I
+)
+REVERSED_SCALE = re.compile(r"1\s*=\s*(excellent|best|very good|very satisfied)", re.I)
 
 
 def sha256(path: Path) -> str:
@@ -339,6 +343,18 @@ def profile_sheet(sheet: dict) -> tuple[dict, list[tuple]]:
         return out, []
     if h > 0:
         oddities.append(f"{h} row(s) above the header (titles or notes)")
+        # Scale notes above the header matter (Geelong 2025: "1 = Excellent, 5 = Poor").
+        # Only lines about the rating scale are kept, so titles with names are not copied.
+        notes = [
+            str(v).strip()
+            for r in rows[:h]
+            for v in r
+            if isinstance(v, str) and SCALE_NOTE.search(v)
+        ]
+        if notes:
+            out["scale_notes"] = notes
+            if any(REVERSED_SCALE.search(n) for n in notes):
+                oddities.append("REVERSED rating scale stated above the header (1 = best)")
 
     width = max(len(r) for r in rows[h:])
     header = list(rows[h]) + [None] * (width - len(rows[h]))
@@ -488,6 +504,33 @@ def profile_file(path: Path) -> tuple[dict, dict]:
 # ---------- cross-file checks ----------
 
 
+def sheet_overlaps(fp_by_file: dict[str, dict]) -> list[dict]:
+    """Sheets inside the same file that share rows, ignoring the first column (usually the date).
+
+    Penrith "Jun 26" turned out to be a copy of "Jul 26".
+    """
+    out = []
+    for f, sheets in fp_by_file.items():
+        names = list(sheets)
+        for i, a in enumerate(names):
+            for b in names[i + 1 :]:
+                ra = {r[1:] for r in sheets[a]}
+                rb = {r[1:] for r in sheets[b]}
+                shared = len(ra & rb)
+                if ra and rb and shared >= 0.5 * min(len(ra), len(rb)):
+                    out.append(
+                        {
+                            "file": f,
+                            "sheet_a": a,
+                            "sheet_b": b,
+                            "shared_rows": shared,
+                            "rows_a": len(ra),
+                            "rows_b": len(rb),
+                        }
+                    )
+    return out
+
+
 def overlap_report(fp_by_file: dict[str, dict]) -> list[dict]:
     """Pairs of files that share data rows (exact match on all kept cells)."""
     flat = {f: {row for fps in sheets.values() for row in fps} for f, sheets in fp_by_file.items()}
@@ -585,9 +628,23 @@ def main(argv=None) -> int:
             f"{len(prof['oddities'])} oddities"
         )
     overlaps = overlap_report(fps)
-    write_index(profiles, overlaps)
+    within = sheet_overlaps(fps)
+    for w in within:
+        print(
+            f"SHEET OVERLAP {w['file']}: {w['sheet_a']} <-> {w['sheet_b']}: "
+            f"{w['shared_rows']} shared rows"
+        )
+        prof = next(p for p in profiles if p["file"] == w["file"])
+        prof["oddities"].append(
+            f"sheets {w['sheet_a']!r} and {w['sheet_b']!r} share {w['shared_rows']} "
+            f"of {min(w['rows_a'], w['rows_b'])} rows (copied sheet?)"
+        )
+        (OUT / f"{Path(w['file']).stem}.json").write_text(
+            json.dumps(prof, indent=2, default=str), encoding="utf-8"
+        )
     for o in overlaps:
         print(f"OVERLAP {o['file_a']} <-> {o['file_b']}: {o['shared_rows']} shared rows")
+    write_index(profiles, overlaps + [{"within_file": True, **w} for w in within])
     return 0
 
 

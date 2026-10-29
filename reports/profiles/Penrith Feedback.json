@@ -1218,5 +1218,7 @@
     }
   ],
   "data_rows_total": 497,
-  "oddities": []
+  "oddities": [
+    "sheets 'Jun 26' and 'Jul 26' share 43 of 43 rows (copied sheet?)"
+  ]
 }

@@ -62,6 +62,32 @@ Format: `D-NNN · Title · Status · Date`
 - **Evidence:** the profiler's exact-row check found every row of FINAL inside v2; v2 adds 6 rows and extends the date range to 31 Mar. Owner checked the v2 profile against the spreadsheet (agents/reports/w1_profilers_pilot_review.md).
 - **Also found:** the two "extra" files in the owner's folder (54 vs the brief's 52) were Excel lock files (`~$...`), not data. The profiler skips `~$` files.
 
+### D-020 · All ratings normalised to 1–5 · Decided (owner) / Proposed (10-point) · 29 Oct 2026
+- **Decision (owner):** every rating is converted to a 1–5 scale. 3-point word scales map Bad = 1, OK/average/medium = 3, Good = 5.
+- **Mappings** (applied by `scripts/check_ratings.py`; full table in `reports/rating_check.md`):
+  | Source scale | Where | Rows | Rule |
+  |---|---|---:|---|
+  | 1–5 numeric | most sites | 6,144 | unchanged |
+  | 1–10 | Ringwood (from Feb 2026 template) | 321 | `round(1 + (x−1)·4/9)` → 1,1,2,2,3,3,4,4,5,5 *(proposed, awaiting owner OK)* |
+  | 5-point words | Ballarat | 292 | Very dissatisfied 1 … Very satisfied 5 |
+  | Stars ★ | Bendigo | 144 | number of filled stars |
+  | 3-point words | Tamworth | 143 | Bad 1 · OK 3 · Good 5 (owner rule) |
+  | Reversed 1–5 | Geelong 2025 sheet | 68 | `6 − x` (sheet note: "1 = Excellent, 5 = Poor") |
+  | Pivot counts | Toowoomba Q4 2025 | 71 | already 1–5 |
+- **Sanity check result:** every value maps; no out-of-range, fractional or non-numeric ratings. Blank ratings: Tamworth 10, plus 3 note rows elsewhere.
+- **Caveats for reporting:** Tamworth's stretched 3-point scale can only produce 1, 3 or 5, so its mean (4.08) isn't strictly comparable with true 5-point sites. Report % positive alongside the mean, and run a sensitivity check (Good = 4). Noosa (feedback cards handed out by staff) averages 4.63, which is likely selection bias.
+
+### D-028 · Penrith "Sales - New" and "Sales - Used" are one Sales department · Decided · 29 Oct 2026
+- **Decision (owner):** both map to Sales in the Wave 3 department mapping.
+
+### D-029 · Penrith "Jun 26" sheet is a copy of "Jul 26" · Proposed · 29 Oct 2026
+- **Finding:** all 43 rows of the "Jun 26" sheet are identical to "Jul 26", and its dates run 1–31 July 2026. Penrith's real June 2026 feedback is missing from the pack.
+- **Proposed:** exclude the "Jun 26" sheet; report June 2026 as a coverage gap for Penrith (no imputation).
+
+### D-030 · Geelong 2025 sheet uses a reversed scale · Proposed · 29 Oct 2026
+- **Finding:** the 2025 sheet's title says "Rating: 1 = Excellent, 5 = Poor"; the 2026 sheet says "1 = Poor ... 5 = Excellent (new head office scale)". Comments agree: in 2025, low scores carry the positive comments.
+- **Proposed:** convert 2025 ratings with `6 − x` (mean 2.40 → 3.60). Without this, Geelong would show a false jump of +1.4 between 2025 and 2026.
+
 ## Outputs
 
 ### D-007 · Two reports · Decided · 29 Oct 2026
@@ -135,7 +161,6 @@ Format: `D-NNN · Title · Status · Date`
 | ID | Decision | Revisit |
 |---|---|---|
 | D-019 | Duplicate check result (confirms or overturns D-002 assumption) | After Wave 2 |
-| D-020 | Score-scale mappings for non-1–5 sites | After profiling |
 | D-021 | Evidence threshold for calling a trend real | After basic EDA |
 | D-022 | NLP pass mark (e.g. sentiment agreement ≥ X%, theme F1 ≥ Y) and fallback | Before hand-labelling |
 | D-023 | Final theme list (fixed + discovered mix) | After theme discovery |
