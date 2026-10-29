@@ -122,7 +122,7 @@ Verified by: S Gyaw, 29/10/2026
 - **Issues found:** see summary rows 6–8. Also: the owner's assumption that `[STAFF]` would be rare was wrong; 13% of comments mention a staff name.
 - **Owner decisions arising:** D-026 method update accepted; D-033 (owner test cases waived, residual risk accepted).
   
-Verdict: Corrected the issuse that pilot 1 found misses; accepted after pilot 2.
+Verdict: Corrected the issues that pilot 1 found misses; accepted after pilot 2.
 Verified by: S Gyaw, 29/10/2026
 
 ### AI-005 · Wave 1 wrap-up and Wave 2 mapping · Claude Code (desktop app, laptop repo) · 29 Oct 2026
@@ -143,8 +143,8 @@ Verified by: S Gyaw, 29/10/2026
 - **Owner decisions arising:** D-034, D-035, D-013 revision 2. Eight further questions are open in `mappings/QUESTIONS.md`, three of which (Q1 Bendigo codes, Q2 Southport no-date row, Q3 Toowoomba missing Sales) change rows in the dataset.
 - **Not done / not verified:** the Makefile itself is untested because the laptop has no `make`; the pipeline stage modules it calls do not exist yet. No data has been ingested — Checkpoint 2 blocks it.
 
-Verdict: Identification of tricky edge cases from the spreadsheets, where there were inconsistent data formats. 
-Verified by: S Gyaw, 29/10/2026 
+Verdict: Checkpoints for Wave 1 and Wave 2 approved. Identification of tricky edge cases from the spreadsheets, where there were inconsistent data formats.
+Verified by: S Gyaw, 29/10/2026
 
 ### AI-006 · Wave 2 · Checkpoint 2, ingestion and the G1 pilot · Claude Code (desktop app, laptop repo) · 29 Oct 2026
 - **Tool / model:** Claude Opus 5, in `C:\PS-Kestral-Group` with the project virtual environment (D-013 revision 2). Branch `w1-wrapup`.
@@ -170,7 +170,7 @@ Verified by: S Gyaw, 29/10/2026
 - **Owner decisions arising:** D-036 – D-045. Checkpoint 2 passed; the trend threshold stays TBD at the owner's choice, with `reports/trend_evidence.md` written to support it.
 - **Not done / not verified:** steps 3 and 4 of the brief (per-dealer joins with the four D-002 proofs, and the whole-corpus leak check) have not run, so **D-019 is still open**. `data/interim/consolidated.parquet` holds the pilot's 1,946 rows, not the expected 7,159 — anything reading it now reads a sixth of the data. `reports/trend_evidence.md` covers 6 of 24 dealerships. The Makefile is still untested because the laptop has no `make`. `nlp_pass_mark` is still TBD.
 
-Verdict: Splitting of conjoined raw data, and removal of unrequired data. 
+Verdict: Data ingestion and cleaning pipeline pilot created & tested using a sample of tricky subset (issues that were obvious). Splitting of conjoined raw data, and removal of unrequired data.
 Verified by: S Gyaw, 29/10/2026
 
 ### AI-007 · Wave 2 · Full ingestion, the four join proofs and Wave 3 preparation · Claude Code (desktop app, laptop repo) · 29 Oct 2026
@@ -197,7 +197,7 @@ Verified by: S Gyaw, 29/10/2026
 - **Owner decisions arising:** D-046 (pilot signed off, G1 passed). Still needed before Wave 3: approve `mappings/departments.yaml` (Checkpoint 3), decide the 9 Springwood pairs (closes D-019), approve `agents/briefs/w3_validate.md` (gate G2). Before Wave 4: `nlp_pass_mark`, and the hand-labelled sample, which the owner labels blind to model output.
 - **Not done / not verified:** `mappings/departments.yaml` is a draft and nothing departmental may be reported until it is approved. Two comments may still carry a name (`IPS_feedback_log.xlsx` rows 35 and 40) — worth two minutes before anything is published. `trend_evidence` and `nlp_pass_mark` are still TBD in `config.yaml` (gate G7). `make all` is still untested as `make`, the laptop having none. `README.md` is still two lines and is deliverable #3.
 
-Verdict: Accepted the two name misses turned out to be three and the leak check missed the destroyed [EMAIL] tokens. Both fixed in AI-008.
+Verdict: Tested ingestion pipeline was used to rectify missing/dirty/junk data. Found some potentail data leaks (not PII) that could have flow-on effects. Accepted the two name misses turned out to be three and the leak check missed the destroyed [EMAIL] tokens. Both fixed in AI-008.
 Verified by: S Gyaw, 29/10/2026
 
 ### AI-008 · Wave 3 · Validation, the four Checkpoint 3 decisions, PII fix and the technical report · Claude Code (desktop app, laptop repo) · 29 Oct 2026
