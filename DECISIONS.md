@@ -399,6 +399,80 @@ Source: `agents/reports/w1_profilers.md` (15 findings). Wave 2 ingestion applies
   the five example rows per rule, which need the full validate run over all 7,159 rows —
   gate G1 still holds it.
 
+### D-054 · The corpus name pass may not promote ordinary words, and no pass may rewrite a redaction token · Decided · 29 Oct 2026
+- **Owner's instruction:** fix it now, before Wave 4.
+- **The defect, found while reviewing the diff before committing Wave 3.** The redaction
+  table in `reports/reconciliation.md` reported 58 `[EMAIL]` redactions; the dataset
+  contained zero `[EMAIL]` tokens. Both numbers were right, which is what made it worth
+  chasing.
+- **Two causes, and the second is the dangerous one.**
+  1. `promote_names` judges a candidate only on how often spaCy tagged it and how often it
+     is capitalised. A vehicle model and a sentence-initial "Email" pass both tests as
+     surely as "Dave" does. It promoted seven tokens that are not people: `Email` (85
+     comments), `Corsa` (73), `Terra` (57), `Ridge` (41), `Madam` (8), `Easter` (2) and
+     `Crsa` (2) - **268 comments, 5% of the corpus**, with an ordinary word replaced by
+     `[NAME]`.
+  2. A promoted name is replaced by whole word, case-insensitively, and the brackets of
+     `[EMAIL]` are not word characters - so `EMAIL` is a whole word *inside the token*.
+     Promoting "Email" therefore rewrote every one of the 58 redacted addresses into
+     `[[NAME]]`. One pass silently destroyed another pass's output.
+- **Not a privacy failure.** Both faults over-redact. No email address, name or other
+  identifier escaped; the information lost is ordinary English and the names of cars.
+- **Why it mattered anyway:** Wave 4 runs theme discovery over this text. "Email" sits in
+  the booking-and-contact complaints and `Corsa`, `Terra` and `Ridge` are what customers
+  call the cars they are complaining about, so the themes would have been built from text
+  with its most distinctive nouns blanked out - and would have looked perfectly healthy.
+- **Decision:**
+  - `pii.NOT_PROMOTABLE` extends `NOT_NAMES` with the seven, plus `Vista`, `Altura` and
+    `Kodiak` for the same reason, and `promote_names` skips any candidate in it.
+  - **The list deliberately does not touch the spaCy pass.** A customer could be named
+    Ridge, and spaCy redacts a token when the sentence makes it a person ("Ridge said he
+    would call"). Only the blanket, case-insensitive pass is blocked. Under-redaction is
+    the failure that matters, so the fix is scoped to the pass that cannot read context.
+  - Every case-insensitive whole-word pattern now carries `(?<![\w\[])` / `(?![\w\]])`, so
+    no pass can match inside an existing token. This is the general guard; the list above
+    is the specific one, and the guard is what would have contained the damage if the list
+    had been wrong.
+- **Gate G3 exception, authorised by the owner**, as D-051 was: `src/pii.py` is a Wave 1
+  module and this re-runs redaction over all 5,362 comments.
+- **The fix took three parts, each found by checking the result of the one before:**
+  1. `pii.NOT_PROMOTABLE` — the corpus pass skips any candidate in it. Blocking "email"
+     alone restored all 58 `[EMAIL]` tokens and the word in all 85 comments.
+  2. **A token guard on every case-insensitive whole-word pattern** —
+     `(?<![\w\[])` / `(?![\w\]])`, so no pass can match inside an existing `[TOKEN]`. This
+     is the general defence, and it is what would have contained the damage if the list in
+     part 1 had been wrong.
+  3. **A per-token non-name check in the spaCy pass.** Listing the models was not enough:
+     spaCy tags **"Altura Corsa"** — brand plus model — as a single PERSON in 31 comments,
+     and the existing check only compared the whole surface string against `NOT_NAMES`. An
+     entity whose every token is a known non-name is now skipped. Fragments of one
+     character are ignored, so `Altura Corsa's` passes too; an initial still leaves a
+     surname, so "J. Smith" is unaffected.
+- **Verified, after four re-ingestions:**
+
+  | | Before | After |
+  |---|---:|---:|
+  | `[EMAIL]` tokens in the dataset | 0 of 58 applied | **58 of 58** |
+  | `[[NAME]]` (a token inside a token) | 58 | **0** |
+  | `[NAME]` tokens | 559 | 162 |
+  | Comments containing "email" | 0 of 85 | **85 of 85** |
+  | Comments containing "corsa" / "terra" | 0 of 73 / 0 of 57 | **73 of 73 / 57 of 57** |
+  | Comments containing "ridge" | 0 of 41 | **40 of 41** |
+  | Residual probable missed names | 0 | **0** |
+
+  **The one remaining "ridge" is not redaction.** `Tamworth.xlsx` row 135 — "THANK YOU FOR
+  EXPLAINING MY SERVICE SO CLEARLY. I UNDERSTAND NOW WHY THE WORK WAS NEEDED ON MY RIDGE."
+  — has no rating and is one of the 10 rows dropped under D-031. The word is intact in the
+  source and absent from the dataset because the row is.
+- **Nothing else moved.** 7,159 rows, 24 dealerships, 5,362 comments before and after;
+  7,150 rows and Service 4,903 / Sales 1,541 / Parts 706 after validation; `[STAFF]` 739,
+  `[PHONE]` 156 and `[REGO]` 477 unchanged; residual leak still 0. Only comment text
+  changed, which is the whole point.
+- **Tests:** 20 new cases in `tests/test_pii.py` (69 → 89), including one per blocked word,
+  one asserting a real name is still promoted, one per token asserting it cannot be
+  rewritten by a name matching its own text, the "Altura Corsa" entity, the possessive, and
+  a real two-word name redacted beside a model.
+
 ## Outputs
 
 ### D-007 · Two reports · Decided · 29 Oct 2026

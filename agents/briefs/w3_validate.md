@@ -16,6 +16,31 @@ What is new in scope and was not in PLAN.md: filling the `department` column fro
 `mappings/departments.yaml` (step 2), because Wave 2 deliberately left it null (D-035),
 and deciding the Springwood duplicates (step 5, closing D-019).
 
+## Scope changes the owner directed after this brief was approved
+
+Recorded for the same reason Wave 2's brief carries this section: PLAN.md section 9's stop
+rule says an agent going outside its brief should be rejected and re-briefed, not patched.
+A reviewer comparing the files changed against "Allowed to touch" above would be right to
+reject this work without it. Every row was asked for by the owner in conversation except
+where the last column says otherwise.
+
+| File touched | Not in the original brief because | Who asked, and when |
+|---|---|---|
+| `src/pii.py`, `tests/test_pii.py` | the brief says **not allowed** — gate G3, propose don't edit | Owner, 29 Oct: "rows 35 & 40 in the IPS_feedback_log does contain names. pls make sure they are redacted before it is passed on to Wave 4" (D-051), then "Fix it now" for the over-redaction defect (D-054) |
+| `data/interim/consolidated.parquet`, `reports/reconciliation.md` | the brief says **not allowed** — `data/interim/` belongs to Wave 2 | Consequence of the two decisions above: a redaction fix is only real once the dataset is rebuilt. Re-ingested three times; row counts identical every time (7,159 / 24 dealers / 5,362 comments), comment text only |
+| `DECISIONS.md` (D-047 – D-054) | the brief says **not allowed** | Required by the control loop: the owner answered Q1–Q4 and three later questions, and each answer needed recording |
+| `AI_LOG.md` (AI-008, summary rows 21–24) | not listed either way | Control loop step 6 requires an entry per agent run; the verdict line is left for the owner |
+| `config.yaml` | not listed | Owner, 29 Oct: "pls update the thresholds evidence since we have it now" (D-052) |
+| `README.md` | not listed; it is deliverable #3 | Owner, 29 Oct: "Draft the README" |
+| `scripts/check_nlp_env.py` | not listed | Owner, 29 Oct: "What do I need to do to test that the NLP models are downloaded and ready to go for Wave 4". `make nlp-check` had pointed at this file for a day without it existing |
+| `scripts/date_edge_cases.py`, `reports/date_edge_cases.md` | not listed | Owner, 29 Oct: "Have I seen everything that I need to see in the pilot?" They had not — the date list showed resolved dates with no source values, so it was 16 assertions rather than 16 reviewable rows |
+| `reports/nlp_pass_mark_evidence.md` | not listed | Agent's own addition, when the owner deferred `nlp_pass_mark` to Wave 4 (Q4). The baseline arithmetic would otherwise have to be re-derived in Wave 4 |
+| `agents/briefs/w3_validate.md` | the brief editing itself | Approval line (G2) and this section |
+
+Everything else stayed inside the brief: `src/validate.py`, `tests/test_validate.py`,
+`reports/data_quality.md`, `mappings/departments.yaml`, `agents/reports/w3_validate.md`.
+`src/ingest.py`, `src/schema.py` and `mappings/columns.yaml` were not edited at all.
+
 Goal:            A validated clean dataset with `department` filled and every data-quality
                  rule applied, counted and reported — so Waves 4 and 5 can stop asking
                  whether the data is trustworthy and start using it.

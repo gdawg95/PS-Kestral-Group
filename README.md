@@ -142,25 +142,42 @@ left in the final text:
 | Token | Applied | Present in the final text |
 |---|---:|---:|
 | `[STAFF]` | 739 | 739 |
-| `[NAME]` | 561 | 559 |
 | `[REGO]` | 479 | 477 |
+| `[NAME]` | 163 | 162 |
 | `[PHONE]` | 156 | 156 |
-| `[EMAIL]` | 58 | **0** |
+| `[EMAIL]` | 58 | 58 |
 | `[ADDRESS]` | 0 | 0 |
 
-**The `[EMAIL]` row is a known defect, found on 29 Oct 2026 and not yet fixed.** Fifty-eight
-email addresses were correctly redacted, and then overwritten: the corpus pass that promotes
-a name for case-insensitive redaction promoted the word **"Email"**, which then matched the
-`EMAIL` inside the token itself, turning `[EMAIL]` into `[[NAME]]`. No address escaped — the
-failure over-redacts rather than under-redacts — but the same promotion replaces the ordinary
-word "email" wherever it appears, along with three vehicle model names (`Corsa`, `Terra`,
-`Ridge`), `Easter` and `Madam`: **268 comments, 5% of the corpus.** That matters for Wave 4
-rather than for privacy, because theme discovery runs on this text and "email" and the model
-names are plausibly part of real themes. `promote_names` does not consult the `NOT_NAMES`
-list that the spaCy pass uses, which is the single-line cause.
+The `[ADDRESS]` zero is not a gap: the pattern was evaluated over every comment and the
+source contains no street addresses. The small differences for `[REGO]` and `[NAME]` are
+tokens nested inside a wider redaction.
 
-The `[ADDRESS]` zero is not a defect: the pattern was evaluated over every comment and the
-source contains no street addresses.
+**This table used to read `[EMAIL]` 58 applied, 0 present, and finding out why was the most
+useful hour of the project.** Three faults compounded. The corpus pass that promotes a name
+for case-insensitive redaction judges a candidate only on how often spaCy tagged it and how
+often it is capitalised — true of the word "Email" and of a vehicle model as surely as of
+"Dave" — so it promoted seven tokens that are not people. Because the brackets of `[EMAIL]`
+are not word characters, `EMAIL` is a whole word *inside the token*, so promoting "Email"
+rewrote all 58 redacted addresses into `[[NAME]]`: one pass silently destroying another's
+output. And listing the models was not enough on its own, because spaCy tags "Altura Corsa"
+as a single PERSON and the non-name check only compared the whole surface string.
+
+All three are fixed (D-054), with 20 new tests. Nothing had leaked — every fault
+over-redacted — but 268 comments, 5% of the corpus, had an ordinary word replaced by
+`[NAME]`, and Wave 4 runs theme discovery over this text: "email" sits in the
+booking-and-contact complaints and `Corsa`, `Terra` and `Ridge` are what customers call the
+cars they are complaining about. The themes would have been built from text with its most
+distinctive nouns blanked out, and would have looked perfectly healthy.
+
+**Residual risk, measured rather than asserted.** A raw count of first names against the
+redacted text matches 99 comments, which reads as a 1.8% leak. All 99 are ordinary English
+words that are also somebody's name. Re-testing each with the same capitalisation rule used
+to promote names leaves **0 probable real misses**. Getting there also took a fix: 55
+comments open with the customer's own name followed by a dash, and where that first name
+appeared in no other file's name column, a deliberate false-positive guard let it through.
+Three names survived that way, one of which no one had spotted. `pii.NAME_PREFIX` now
+catches the shape, with precision 55/55 on this corpus (D-051). Nothing was fixed by listing
+the names, which would have put real names in git history.
 
 Redaction combines four passes: exact values from the row's own name and registration
 cells, regex patterns for contacts and plates, a staff roster built in memory from each
@@ -349,16 +366,16 @@ count that refused to balance would have surfaced it.
 
 | # | Item | Blocked by |
 |---|---|---|
-| 1 | Fix the over-redaction defect in section 6 — `promote_names` must consult `NOT_NAMES` | the owner (gate G3); needed before Wave 4 |
-| 2 | `nlp_pass_mark` and the blind hand-labelled sample | the owner (gate G7), Wave 4 |
-| 3 | Sentiment, theme discovery and theme assignment | Wave 4 |
+| 1 | `nlp_pass_mark` and the blind hand-labelled sample | the owner (gate G7), Wave 4 |
+| 2 | Sentiment, theme discovery and theme assignment | Wave 4 |
+| 3 | **Industry benchmarks for the value model** — automotive service retention, customer lifetime value, cost of a lost customer, with citations. PLAN.md section 8 listed this as a Wave 1 research task in its own conversation; it was never done, and D-025 is blocked on it | nobody has started it; Wave 5 needs it |
 | 4 | Drivers, trend, coverage and value analysis | Wave 5 |
 | 5 | Charts, and the business report | Wave 5 |
 | 6 | `reports/run_manifest.json` — input hashes, versions, model tags, row counts per stage | Wave 5 |
 | 7 | Independent verifier: clean clone, `make all`, every reported number checked against code | Wave 5 |
 | 8 | `gitleaks` scan of full history before the repository goes public | before publication |
 
-`make all` cannot succeed until items 3 and 4 exist, which matters because that is the
+`make all` cannot succeed until items 2, 4 and 5 exist, which matters because that is the
 command the independent verifier runs.
 
 ## 13. Repository

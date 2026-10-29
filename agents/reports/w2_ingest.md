@@ -210,6 +210,27 @@ actually left and why, for the owner to approve under G2.
   `make`.
 - **`README.md` is still two lines**, and it is deliverable #3 (D-007).
 
+## Status of this report's unresolved list, as at the end of Wave 3
+
+Added 29 Oct 2026 so a reviewer reading this report does not act on items that have since
+been closed. The list above is left as it was written.
+
+| Item left unresolved by Wave 2 | Where it stands now |
+|---|---|
+| D-019 answered, not closed — the 9 Springwood pairs | **Closed.** The owner chose to drop the second row of each pair (D-047). Applied in Wave 3: 7,159 → 7,150 rows |
+| `mappings/departments.yaml` is a draft | **Approved** at Checkpoint 3 (D-050), with the two substantive calls tested rather than assumed: D-048 Workshop → Service, D-049 one Sales department. The file now carries `status: approved` and `load_departments()` refuses a draft |
+| Two comments may still carry a name — `IPS_feedback_log.xlsx` rows 35 and 40 | **Closed, and it was three names not two.** The owner confirmed both; generalising the pattern found a third (`Yianni Pappas`) the report had missed. `pii.NAME_PREFIX` redacts the shape (D-051). The leak check now reports 0 probable misses, down from 2 |
+| `config.yaml` holds two `TBD` thresholds | `trend_evidence` **set** on its evidence (D-052: 20 responses, 0.5 stars, thin sites quarterly) and `dealer_match_min_confidence` **retired** rather than set. `nlp_pass_mark` is still open — the owner deferred it to Wave 4, with the baseline written up in `reports/nlp_pass_mark_evidence.md` |
+| `make` unavailable on the laptop; `make all` only exercised as `scripts/run.ps1` | **Still open.** Every target has been run directly or through `run.ps1`, never as `make`, and `make all` cannot succeed anyway until `classify`, `analyse` and `figures` exist |
+| `README.md` is still two lines, and it is deliverable #3 | **Drafted** as the technical report, 13 sections, every figure regenerated from code |
+
+**Found after this report was written, in the data it produced:** the corpus name pass had
+promoted the word "Email" and three vehicle model names, so 58 correctly-redacted email
+addresses had been rewritten as `[[NAME]]` and 268 comments had an ordinary word replaced.
+It over-redacted, so nothing leaked. Fixed in D-054; see AI_LOG summary row 24. The Wave 2
+leak check could not have caught it — it looks for identifiers that *remain*, not for
+redactions that are *destroyed*.
+
 ## Done-when criteria
 
 - [x] Owner approved `mappings/columns.yaml` (Checkpoint 2)

@@ -1,6 +1,6 @@
 # The 16 dates the pipeline changed or invented
 
-**Generated:** `python scripts/date_edge_cases.py` · 2026-10-29 21:08
+**Generated:** `python scripts/date_edge_cases.py` · 2026-10-29 22:01
 
 Checkpoint 3's date review. Sixteen rows - every row whose date was corrected or imputed, not a sample. `reports/data_quality.md` lists the same rows but can only show the resolved date; the source value below is what makes them reviewable.
 

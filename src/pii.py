@@ -99,6 +99,33 @@ NAME_PREFIX = re.compile(
 NOT_NAMES = {
     "service", "sales", "parts", "workshop", "kestrel", "voltra", "veyra", "arc",
     "thanks", "cheers", "regards", "great", "excellent", "mr", "mrs", "ms",
+    # Vehicle models and forms of address. spaCy tags these as PERSON mid-sentence often
+    # enough to matter: before they were listed here, "my Corsa" became "my [NAME]" in 49
+    # of the 73 comments that mention the model, which splits a Wave 4 theme in two rather
+    # than removing it (D-054). A third party named after a car model would now survive
+    # this pass; the row's own name cells and the staff roster still catch the customer and
+    # the staff member, which is where a real name in this data comes from.
+    "corsa", "crsa", "terra", "ridge", "vista", "altura", "kodiak",
+    "madam", "easter",
+}
+
+# Words the corpus pass must never promote to a blanket, case-insensitive redaction, on top
+# of NOT_NAMES. promote_names only sees how often a token is capitalised, which is true of a
+# vehicle model and of "Email" at the start of a sentence as surely as it is of "Dave", and
+# a promoted token is then replaced wherever it appears in any case. Before this list the
+# pass promoted seven of these, blanking an ordinary word in 268 comments - 5% of the corpus
+# - and, because "Email" is a whole word inside the token `[EMAIL]`, destroying all 58
+# redacted email addresses (D-054).
+#
+# Counts are the comments each appears in, from the 5,386 raw comments on 29 Oct 2026.
+# This list does NOT stop spaCy redacting the same token when the sentence makes it a
+# person ("Ridge said he would call"); it only stops the blanket pass. Deliberate: a
+# customer could be named Ridge, and under-redacting is the failure that matters.
+NOT_PROMOTABLE = NOT_NAMES | {
+    # "Email" needs blocking here but not in NOT_NAMES: spaCy rarely tags it mid-sentence,
+    # so the blanket pass was the only thing blanking it - in all 85 comments that mention
+    # it, and in the 58 `[EMAIL]` tokens as well.
+    "email",
 }
 
 # ---------------------------------------------------------------- helpers
@@ -118,8 +145,18 @@ def _sub(pattern: re.Pattern, token: str, text: str, counts: Counter, group: int
     return pattern.sub(repl, text)
 
 
+# A match must not sit inside an existing redaction token: the brackets of `[EMAIL]` are
+# not word characters, so a plain word boundary happily matches the EMAIL inside it and
+# rewrites one token into another. That is how 58 redacted email addresses became
+# `[[NAME]]` (D-054). Every case-insensitive whole-word pattern below carries this guard.
+NOT_INSIDE_TOKEN_BEFORE = r"(?<![\w\[])"
+NOT_INSIDE_TOKEN_AFTER = r"(?![\w\]])"
+
+
 def _whole_word(value: str) -> re.Pattern:
-    return re.compile(r"(?<!\w)" + re.escape(value) + r"(?!\w)", re.IGNORECASE)
+    return re.compile(
+        NOT_INSIDE_TOKEN_BEFORE + re.escape(value) + NOT_INSIDE_TOKEN_AFTER, re.IGNORECASE
+    )
 
 
 def _row_value_patterns(row_values: Mapping[str, Iterable] | None) -> list[tuple[re.Pattern, str]]:
@@ -155,7 +192,10 @@ def _roster_pattern(names: frozenset[str]) -> re.Pattern | None:
     usable = sorted((n.strip() for n in names if n and len(n.strip()) >= 2), key=len, reverse=True)
     if not usable:
         return None
-    return re.compile(r"(?<!\w)(?:" + "|".join(re.escape(n) for n in usable) + r")(?!\w)", re.I)
+    return re.compile(
+        NOT_INSIDE_TOKEN_BEFORE + r"(?:" + "|".join(re.escape(n) for n in usable) + r")"
+        + NOT_INSIDE_TOKEN_AFTER, re.I
+    )
 
 
 def _at_sentence_start(ent) -> bool:
@@ -183,6 +223,15 @@ def _redact_people(text: str, counts: Counter, known_names: frozenset[str] = fro
         surface = ent.text.strip()
         if (not surface or surface.startswith("[") or surface.lower() in NOT_NAMES
                 or not any(ch.isupper() for ch in surface)):
+            continue
+        # An entity made entirely of known non-names is not a person, however spaCy tagged
+        # it. "Altura Corsa" - brand plus model - is tagged PERSON in 31 comments, and the
+        # whole-surface check above cannot see that both halves are already listed (D-054).
+        # Fragments of one character are dropped so a possessive survives the check:
+        # "Altura Corsa's" splits to altura / corsa / s, and the stray "s" would otherwise
+        # make the entity look part-name. An initial ("J. Smith") still leaves "smith".
+        parts = [w for w in re.split(r"[\s'’-]+", surface.lower()) if len(w) > 1]
+        if parts and all(w in NOT_NAMES for w in parts):
             continue
         # Names don't contain digits ("HiLux SR5 4WD" was tagged PERSON).
         if any(ch.isdigit() for ch in surface):
@@ -253,7 +302,7 @@ def promote_names(texts: Iterable[str], candidates: Mapping[str, int], min_count
     texts = [t for t in texts if isinstance(t, str)]
     promoted = set()
     for name, n in candidates.items():
-        if n < min_count or len(name) < 3:
+        if n < min_count or len(name) < 3 or name.lower() in NOT_PROMOTABLE:
             continue
         occ = [m.group(0) for t in texts for m in _whole_word(name).finditer(t)]
         if occ and sum(o[:1].isupper() for o in occ) / len(occ) >= min_cap_share:

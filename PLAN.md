@@ -3,7 +3,8 @@
 **Owner:** gdawg95 (sole human contributor)
 **Repo:** https://github.com/gdawg95/PS-Kestral-Group (private until reviewers approve)
 **Code freeze:** Friday 30 Oct 2026, 3:00pm (then proofread and edit until COB)
-**Last updated:** Thursday 29 Oct 2026
+**Last updated:** Thursday 29 Oct 2026 · **Waves 1–3 complete, Wave 4 next.** Everything is
+on the `w1-wrapup` branch; nothing from Wave 2 or Wave 3 has reached `main` yet (gate G5).
 
 This is the single source of truth for the project. Every new conversation and every agent brief starts from this file and `DECISIONS.md`.
 
@@ -21,11 +22,11 @@ Turn 52 inconsistent dealership feedback spreadsheets (Oct 2025 – Sep 2026) in
 
 If time runs short, these are protected. Everything else can be cut.
 
-- [ ] One final cleaned, de-identified dataset
-- [ ] At least one trend identified (with evidence that it is real)
-- [ ] Basic NLP analysis of customer comments (sentiment + themes)
-- [ ] At least one recommendation for the business
-- [ ] Technical report for the reviewers
+- [x] One final cleaned, de-identified dataset — `data/clean/feedback.parquet`, 7,150 rows (Wave 3)
+- [ ] At least one trend identified (with evidence that it is real) — the evidence threshold is set and committed (D-052); the trend itself is Wave 5
+- [ ] Basic NLP analysis of customer comments (sentiment + themes) — Wave 4; both models verified to load and run on the laptop (`make nlp-check`)
+- [ ] At least one recommendation for the business — Wave 5
+- [x] Technical report for the reviewers — `README.md`, drafted; its Wave 4 and 5 sections are outstanding
 
 ## 3. Deliverables
 
@@ -123,7 +124,7 @@ PS-Kestral-Group/
 
 Times are targets. Each wave ends at a human checkpoint; nothing downstream starts until it is signed off.
 
-### Wave 1 — Thursday morning: setup and profiling
+### Wave 1 — Thursday morning: setup and profiling · **COMPLETE**
 | Agent | Task | Output |
 |---|---|---|
 | Scaffold | Repo structure, `pyproject.toml`, Makefile, `.gitignore`, pre-commit, nbstripout, templates | Committed skeleton |
@@ -134,7 +135,7 @@ Times are targets. Each wave ends at a human checkpoint; nothing downstream star
 
 **Checkpoint 1 (you):** test commit proves raw data cannot be staged · compare 3 profiles against their source spreadsheets by eye · PII tests cover your tricky cases.
 
-### Wave 2 — Thursday midday: mapping and joining
+### Wave 2 — Thursday midday: mapping and joining · **COMPLETE**
 | Agent | Task | Output |
 |---|---|---|
 | Mapping | Draft `columns.yaml` from the profiles | Draft mapping |
@@ -143,15 +144,25 @@ Times are targets. Each wave ends at a human checkpoint; nothing downstream star
 
 **Checkpoint 2 (you):** approve every line of `columns.yaml` *before* joiners run · read each reconciliation table · any schema change needs your approval.
 
-### Wave 3 — Thursday afternoon: cleaning
-| Agent | Task | Output |
-|---|---|---|
-| DQ rules | pandera rules (reject / fix-and-flag / flag-and-keep) + report | `src/validate.py` + DQ report |
-| Dealership matching | Fuzzy-match names to official codes | Match table with confidence scores |
-| Dates and scales | Day-first date parsing; score-scale mapping to 1–5 equivalent | Standardised columns + edge-case list |
-| Theme discovery | BERTopic on redacted comments | Candidate themes |
+### Wave 3 — Thursday afternoon: cleaning · **COMPLETE**
+What this wave was planned as, and what it turned out to be. Wave 2 settled two of the four
+agents before Wave 3 started; the rescope was approved with the brief at gate G2
+(`agents/briefs/w3_validate.md`).
 
-**Checkpoint 3 (you):** DQ waterfall makes sense · skim 5 example rows per rule · review every dealership match below the confidence threshold · look at 20 edge-case dates · name and merge themes into the final list.
+| Agent | Planned task | What happened |
+|---|---|---|
+| DQ rules | pandera rules (reject / fix-and-flag / flag-and-keep) + report | **Done.** `src/validate.py`, 13 rules, `reports/data_quality.md`. 7,159 rows in → 7,150 out |
+| Dealership matching | Fuzzy-match names to official codes | **Removed.** D-034 approved the file → dealer map by hand and no free-text dealership column survives ingestion, so there was nothing to match. `dealer_match_min_confidence` retired, not set |
+| Dates and scales | Day-first date parsing; score-scale mapping to 1–5 | **Done at ingestion** (D-020, D-030, D-040). Wave 3 produced the edge-case list only: `reports/date_edge_cases.md` |
+| Theme discovery | BERTopic on redacted comments | **Moved to Wave 4**, where the rest of the NLP lives |
+| *(new)* Department fill | not in this plan — Wave 2 deliberately left `department` null (D-035) | **Done.** `mappings/departments.yaml`, 16 spellings → Service 4,903 / Sales 1,541 / Parts 706 |
+
+**Checkpoint 3 — signed off 29 Oct 2026:** DQ waterfall read and the arithmetic closes ·
+example rows reviewed, and eight of thirteen rules fired zero times so there was nothing to
+show for those · dealership matches **n/a**, the agent was removed · all 16 edge-case dates
+approved with their source values (D-053), not 20 arbitrary ones · themes deferred with the
+agent that discovers them. Also decided here: D-047 duplicates, D-048 Workshop → Service,
+D-049 one Sales department, D-050 the mapping itself.
 
 ### Wave 4 — Thursday evening/overnight: NLP
 | Agent | Task | Output |
