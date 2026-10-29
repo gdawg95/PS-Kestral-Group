@@ -102,7 +102,8 @@ def test_allowlist_drops_everything_else(frame):
     out, _ = deidentify(frame, MAPPING, "test.csv", use_ner=False)
     assert list(out.columns) == ["source_file", "source_row", "date", "department", "rating", "comment"]
     flat = out.astype(str).to_string()
-    for leaked in ("Bronwyn", "Taylor", "Sam Lee", "XYZ999", "ABC123", "b@t.com", "Voltra", "0412"):
+    leaks = ("Bronwyn", "Taylor", "Sam Lee", "XYZ999", "ABC123", "b@t.com", "Voltra", "0412")
+    for leaked in leaks:
         assert leaked not in flat
 
 
