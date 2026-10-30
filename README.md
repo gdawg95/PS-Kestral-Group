@@ -64,13 +64,20 @@ ranges, row counts and oddities. The profiles — not the file names, and not an
 about what a dealership spreadsheet looks like — are what
 [mappings/columns.yaml](mappings/columns.yaml) was built from.
 
-What "inconsistent" meant in practice: seven different rating scales, 16 spellings of
-three department names, two files with Windows-1252 encoding, a reversed rating scale
-documented only in a note above a header, a quarter supplied as a pivot table of counts
-rather than rows, one sheet copied from another and presented as a different month, two
-dealerships inside a single file, dates in day-first and month-first formats in different
-files, ten dates written as words, and test rows left in a production log. All of it is
-catalogued in [reports/formatting_changes.md](reports/formatting_changes.md), which became
+Inconsistentcies found in data: 
+* three different reporting cycles (ie. monthly, quarterly, biannually)
+* seven different rating scales (1 - 5 scale, 1 - 10 scale, text-based 1 - 3 scale, stars, etc.)  
+* 16 spellings of three department names
+* two files with Windows-1252 encoding
+* one reversed rating scale (1 = most satisfied, 5 = least satisfied), documented only in a note above a header
+* financial quarter supplied as a pivot table of counts rather than rows
+* one sheet copied from another and presented as a different month
+* two dealerships inside a single file
+* dates in day-first and month-first formats in different files
+* dates written as words
+* test rows left in a production log
+
+All of it is catalogued in [reports/formatting_changes.md](reports/formatting_changes.md), which became
 a deliverable in its own right (D-045).
 
 ## 4. Pipeline
@@ -87,19 +94,18 @@ a deliverable in its own right (D-045).
 | Figures | [src/figures.py](src/figures.py) | `reports/figures/*.png` | 5 |
 
 `src/ingest.py` has no per-file branches. Every quirk in section 3 is expressed in
-`mappings/columns.yaml`, which the owner approved line by line before any joining ran
-(Checkpoint 2, gate G3); a new quirk is a mapping change, not a code change. The canonical
+`mappings/columns.yaml`, which was approved line by line before any joining ran. The
 schema lives in [src/schema.py](src/schema.py) as a pydantic model and is the contract
 between waves.
 
-### The 15 columns
+### The final 15 columns
 
 `feedback_id`, `dealer_code`, `feedback_date`, `department_raw`, `department`,
 `rating_raw`, `rating_scale`, `rating_1to5`, `comment`, `source_file`, `source_sheet`,
 `source_row`, `from_summary`, `date_corrected`, `date_approx`.
 
-Four content columns survive from the source files — date, department, rating, comment
-(D-003). Everything else is added by the pipeline: a new id, the dealer code, lineage back
+Four content columns survive from the source files — *date*, *department*, *rating*, *comment*.
+Everything else is added by the pipeline: a new id, the dealership code, lineage back
 to the originating spreadsheet row, and flags recording what ingestion had to fix. Both
 raw and normalised forms of the rating and department are kept, so every conversion can be
 audited against its source value.
@@ -121,7 +127,7 @@ Drops: 16 summaries and notes, 14 blank rows, 10 rows with a comment but no rati
 approved mapping exactly — the budget was agreed before the ingestion ran, so the
 arithmetic closing is a prediction met, not a figure reported after the fact.
 
-Four join proofs run on every ingestion (D-002):
+Four join proofs run on every ingestion:
 
 | Proof | Result |
 |---|---|
@@ -135,7 +141,7 @@ Four join proofs run on every ingestion (D-002):
 No customer identifier reaches the dataset. The pipeline uses an allowlist: only columns
 named in the schema survive ingestion, so an unexpected column cannot leak. Free-text
 comments are redacted to six tokens — `[NAME]`, `[STAFF]`, `[REGO]`, `[PHONE]`, `[EMAIL]`,
-`[ADDRESS]` (D-026) — using four passes: exact values from the row's own identifier cells,
+`[ADDRESS]` — using four passes: exact values from the row's own identifier cells,
 regex patterns, a staff roster built in memory, and spaCy NER with a corpus-wide promotion
 rule. Name lists are built in memory and never written to disk (D-041).
 
@@ -179,27 +185,21 @@ the site with the pivot-expanded rows, and the site with the duplicates):
 | Written | **951** |
 
 The nine are double entries at Springwood: pairs sharing dealership, date, department,
-rating and comment text, **every pair on consecutive spreadsheet rows**. Adjacency in nine
-cases out of nine is what distinguishes double entry from coincidence — of the groups that
-match on everything but have no comment, only 60% are adjacent, and those are left alone.
-The owner decided to keep the first row of each pair (D-047). The effect is small and was
-measured before the decision: Springwood's mean moves 4.0032 → 4.0100 and its negative rate
-17.10% → 16.94%, and it ranks third of 24 either way. The reason to drop them is Wave 4,
-not Wave 5: one of the pairs is a 463-character complaint, and keeping both copies would
-double-weight it in every theme count.
+rating and comment text, **every pair on consecutive spreadsheet rows**. The first row of each pair was kept (D-047). 
+The effect is small and was measured before the decision: Springwood's mean moves 4.0032 → 4.0100 and its negative rate
+17.10% → 16.94%, and it ranks third of 24 either way.
 
-Sixteen rows had their date changed or invented, and all sixteen are listed with their
+Sixteen rows had their date changed or imputed, and all sixteen are listed with their
 source value and the dated rows on either side in
-[reports/date_edge_cases.md](reports/date_edge_cases.md) — six year typos at the closed
-site, ten dates written as words at Ipswich, imputed from neighbouring rows (D-040).
+[reports/date_edge_cases.md](reports/date_edge_cases.md). Six year typos at the closed
+site and ten dates written as words (at Ipswich), imputed from neighbouring rows (D-040).
 
 `department` is filled from [mappings/departments.yaml](mappings/departments.yaml), which
 maps all 16 spellings to Service, Sales and Parts — 4,909 / 1,544 / 706 over the
 consolidated 7,159 rows, and 4,903 / 1,541 / 706 over the 7,150 that survive validation,
-with no nulls. Two calls in
-that mapping were tested rather than assumed:
+with no nulls. Two calls in that mapping were tested rather than assumed:
 
-- **"Workshop" is Service.** It looked like it might not be: 311 rows with a mean of 3.86
+- **"Workshop" = Service.** It looked like it might not be: 311 rows with a mean of 3.86
   against plain "Service" at 3.51. But the 10 sites using "Workshop" use all six service
   spellings in near-equal sixths, the gap shrinks to +0.231 when compared within those
   sites, and across all six spellings one-way ANOVA gives **F=1.55, p=0.170**. Workshop is
@@ -207,7 +207,7 @@ that mapping were tested rather than assumed:
   the same rate as Service comments (37.4% vs 34.1%) and sales vocabulary at 1.7% against
   Sales' 12.5% (D-048).
 - **One Sales department, no new-versus-used cut.** 326 rows at 11 sites carry the
-  distinction; new 4.457 vs used 4.311 is not significant (p=0.221), the direction reverses
+  distinction; new 4.457 vs used 4.311 is not significant (p=0.221). The direction reverses
   between sites, and the 11 sites that record it have a significantly higher Sales mean than
   the 13 that do not (4.354 vs 4.192, p=0.006). A published cut would report that selection
   effect (D-049).
@@ -224,10 +224,6 @@ Wave 4 models load and run on this machine, and projects the runtime:
 | `bertopic` 0.17.4 | imports |
 | `en_core_web_sm` | loads (already used in Wave 2) |
 
-So the deterministic NLP core is a ten-minute job, not an overnight one. Only the optional
-local LLM step needs an overnight run, at 12.83 tokens/s on CPU (D-012), and it is item 5
-on the cut list.
-
 The Hugging Face models are not reachable from the cloud workspace where profiling ran
 (HTTP 403), which is why the laptop is the reference environment for `uv lock`, `uv sync`
 and every model (D-013).
@@ -241,9 +237,9 @@ alone scored 0.460 — so the pre-committed fallback was applied: the rating is 
 signal everywhere, and sentiment appears only as a labelled method comparison (D-065).
 
 Theme discovery used KMeans (k=12) over UMAP-reduced MiniLM embeddings after
-BERTopic/HDBSCAN failed to cluster this corpus (D-061). The owner named eight themes from
+BERTopic/HDBSCAN failed to cluster this corpus (D-061). Eight themes were established from
 the clusters ([mappings/themes.yaml](mappings/themes.yaml)). Theme assignment used cosine
-similarity to short probe phrases per theme. Agreement with the owner's blind labels was
+similarity to short probe phrases per theme. NLP agreement with manual blind labels was
 **44.1%**, and no confidence floor improved it (D-066), so theme negative rates are
 reportable with the 44.1% stated; theme rankings are not.
 
@@ -255,7 +251,7 @@ Full methodology, evaluation matrices and the pass-mark analysis are in
 
 ## 10. Data analysis
 
-**The group's mean rating fell from 3.842 (Oct 2025 – Mar 2026) to 3.671 (Apr – Sep 2026),
+**Across all sites the mean rating fell from 3.842 (Oct 2025 – Mar 2026) to 3.671 (Apr – Sep 2026),
 and the negative rate rose from 19.9% to 24.9%** (Welch p = 4.9e-07). The decline is
 concentrated in Service (24.0% → 30.2% negative, p = 1.8e-06).
 
@@ -280,23 +276,28 @@ Coverage is **2.57%** of transactions (7,150 of 278,697), and response is not in
 satisfaction — commented rows average 3.54 stars versus 4.40 for commentless — so no rate
 generalises beyond responders.
 
-Nine figures answer the three business questions; all were approved under gate G9 on
-30 October 2026. Full tables, statistical tests, per-site results and figure descriptions
+Nine figures answer the three business questions. 
+Full tables, statistical tests, per-site results and figure descriptions
 are in [ANALYSIS.md](ANALYSIS.md).
 
 ## 11. How the work was controlled
 
 The project ran as an orchestrator plus single-purpose agents, each with an approved brief
 in [agents/briefs/](agents/briefs) and a report in [agents/reports/](agents/reports). Seven
-hard gates always block: pilot before scaling, approve each plan, no schema or mapping
-change without approval, confirm redaction before anything reaches a model, review before
-every merge, the owner sets every threshold, and approve every chart. The agent that
-produces something never grades it.
+hard gates always block: 
+* pilot before scaling
+* approve each plan
+* no schema or mapping change without approval
+* confirm redaction before anything reaches a model
+* review before every merge
+* human sets every threshold
+* approve every chart.
+* The agent that produces something never grades itself
 
-Three things in this repository exist because of that structure rather than in spite of it:
+Three things in this repository exist because of that structure:
 
 - **`mappings/columns.yaml` was approved line by line before any joining ran.** Eight
-  questions went to the owner first; their answers are D-036 to D-045.
+  questions went to human first; answers are D-036 to D-045.
 - **Pilots caught what tests could not.** The ingestion ran on five awkward dealerships and
   the owner checked the result against the spreadsheets before the other 19 ran (D-046).
   They confirmed from the source workbook that Geelong's 2025 scale really is reversed —
@@ -319,7 +320,6 @@ Eleven worth naming:
 | A profiler mistook a text-date data row for a second header, reporting 142 rows instead of 143 and a false format change | The owner's spot-check against the spreadsheet |
 | 307 comments were written as `""` instead of null, which is truthy to every `notna()` downstream and invented five duplicate groups | Investigating why the duplicate check reported groups at sites other than Springwood |
 | The leak check's raw name counter reported 100 comments, which would have overstated the residual PII risk by a factor of 50 | Re-testing each match with the capitalisation rule the redactor itself uses |
-
 | A proposed `unassigned` similarity floor at the 4.7th percentile, which reproduced the owner's own "none of these" rate exactly and would have read as principled | The AI tested it against the owner's blind labels before publishing it: it catches **2 of their 7** rejections (D-066) |
 | The 0.5-star trend threshold was applied to a change already rounded to two decimals, so a 0.496-star move cleared a 0.5-star rule. The count came out at 34 flags across 17 sites, and the first draft of the write-up then explained the gap against the committed 33/16 with the wrong cause | Reconciling the new count against `reports/trend_evidence.md` instead of accepting it, then recomputing both ways independently. The threshold now tests the unrounded value and the counts match the committed file exactly (section 10) |
 | **The national trend was published before it was split by state.** The group's −0.171-star fall is real, but it is an average over NSW (−0.330, p = 7.9e-08), VIC (−0.166) and QLD (−0.015, p = 0.80 — no change). The first draft of both reports recommended acting on a group figure that does not describe two of the three states | The owner asked for the trend grouped by state. The analysis gained section 7.3 and the recommendation was restructured around it |
@@ -355,12 +355,12 @@ how to display a number.
 - **Sentiment missed its pass mark and is not used for any headline.** Cohen's κ 0.403
   against the 0.60 committed in D-055, and the customer's star rating beat it at 0.460 on
   the same labels. The fallback named in advance was applied: the rating is the primary
-  signal everywhere, and sentiment appears only as a labelled method comparison (section 9).
+  signal across all sites, and sentiment appears only as a labelled method comparison (section 9).
 - **Theme assignment agrees with a human 44.1% of the time**, with no confidence floor
   because no floor separated the comments the owner rejected from the ones they kept (D-066).
   Theme negative rates are reportable with that figure attached; theme rankings are not, and
   no conclusion in either report depends on one.
-- **Sarcasm is a measured weakness, not a suspected one.** 812 of 5,353 comments (15.2%)
+- **Sarcasm is a measured weakness** 812 of 5,353 comments (15.2%)
   carry Australian slang markers, and all eight of the pilot's polarity-inverted cases were
   irony or idiom (D-063). The local LLM's 45.5% sarcasm rate over its 857-comment scope is
   unvalidated model output and is quoted nowhere as a measurement.
