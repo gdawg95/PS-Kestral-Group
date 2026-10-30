@@ -13,7 +13,7 @@ A record of every material use of AI in this project: what was asked, what it pr
 
 ## Summary of AI errors caught
 
-Fill this in as you go. It becomes the "where AI got it wrong" section of the technical report.
+Fill this in as project progressed. It becomes the "where AI got it wrong" section of the technical report.
 
 | # | Entry | What the AI got wrong | How it was caught | Fix |
 |---|---|---|---|---|
@@ -79,7 +79,7 @@ Fill this in as you go. It becomes the "where AI got it wrong" section of the te
 - **Output:** <files / commit>
 - **Checks performed:** <what you looked at, sample sizes, reconciliations>
 - **Issues found:**
-- **Verdict:** Accepted / Corrected / Rejected — <why>
+- **Verdict:**
 - **Verified by:** <owner, date>
 ```
 
@@ -278,8 +278,8 @@ Verified by: S Gyaw, 29/10/2026
 - **Owner decisions arising:** D-055 – D-063. Gate G2 cleared for `w4_classifier`; gate G7 cleared with D-055. Still needed: the `unassigned` similarity floor (D-056), the LLM scope (D-024), approval of `agents/briefs/w4_llm.md`, the 150 blind labels, and Checkpoint 4's confirmation that only redacted text reached the models.
 - **Not done / not verified:** **nothing in Wave 4 is evaluated** — every figure here compares the model against the customer's star rating, which is not ground truth, and D-017 forbids this agent grading itself. The `unassigned` floor is unset, so no theme count is final. The LLM full run has not happened. `reports/run_manifest.json` still does not exist (PLAN.md §6). `make all` still cannot succeed: `analyse` and `figures` are unwritten. Wave 5 is untouched, and `reports/benchmarks.md` — on which its value model depends — is unreviewed, with its own agent asking the owner to spot-check five load-bearing figures. `gitleaks` has not been run over the history.
 
-Verdict: <owner to complete>
-Verified by: <owner, date>
+Verdict: Use of NLP for sentiment analysis & them discovery. Local LLM model was not robust enough to capture Australian slang and colloquilisms within customer comments. HDBSCAN was the default clustering method used, but was unable to partition sentiments properly. K-Means was suggest & used instead.
+Verified by: S Gyaw, 30/10/2026
 
 ### AI-010 · Wave 3 deliverable · Reviewer export of the clean dataset · Claude Code (desktop app, laptop repo) · 30 Oct 2026
 - **Tool / model:** Claude Opus 5, in `C:\PS-Kestral-Group` with the project virtual environment (D-013 revision 2). Branch `w1-wrapup`.
@@ -300,8 +300,8 @@ Verified by: <owner, date>
 - **Owner decisions arising:** D-064. No gate is cleared by this entry; G5 (owner review before merge) applies to the commit as usual.
 - **Not done / not verified:** **`gitleaks` has still not been run over the history** (D-015's pre-public step), and it matters more now that feedback data is committed. The repository is private, which is the basis on which the export is safe to commit — **if it is ever made public this data goes public with it, and no later commit can undo that.** `data/clean/feedback_classified.parquet` is deliberately **not** exported: its sentiment and theme columns have not been measured against the owner's labelled sample (D-055), so no gate has cleared those numbers. The export is the Wave 3 dataset, not the Wave 4 one.
 
-Verdict: <owner to complete>
-Verified by: <owner, date>
+Verdict: Preparation for repo to be made public, therefore data needs to be properly de-identified and results need to be reproducable.
+Verified by: S Gyaw, 30/10/2026
 
 ### AI-011 · Wave 4 close · The labels, the failed pass mark, and the retired floor · Claude Code (desktop app, laptop repo) · 30 Oct 2026
 - **Tool / model:** Claude Opus 5, in `C:\PS-Kestral-Group` with the project virtual environment (D-013 revision 2). Branch `w1-wrapup`.
@@ -325,8 +325,8 @@ Verified by: <owner, date>
 - **Owner decisions arising:** D-024 (scope B), D-065, D-066 (recommended, owner to confirm). Gate G2 cleared for `w4_llm`. Outstanding: gate G4's confirmation that only redacted text was sent, ~20 failure cases to read (Checkpoint 4), confirmation of D-066, and approval of `agents/briefs/w5_analysis.md`.
 - **Not done / not verified:** `tests/test_llm_review.py` was in the brief's outputs and does not exist — the freeze arrived first. **Wave 5 has no code at all**: no `analyse.py`, no `figures.py`, no `reports/business_report.md`, and `reports/run_manifest.json` still does not exist. Two §2 non-negotiables — a trend with evidence, and a recommendation — are therefore unmet, which is the single most important thing in this entry. `reports/benchmarks.md` is unreviewed and D-025 unset, so the value model cannot start. The LLM's 45.5% sarcasm rate is an unvalidated model output and must not be quoted as a measurement. `src/export.py` and D-064 were produced by a different session in this same checkout and have not been reviewed by this one; they widen the pre-commit data guard, which is worth the owner's eyes before freeze. `gitleaks` has not been run over the history.
 
-Verdict: <owner to complete>
-Verified by: <owner, date>
+Verdict: Manual labeling of sentiments to cross reference LLM and NLP results. This would be the basis for customer feedback analysis.
+Verified by: S Gyaw, 30/10/2026
 
 ### AI-012 · Pre-public release · Minimising the published dataset and auditing the history · Claude Code (desktop app, laptop repo) · 30 Oct 2026
 - **Tool / model:** Claude Opus 5, in `C:\PS-Kestral-Group` with the project virtual environment (D-013 revision 2). Branch `w1-wrapup`.
@@ -347,8 +347,8 @@ Verified by: <owner, date>
 - **Owner decisions arising:** D-067. **The repository must stay private until `PUBLIC_RELEASE.md` item 1 is closed**, which needs the owner's choice between rewriting in place and publishing to a fresh repository.
 - **Not done / not verified:** `gitleaks` still unrun. Whether the four `archive/*` tags and the `w5-research` branch should be published at all is undecided; they scan clean but hold superseded content and old verdict placeholders. The sentiment and theme columns remain unexported, now also because D-065 records that the model missed its pass mark.
 
-Verdict: <owner to complete>
-Verified by: <owner, date>
+Verdict: Pre-publication checks and sanity validation.
+Verified by: S Gyaw, 30/10/2026
 
 ### AI-013 · Wave 5 · Analysis, charts and the business report · Claude Code (desktop app, laptop repo) · 30 Oct 2026
 - **Tool / model:** Claude Opus 5, in `C:\PS-Kestral-Group` with the project virtual environment (D-013 revision 2). Branch `w1-wrapup`.
@@ -368,8 +368,8 @@ Verified by: <owner, date>
 - **Owner decisions arising:** three that should be recorded in DECISIONS.md — the fixed half-year boundary, the choice to publish the group trend rather than site-level, and the decision not to extrapolate the negative rate onto non-responders. Also: gate G9 cleared, Checkpoint 5 part 1 closed.
 - **Not done / not verified:** the independent verifier (D-017) did not run before the code freeze. The business report's recommendations were still in the AI's voice (marked DRAFT). `DECISIONS.md` has no Wave 5 entries.
 
-Verdict: <owner to complete>
-Verified by: <owner, date>
+Verdict: Finalisation of analytical findings and reports. 
+Verified by: S Gyaw, 30/10/2026
 
 ### AI-014 · Wave 5 · Independent verification and acting on its findings · Claude Code (desktop app, laptop repo) · 30 Oct 2026
 - **Tool / model:** Claude Opus 5 (a fresh session, not the one that wrote the analysis), in `C:\PS-Kestral-Group` with the project virtual environment (D-013 revision 2). Branch `w1-wrapup`.
@@ -390,5 +390,5 @@ Verified by: <owner, date>
 - **Owner decisions arising:** Checkpoint 5 fully closed; history rewrite approved (Option A, force-push).
 - **Not done / not verified:** `gitleaks` still unrun. `test_llm_review.py` still absent.
 
-Verdict: <owner to complete>
-Verified by: <owner, date>
+Verdict: Verification and checks of all previous agentic work. Human sign-off on all checkpoints.
+Verified by: S Gyaw, 30/10/2026
