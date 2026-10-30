@@ -1,6 +1,7 @@
 # DECISIONS — Kestrel Motor Group: Data & AI Challenge
 
 Each decision records what was decided, the options considered, and why. Status is **Decided**, **Provisional** (to confirm after data is seen), or **Deferred**.
+PLAN.md was made prior to project start, so any deviations, pain points, or pivots from the original plan are documented here.
 
 Format: `D-NNN · Title · Status · Date`
 
