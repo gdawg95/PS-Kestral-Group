@@ -501,6 +501,29 @@ Three alternative explanations were tested and none holds: the department mix is
 fall from −0.171 to −0.169** (D-005). The decline is concentrated in **Service: 24.0% → 30.2%
 negative, p = 1.8e-06**, against Sales +4.5 points and Parts unchanged.
 
+**And the group figure is an average over three states that did different things** (section
+7.3 of the analysis). Splitting it was the single highest-value thing done to this result:
+
+| | Rating change | Negative rate | Welch p |
+|---|---:|---:|---:|
+| **NSW** (7 sites) | **−0.330** | 18.1% → **26.4%** | **7.9e-08** |
+| VIC (9 sites) | −0.166 | 20.5% → 25.1% | 0.0028 |
+| **QLD** (8 sites) | **−0.015** | 21.0% → 23.3% | **0.80 — no change** |
+
+Reporting only the national figure would have told Queensland's eight sites to fix a problem
+they do not have and understated New South Wales' by more than half. Inside NSW the move is
+**+10.3 points in Service** (p = 3.1e-07) and +8.5 in Sales, while NSW Parts improved.
+
+**Per-site testing, with the multiple-comparison problem handled rather than ignored.**
+Testing 23 sites at p < 0.05 produces roughly one false positive by construction, so a Holm
+step-down correction is applied across the whole family of tests. **Three sites survive it —
+Parramatta (−0.75), Dandenong (−0.72) and Liverpool (−0.58) — and every one is a fall. No
+site improved significantly.** That asymmetry is itself evidence; 23 noisy tests would not
+produce three one-sided results. Uncorrected, five sites clear p < 0.05, and the corrected
+table is what the report publishes. This is the full extent of per-site testing in the
+project: cut-list item 7 makes tests beyond the one trend check cuttable, and the one kept is
+the one the recommendation needs — *which* sites, not *whether* something changed.
+
 **Reconciliation against the committed evidence file.**
 [reports/trend_evidence.md](reports/trend_evidence.md) predicted 33 of **257** pairs at 16 of
 24 sites. The flag count and the site count match exactly; the pair count differs by one
@@ -529,10 +552,33 @@ measurement.
 
 ### Figures and gate G9
 
-`src/figures.py` writes six PNGs and **neither report embeds any of them**, because gate G9
-makes every chart the owner's to approve first. Both reports carry a figure index naming where
-each belongs. The theme chart is alphabetical and prints the 44.1% agreement on its own face,
-so the caveat cannot be separated from the picture when someone pastes it into a slide.
+`src/figures.py` writes eight PNGs, named for the business question each answers, and
+**neither report embeds any of them** because gate G9 makes every chart the owner's to
+approve first. Both reports carry a figure index naming where each belongs.
+
+| Figure | Answers |
+|---|---|
+| `q1_drivers_by_department.png` | which department carries the volume, which the rate |
+| `q1_sites_vs_national.png` | every site as a deviation from the national rate, grouped by state, with Wilson intervals |
+| `q1_themes_by_department.png` | theme mix within each department, beside the negative share of each |
+| `q2_trend_by_state.png` | the year's movement split VIC / NSW / QLD, quarterly with intervals |
+| `q2_sites_that_changed.png` | which sites moved, Holm-corrected across 23 tests |
+| `q3_where_to_focus.png` | negative rate against its own change, bubble-sized by annual service jobs |
+| `q3_coverage.png` | feedback per transaction, nationally and per site |
+| `method_model_vs_owner.png` | both confusion matrices, the three kappas against the committed floor, and what the LLM was used for |
+
+Three rules are enforced in the plotting code rather than in the captions. **The theme chart
+is alphabetical and prints the 44.1% agreement on its own face**, so a sorted bar chart cannot
+smuggle in the ranking D-065 forbids and the caveat cannot be separated from the picture in a
+slide. **Every figure states its denominator in its own footer**, for the same reason. And
+**no chart is drawn from a number this module computed** — every business figure is imported
+from `src/analyse.py`, so a chart and a table cannot disagree; the method figure recomputes
+the three kappas from the committed labels and `assert`s them against `reports/evaluation.md`
+before it will render.
+
+A twenty-four-line monthly chart was deliberately not drawn. A state-month holds about 190
+responses, so a monthly site line is mostly noise, and twenty-four of them would invite a
+reader to see patterns the data cannot support.
 
 ### Run provenance
 
@@ -568,7 +614,7 @@ caught. It is an honest log, not a highlight reel, and the pattern in it matters
 any single entry: **the errors that mattered most were caught by arithmetic that had to
 close and by the owner checking source files, not by the AI reviewing its own work.**
 
-Six worth naming:
+Eight worth naming:
 
 | What went wrong | How it was caught |
 |---|---|
@@ -579,6 +625,8 @@ Six worth naming:
 
 | A proposed `unassigned` similarity floor at the 4.7th percentile, which reproduced the owner's own "none of these" rate exactly and would have read as principled | The AI tested it against the owner's blind labels before publishing it: it catches **2 of their 7** rejections (D-066) |
 | The 0.5-star trend threshold was applied to a change already rounded to two decimals, so a 0.496-star move cleared a 0.5-star rule. The count came out at 34 flags across 17 sites, and the first draft of the write-up then explained the gap against the committed 33/16 with the wrong cause | Reconciling the new count against `reports/trend_evidence.md` instead of accepting it, then recomputing both ways independently. The threshold now tests the unrounded value and the counts match the committed file exactly (section 11) |
+| **The national trend was published before it was split by state.** The group's −0.171-star fall is real, but it is an average over NSW (−0.330, p = 7.9e-08), VIC (−0.166) and QLD (−0.015, p = 0.80 — no change). The first draft of both reports recommended acting on a group figure that does not describe two of the three states | The owner asked for the trend grouped by state. The analysis gained section 7.3 and the recommendation was restructured around it |
+| Every chart was rendered at roughly four times its intended aspect ratio, with the plot squashed into a strip, because `savefig(bbox_inches="tight")` grows the canvas to fit any text it finds and the figure footers were single unwrapped lines | Reading the rendered PNGs rather than trusting that the code that wrote them was correct | Footers wrap to the figure's own width before they are drawn |
 
 The first is the one to read if only one. A single negative comment disappearing silently is
 the worst possible failure for a project about negative feedback, and nothing but a row
@@ -634,7 +682,7 @@ Everything in PLAN.md section 2 is now delivered. What remains is checking, not 
 | # | Item | Status at freeze |
 |---|---|---|
 | 1 | **Independent verifier** — fresh agent, clean clone, `make all`, every reported number checked against the code | **Not done.** The single most valuable outstanding item (D-017, Checkpoint 5). `reports/evaluation.md` already records its own D-017 exception: the agent that wrote `src/classify.py` wrote the evaluation too, because the freeze arrived first |
-| 2 | **Gate G9 — the owner approves each of the six charts** before it enters a report | **Not done.** The PNGs exist in `reports/figures/`; neither report embeds any of them, and both carry a figure index instead |
+| 2 | **Gate G9 — the owner approves each of the eight charts** before it enters a report | **Not done.** The PNGs exist in `reports/figures/`; neither report embeds any of them, and both carry a figure index instead |
 | 3 | **Checkpoint 5 — the owner recomputes 2–3 headline numbers by hand** and rewrites the business report's recommendations in their own voice | **Not done.** `reports/business_report.md` is marked DRAFT for exactly this |
 | 4 | **Industry benchmarks for the value model.** `reports/benchmarks.md` was written but never reviewed, and D-025 is unset, so the value model is cut and the gap is stated in both reports | Owner's call; cut-list item 1 for Wave 5 |
 | 5 | `tests/test_llm_review.py` — named in the Wave 4 LLM brief's outputs | **Does not exist.** The freeze arrived first |

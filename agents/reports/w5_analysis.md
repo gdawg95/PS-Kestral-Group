@@ -16,7 +16,7 @@ condition. The three §2 non-negotiables Wave 5 owns are delivered.
 | 1. Drivers | `src/analyse.py` → `reports/analysis.md` §§2–6 | Done |
 | 2. Trend | `reports/analysis.md` §7, with and without VIC09 | Done |
 | 3. Coverage | `reports/analysis.md` §8 | Done |
-| 4. Charts | `src/figures.py` → six PNGs in `reports/figures/` | Done, **unapproved (G9)** |
+| 4. Charts | `src/figures.py` → eight PNGs in `reports/figures/` | Done, **unapproved (G9)** |
 | 5. Business report | `reports/business_report.md` | **Draft**, recommendations to be rewritten |
 | 6. Value model | — | **Cut**: D-025 unset, `benchmarks.md` unreviewed |
 | 7. Technical report | `README.md` §§10–11 new, §§8, 13, 14 updated | Done |
@@ -25,7 +25,9 @@ condition. The three §2 non-negotiables Wave 5 owns are delivered.
 | (not in brief) | `tests/test_analyse.py`, 16 guard tests | Added — see below |
 | (not in brief) | `reports/run_manifest.json` | Done (it was in the brief's outputs) |
 
-**The trend, which is the protected output.** The group's mean rating fell from **3.842**
+**The trend, which is the protected output.** *(Revised after the owner's review — see
+"The chart rebuild" below. The group-level claim stands; the state split is what makes it
+actionable.)* The group's mean rating fell from **3.842**
 (Oct 2025 – Mar 2026) to **3.671** (Apr – Sep 2026) and the negative rate rose **19.9% →
 24.9%**, over all 7,150 rows. The committed threshold is cited and then applied at the right
 grain: D-052's 0.5 stars is calibrated for a dealership-month at n = 20 (±0.46 noise); the
@@ -33,10 +35,25 @@ same formula at n = 3,457 against 3,693 gives ±0.034, and the observed 0.171 fa
 times that. Welch p = 4.9e-07, Mann–Whitney p = 1.6e-05, χ² p = 4e-07. Removing the closed
 site moves the fall to −0.169.
 
-**The recommendation**, traceable to §9 of `analysis.md`: focus on Service — 68.6% of the
-feedback, 71.9% of the transactions behind it, the worst negative rate on either denominator
-(27.2% of all its rows), and where the year's decline sits (24.0% → 30.2%, p = 1.8e-06).
-Nothing in that chain uses the sentiment model or a theme ranking.
+**The decline is NSW, not the group.** Splitting the trend by state — asked for at review —
+changed what the recommendation says:
+
+| | Rating change | Negative rate | Welch p |
+|---|---:|---:|---:|
+| **NSW** | **−0.330** | 18.1% → **26.4%** | **7.9e-08** |
+| VIC | −0.166 | 20.5% → 25.1% | 0.0028 |
+| **QLD** | **−0.015** | 21.0% → 23.3% | **0.80 — no change at all** |
+
+Inside NSW it is Service (**+10.3 points**, p = 3.1e-07) and Sales (+8.5); NSW Parts improved.
+Per-site, with a Holm correction across all 23 tests, **three sites moved by more than chance
+— Parramatta −0.75, Dandenong −0.72, Liverpool −0.58 — and every one is a fall.** Uncorrected,
+five clear p < 0.05 and about one of those is noise.
+
+**The recommendation**, traceable to §9 of `analysis.md`, now separates two things that were
+conflated: the **standing** problem is Service everywhere (68.6% of the feedback, 71.9% of the
+transactions, 27.2% negative), and the **new** problem is NSW Service, six months old, with
+Parramatta and Liverpool named on their own evidence. Nothing in that chain uses the sentiment
+model or a theme ranking.
 
 ---
 
@@ -114,6 +131,25 @@ business sit, and that is what both reports use.
 
 ---
 
+## The chart rebuild
+
+The first chart set was rejected at review as hard to read and not aimed at the business
+questions. It had been organised around the *decisions that constrained the analysis* rather
+than around what the challenge asks, which is a real failure of framing and not a styling
+complaint. Rebuilt as eight figures named `q1_*`, `q2_*`, `q3_*` and one `method_*`, so a
+chart that cannot say which question it answers does not exist.
+
+Three of the owner's asks drove it: trends grouped by state, each site against the national
+average, and the theme distribution by department with the negative share of each. The first
+of those produced the NSW finding above — **the single highest-value change made to this
+analysis, and it came from the review rather than from the analysis.**
+
+A fourth ask, added mid-review, produced `method_model_vs_owner.png`: both confusion matrices
+(sentiment 3×3 and themes 8×8), the three kappas against the committed 0.60 floor, and what
+the LLM was and was not used for. The theme matrix is new information — the 44.1% was a
+headline figure until now, and the matrix shows *where* it goes: 21 comments the owner filed
+elsewhere were pulled into `Staff manner`, the largest theme.
+
 ## Errors found and fixed in this wave
 
 **1. The committed trend threshold was being applied to a rounded number.** `month_pairs`
@@ -138,7 +174,17 @@ now a test.
 returned a `DataFrame` with no columns and the next line raised `KeyError`. Found by the test
 for non-adjacent months.
 
-**3. Smaller things found by reading the generated output rather than the code:** rates
+**3. The national trend was published before it was split by state.** The group's
+−0.171-star fall is real and survives every robustness check, and it is still an average over
+three states that did different things. Both reports recommended acting on a figure that does
+not describe QLD at all. Found by the owner asking for the state cut, not by this agent.
+
+**4. Every chart rendered at roughly four times its intended aspect ratio**, plot squashed
+into a strip, because `savefig(bbox_inches="tight")` grows the canvas to fit any text it finds
+and the figure footers were single unwrapped lines. Found by reading the rendered PNGs rather
+than trusting the code that wrote them. The same habit caught four label collisions.
+
+**5. Smaller things found by reading the generated output rather than the code:** rates
 rounded to 23.1 printed as "23.10"; booleans printed as 1/0; a sentence naming "the same five
 thin sites" listed four, because it filtered on row count rather than using D-052's named
 five; the thin-site sentence said "4 to 5 comments per theme" of two sites that hold 11.8 and
@@ -167,7 +213,7 @@ sha256 of each input and the row count at each stage.
 
 **Files written:** `src/analyse.py`, `src/figures.py`, `tests/test_analyse.py`,
 `reports/analysis.md`, `reports/business_report.md`, `reports/pilot_drivers.md`,
-`reports/run_manifest.json`, `reports/figures/*.png` (6), `README.md` (sections 8, 10, 11,
+`reports/run_manifest.json`, `reports/figures/*.png` (8), `README.md` (sections 8, 10, 11,
 12, 13, 14, 15), `agents/reports/w5_analysis.md`.
 
 **Files deliberately not touched:** `config.yaml` (G7), `DECISIONS.md` and `AI_LOG.md` (the
