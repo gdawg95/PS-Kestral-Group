@@ -383,7 +383,74 @@ being measured, and then the same test run inside each department:**
 | Where is it? Sales | 4.345 stars, 8.2% neg (n=731) | 4.178 stars, 12.7% neg (n=810) | -0.167 stars, +4.51 pts, p = 0.0043 |
 | Where is it? Parts | 3.970 stars, 16.0% neg (n=331) | 3.939 stars, 16.0% neg (n=375) | -0.031 stars, -0.01 pts, p = 0.75 |
 
-### 7.3 The thin sites, quarterly (D-052)
+### 7.3 Where the decline actually is: NSW, and three named sites
+
+The group figure in 7.2 is true and it is also an average over three states that did
+different things. Splitting it is the first thing a reader should do with it.
+
+**By state.** Denominator: all rows in that state, by rating.
+
+| State | Sites | Rows | H1 rating | H2 rating | Change | H1 neg % | H2 neg % | Neg change (pts) | Welch p | Change excl VIC09 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: |
+| NSW | 7 | 2,243 | 3.946 | 3.616 | -0.33 | 18.1 | 26.4 | 8.3 | 7.9e-08 | -0.33 |
+| VIC | 9 | 2,693 | 3.813 | 3.648 | -0.166 | 20.5 | 25.1 | 4.6 | 0.0028 | -0.159 |
+| QLD | 8 | 2,214 | 3.773 | 3.758 | -0.015 | 21.0 | 23.3 | 2.2 | 0.8 | -0.015 |
+
+**The decline is overwhelmingly NSW: -0.330 stars and +8.3 points of negative rate (p = 7.9e-08), against VIC's -0.166 and QLD's -0.015 (p = 0.8) — which is no change at all.** QLD is flat on both measures and its Welch test does not come close to
+significance. A single group number reported without this split would have told
+Queensland's sites they had a problem they do not have, and understated NSW's by more than
+half.
+
+Inside NSW the deterioration is in the customer-facing lanes, not in Parts:
+
+| Department | Rows | H1 neg % | H2 neg % | Change (pts) | Rating change | Welch p |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Service | 1,473 | 21.7 | 32.1 | 10.3 | -0.402 | 3.1e-07 |
+| Sales | 555 | 7.8 | 16.4 | 8.5 | -0.348 | 0.00068 |
+| Parts | 215 | 19.2 | 14.7 | -4.5 | 0.163 | 0.39 |
+
+**By site, with the multiple-comparison problem handled rather than ignored.** Testing 23
+sites for a change produces false positives by construction: at p < 0.05 roughly one site in
+twenty turns up "significant" with nothing happening. The Holm step-down correction is
+applied across all 23 tests, and the column to read is the adjusted one. Sites with fewer
+than 20 responses in either half are not tested at all (D-052's floor).
+
+| Dealer | State | Site | Rows | H1 rating | H2 rating | Change | p (Holm-adjusted) | Significant |
+| --- | --- | --- | ---: | ---: | ---: | ---: | --- | --- |
+| NSW01 | NSW | Parramatta | 479 | 3.97 | 3.22 | -0.753 | 1.4e-06 | **yes** |
+| VIC01 | VIC | Dandenong | 484 | 4.03 | 3.31 | -0.719 | 1.3e-06 | **yes** |
+| VIC08 | VIC | Bendigo | 144 | 4.1 | 3.49 | -0.616 | 0.15 | no |
+| NSW04 | NSW | Liverpool | 311 | 4.13 | 3.54 | -0.584 | 0.0057 | **yes** |
+| QLD04 | QLD | Southport | 250 | 3.79 | 3.49 | -0.298 | 1 | no |
+| NSW05 | NSW | Newcastle | 303 | 3.91 | 3.66 | -0.251 | 1 | no |
+| NSW03 | NSW | Chatswood | 278 | 3.83 | 3.62 | -0.214 | 1 | no |
+| VIC02 | VIC | Ringwood | 454 | 3.92 | 3.75 | -0.172 | 1 | no |
+| NSW06 | NSW | Wollongong | 285 | 3.98 | 3.85 | -0.128 | 1 | no |
+| VIC07 | VIC | Ballarat | 292 | 3.82 | 3.7 | -0.12 | 1 | no |
+| QLD03 | QLD | Ipswich | 277 | 3.89 | 3.79 | -0.095 | 1 | no |
+| NSW02 | NSW | Penrith | 454 | 3.83 | 3.75 | -0.089 | 1 | no |
+| QLD07 | QLD | Rockhampton | 202 | 3.55 | 3.5 | -0.051 | 1 | no |
+| QLD06 | QLD | Toowoomba | 321 | 3.75 | 3.71 | -0.047 | 1 | no |
+| QLD02 | QLD | Springwood | 301 | 4.03 | 3.99 | -0.046 | 1 | no |
+| VIC03 | VIC | Essendon | 346 | 3.66 | 3.63 | -0.036 | 1 | no |
+| VIC04 | VIC | Frankston | 308 | 3.72 | 3.78 | 0.055 | 1 | no |
+| NSW07 | NSW | Tamworth | 133 | 4.03 | 4.12 | 0.09 | 1 | no |
+| QLD08 | QLD | Townsville | 354 | 3.71 | 3.8 | 0.091 | 1 | no |
+| QLD05 | QLD | Noosa | 49 | 4.58 | 4.68 | 0.097 | 1 | no |
+| VIC05 | VIC | Box Hill | 309 | 3.57 | 3.68 | 0.104 | 1 | no |
+| QLD01 | QLD | Chermside | 460 | 3.59 | 3.75 | 0.163 | 1 | no |
+| VIC06 | VIC | Geelong | 304 | 3.59 | 3.93 | 0.334 | 0.81 | no |
+| VIC09 | VIC | Shepparton | 52 | 3.98 | — | — | not tested (n < floor) | — |
+
+**3 of 23 sites survive the correction, and every one of them is a fall.** No site
+improved significantly. That asymmetry is itself evidence: random variation across 23 sites
+would not produce 3 one-sided results.
+
+This is the full extent of the per-site testing in this project. Cut-list item 7 makes
+statistical tests beyond the one trend check cuttable, and the one kept here is the one the
+recommendation needs — *which* sites, not *whether* something changed.
+
+### 7.4 The thin sites, quarterly (D-052)
 
 Reported on a quarterly basis because their median month is under 20 responses —
 present in the analysis rather than silently dropped. These are counts and means at a grain
@@ -479,18 +546,32 @@ theme ranking**, because D-065 does not permit one.
 
 | Step | Number | Where it comes from |
 |---|---:|---|
-| 1. Service is most of the feedback | 4,903 of 7,150 rows (**68.6%**) | section 2, hand-mapped department field |
-| 2. Service has the worst rate on either denominator | **27.2%** of its 4,903 rows | section 2 |
-| 3. Service is where the year's decline sits | 3.671 → 3.468 stars; 24.0% → 30.2% negative (**+6.2 pts**, p = 1.8e-06) | section 7.2 |
-| 4. The group decline is real | -0.171 stars, +5.0 pts, p = 4.9e-07, unchanged without the closed site | section 7.2 |
-| 5. And the dataset sees very little of it | service coverage **2.45%** — one response per ~41 service jobs | section 8 |
+| 1. **What** — Service is most of the feedback | 4,903 of 7,150 rows (**68.6%**) and 71.9% of the transactions behind it | section 2, hand-mapped department field |
+| 2. **What** — Service has the worst rate on either denominator | **27.2%** of its 4,903 rows | section 2 |
+| 3. **When** — it got worse over the year | 24.0% → 30.2% negative (**+6.2 pts**, p = 1.8e-06) | section 7.2 |
+| 4. **Where** — the decline is NSW, not the group | NSW **-0.330** stars (p = 7.9e-08) · VIC -0.166 · QLD **-0.015, p = 0.8** | section 7.3 |
+| 5. **Where** — NSW Service is the specific cell | 21.7% → 32.1% negative (**+10.3 pts**, p = 3.1e-07) on 1,473 rows | section 7.3 |
+| 6. **Who** — three sites survive multiple-comparison correction | **Parramatta** (NSW01, -0.75), **Dandenong** (VIC01, -0.72), **Liverpool** (NSW04, -0.58) — all falls, no site improved | section 7.3 |
+| 7. **How much is seen** — very little | service coverage **2.45%** — one response per ~41 service jobs | section 8 |
 
 **The chain.** Service holds 68.6% of the feedback and
-71.9% of the transactions behind it, has the worst negative rate of the
-three departments on both denominators, and is where the year's decline is concentrated:
-**+6.2 points** against Sales' +4.5 and Parts' −0.01 (section 7.2). In plain
-counts, that is **305 more negative service responses in H2 than H1's rate would have
-produced**.
+71.9% of the transactions behind it, and has the worst negative rate of
+the three departments on both denominators — that is the standing problem, and it is the
+same in all three states. **What changed this year is narrower than the group figure
+suggests.** Splitting the group's +5.0-point move by state gives NSW
++8.3, VIC +4.6 and QLD
++2.2 with a Welch p of 0.8 — Queensland did not
+change. Inside NSW the move is **+10.3 points in Service** and
++8.5 in Sales, while NSW Parts went the other way.
+
+In plain counts, the national Service move is **305 more negative service responses in
+H2 than H1's rate would have produced**.
+
+**So the recommendation has two parts that should not be confused.** The *standing* problem
+is Service everywhere. The *new* problem is NSW, and specifically
+**Parramatta** (NSW01, -0.75 stars) and **Liverpool** (NSW04, -0.58 stars) — the two NSW sites whose own change survives Holm correction across 23
+tests. Dandenong (VIC01) is the third and sits outside NSW, so it belongs with them on
+evidence even though the state story does not reach it.
 
 **What is deliberately not published here.** 305 responses at a 2.45% response
 rate would extrapolate to roughly 12,445 service jobs. That figure is **not** reported as

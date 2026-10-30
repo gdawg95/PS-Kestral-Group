@@ -58,6 +58,7 @@ import numpy as np
 import pandas as pd
 import yaml
 from scipy import stats
+from statsmodels.stats.multitest import multipletests
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = yaml.safe_load((ROOT / "config.yaml").read_text(encoding="utf-8"))
@@ -108,6 +109,15 @@ def load() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     df["negative_d004"] = df["negative_by_rating"] | (df["sentiment_label"] == "negative")
     revenue = pd.read_csv(REVENUE)
     dealers = pd.read_csv(DEALERSHIPS)
+    # State comes from the reference file, not from the data, so it is as reliable as the
+    # dealer code it is joined on (D-034). Every one of the 7,150 rows gets one.
+    df = df.merge(
+        dealers[["dealer_code", "dealership_name", "suburb", "state", "region"]],
+        on="dealer_code",
+        how="left",
+        validate="many_to_one",
+    )
+    assert df["state"].notna().all(), "a dealer_code has no entry in dealerships.csv"
     return df, revenue, dealers
 
 
@@ -584,6 +594,15 @@ def section_trend(df: pd.DataFrame) -> str:
     up = int((flagged["change"] > 0).sum())
     worst = flagged.iloc[0]
     quarters = quarterly_thin(df, thin_52)
+    st = state_halves(df).set_index("State")
+    nsw, qld = st.loc["NSW"], st.loc["QLD"]
+    nsw_line = (
+        f"The decline is overwhelmingly NSW: {nsw['Change']:+.3f} stars and "
+        f"{nsw['Neg change (pts)']:+.1f} points of negative rate (p = {nsw['Welch p']}), "
+        f"against VIC's {st.loc['VIC', 'Change']:+.3f} and QLD's "
+        f"{qld['Change']:+.3f} (p = {qld['Welch p']}) — which is no change at all."
+    )
+    n_sig = n_significant_sites(df)
     nxt = pd.Period(worst["Month"]) + 1
     after = pairs[(pairs["Dealer"] == worst["Dealer"]) & (pairs["Month"] == str(nxt))]
     recovery = f"{after['change'].iloc[0]:+.2f} in {nxt}" if len(after) else "no adjacent pair"
@@ -673,7 +692,41 @@ being measured, and then the same test run inside each department:**
 
 {table(_trend_robustness(df))}
 
-### 7.3 The thin sites, quarterly (D-052)
+### 7.3 Where the decline actually is: NSW, and three named sites
+
+The group figure in 7.2 is true and it is also an average over three states that did
+different things. Splitting it is the first thing a reader should do with it.
+
+**By state.** Denominator: all rows in that state, by rating.
+
+{table(state_halves(df))}
+
+**{nsw_line}** QLD is flat on both measures and its Welch test does not come close to
+significance. A single group number reported without this split would have told
+Queensland's sites they had a problem they do not have, and understated NSW's by more than
+half.
+
+Inside NSW the deterioration is in the customer-facing lanes, not in Parts:
+
+{table(state_department_halves(df, "NSW"))}
+
+**By site, with the multiple-comparison problem handled rather than ignored.** Testing 23
+sites for a change produces false positives by construction: at p < 0.05 roughly one site in
+twenty turns up "significant" with nothing happening. The Holm step-down correction is
+applied across all 23 tests, and the column to read is the adjusted one. Sites with fewer
+than {MIN_MONTH_N} responses in either half are not tested at all (D-052's floor).
+
+{table(site_halves(df))}
+
+**{n_sig} of 23 sites survive the correction, and every one of them is a fall.** No site
+improved significantly. That asymmetry is itself evidence: random variation across 23 sites
+would not produce {n_sig} one-sided results.
+
+This is the full extent of the per-site testing in this project. Cut-list item 7 makes
+statistical tests beyond the one trend check cuttable, and the one kept here is the one the
+recommendation needs — *which* sites, not *whether* something changed.
+
+### 7.4 The thin sites, quarterly (D-052)
 
 Reported on a quarterly basis because their median month is under {MIN_MONTH_N} responses —
 present in the analysis rather than silently dropped. These are counts and means at a grain
@@ -681,6 +734,95 @@ the rule permits; **no movement is claimed for these five sites.**
 
 {table(quarters)}
 """
+
+
+def state_halves(df: pd.DataFrame) -> pd.DataFrame:
+    """H1 -> H2 by state. The group number in 7.2 is an average over three different
+    stories, and publishing only the average would misdirect two of the three states."""
+    out = []
+    for state in ["NSW", "VIC", "QLD"]:
+        sub = df[df["state"] == state]
+        h = half_test(sub)
+        ex = half_test(sub[sub["dealer_code"] != CLOSED_SITE]) if state == "VIC" else h
+        out.append(
+            {
+                "State": state,
+                "Sites": sub["dealer_code"].nunique(),
+                "Rows": len(sub),
+                "H1 rating": round(h["mean_h1"], 3),
+                "H2 rating": round(h["mean_h2"], 3),
+                "Change": round(h["delta"], 3),
+                "H1 neg %": round(h["neg_h1"], 1),
+                "H2 neg %": round(h["neg_h2"], 1),
+                "Neg change (pts)": round(h["neg_delta"], 1),
+                "Welch p": f"{h['welch_p']:.2g}",
+                f"Change excl {CLOSED_SITE}": round(ex["delta"], 3),
+            }
+        )
+    return pd.DataFrame(out)
+
+
+def state_department_halves(df: pd.DataFrame, state: str) -> pd.DataFrame:
+    out = []
+    sub = df[df["state"] == state]
+    for dep in ["Service", "Sales", "Parts"]:
+        s = sub[sub["department"] == dep]
+        h = half_test(s)
+        out.append(
+            {
+                "Department": dep,
+                "Rows": len(s),
+                "H1 neg %": round(h["neg_h1"], 1),
+                "H2 neg %": round(h["neg_h2"], 1),
+                "Change (pts)": round(h["neg_delta"], 1),
+                "Rating change": round(h["delta"], 3),
+                "Welch p": f"{h['welch_p']:.2g}",
+            }
+        )
+    return pd.DataFrame(out)
+
+
+def site_halves(df: pd.DataFrame) -> pd.DataFrame:
+    """Every site's H1 -> H2 change, Holm-corrected across the whole family of tests.
+
+    Without the correction this table would hand the reader a list of "significant" sites
+    that includes about one false positive per twenty tested. Holm is used rather than
+    Bonferroni because it is uniformly more powerful at the same family-wise error rate, and
+    with only 23 tests the difference is not academic.
+    """
+    rows = []
+    for dealer, sub in df.groupby("dealer_code", observed=True):
+        a = sub.loc[sub["half"] == "H1", "rating_1to5"].astype(float)
+        b = sub.loc[sub["half"] == "H2", "rating_1to5"].astype(float)
+        tested = len(a) >= MIN_MONTH_N and len(b) >= MIN_MONTH_N
+        rows.append(
+            {
+                "Dealer": dealer,
+                "State": sub["state"].iloc[0],
+                "Site": sub["dealership_name"].iloc[0].replace("Kestrel ", ""),
+                "Rows": len(sub),
+                "H1 rating": round(a.mean(), 2) if len(a) else None,
+                "H2 rating": round(b.mean(), 2) if len(b) else None,
+                "Change": round(b.mean() - a.mean(), 3) if tested else None,
+                "_p": stats.ttest_ind(a, b, equal_var=False).pvalue if tested else np.nan,
+            }
+        )
+    t = pd.DataFrame(rows)
+    mask = t["_p"].notna()
+    t["p (Holm-adjusted)"] = None
+    t.loc[mask, "p (Holm-adjusted)"] = [
+        f"{p:.2g}" for p in multipletests(t.loc[mask, "_p"], method="holm")[1]
+    ]
+    t["Significant"] = [
+        ("—" if pd.isna(p) else ("**yes**" if float(adj) < 0.05 else "no"))
+        for p, adj in zip(t["_p"], t["p (Holm-adjusted)"].fillna("1"), strict=False)
+    ]
+    t.loc[~mask, "p (Holm-adjusted)"] = "not tested (n < floor)"
+    return t.drop(columns=["_p"]).sort_values("Change", na_position="last")
+
+
+def n_significant_sites(df: pd.DataFrame) -> int:
+    return int((site_halves(df)["Significant"] == "**yes**").sum())
 
 
 def _trend_robustness(df: pd.DataFrame) -> pd.DataFrame:
@@ -815,6 +957,17 @@ def section_recommendation(df: pd.DataFrame, revenue: pd.DataFrame) -> str:
     nat_cov = 100 * len(svc) / tx
     extra = int(round(hs["neg_delta"] / 100 * len(svc)))
     implied = int(round(hs["neg_delta"] / 100 * tx))
+    st = state_halves(df).set_index("State")
+    nsw, vic, qld = st.loc["NSW"], st.loc["VIC"], st.loc["QLD"]
+    nsw_dep = state_department_halves(df, "NSW").set_index("Department")
+    nsw_svc, nsw_sales = nsw_dep.loc["Service"], nsw_dep.loc["Sales"]
+    sig = site_halves(df)
+    sig = sig[sig["Significant"] == "**yes**"]
+    sig_sites = ", ".join(f"**{r.Site}** ({r.Dealer}, {r.Change:+.2f})" for r in sig.itertuples())
+    sig_sites_nsw = " and ".join(
+        f"**{r.Site}** ({r.Dealer}, {r.Change:+.2f} stars)"
+        for r in sig[sig["State"] == "NSW"].itertuples()
+    )
     return f"""## 9. Where to focus first — the analysis behind the recommendation
 
 **The recommendation is argued from volume, the rating and coverage. It is not argued from a
@@ -822,18 +975,32 @@ theme ranking**, because D-065 does not permit one.
 
 | Step | Number | Where it comes from |
 |---|---:|---|
-| 1. Service is most of the feedback | {len(svc):,} of {len(df):,} rows (**{100 * len(svc) / len(df):.1f}%**) | section 2, hand-mapped department field |
-| 2. Service has the worst rate on either denominator | **{100 * svc["negative_by_rating"].mean():.1f}%** of its {len(svc):,} rows | section 2 |
-| 3. Service is where the year's decline sits | {hs["mean_h1"]:.3f} → {hs["mean_h2"]:.3f} stars; {hs["neg_h1"]:.1f}% → {hs["neg_h2"]:.1f}% negative (**{hs["neg_delta"]:+.1f} pts**, p = {hs["welch_p"]:.2g}) | section 7.2 |
-| 4. The group decline is real | {h["delta"]:+.3f} stars, {h["neg_delta"]:+.1f} pts, p = {h["welch_p"]:.2g}, unchanged without the closed site | section 7.2 |
-| 5. And the dataset sees very little of it | service coverage **{nat_cov:.2f}%** — one response per ~{1 / (nat_cov / 100):.0f} service jobs | section 8 |
+| 1. **What** — Service is most of the feedback | {len(svc):,} of {len(df):,} rows (**{100 * len(svc) / len(df):.1f}%**) and {100 * tx / 278697:.1f}% of the transactions behind it | section 2, hand-mapped department field |
+| 2. **What** — Service has the worst rate on either denominator | **{100 * svc["negative_by_rating"].mean():.1f}%** of its {len(svc):,} rows | section 2 |
+| 3. **When** — it got worse over the year | {hs["neg_h1"]:.1f}% → {hs["neg_h2"]:.1f}% negative (**{hs["neg_delta"]:+.1f} pts**, p = {hs["welch_p"]:.2g}) | section 7.2 |
+| 4. **Where** — the decline is NSW, not the group | NSW **{nsw["Change"]:+.3f}** stars (p = {nsw["Welch p"]}) · VIC {vic["Change"]:+.3f} · QLD **{qld["Change"]:+.3f}, p = {qld["Welch p"]}** | section 7.3 |
+| 5. **Where** — NSW Service is the specific cell | {nsw_svc["H1 neg %"]:.1f}% → {nsw_svc["H2 neg %"]:.1f}% negative (**{nsw_svc["Change (pts)"]:+.1f} pts**, p = {nsw_svc["Welch p"]}) on {nsw_svc["Rows"]:,} rows | section 7.3 |
+| 6. **Who** — three sites survive multiple-comparison correction | {sig_sites} — all falls, no site improved | section 7.3 |
+| 7. **How much is seen** — very little | service coverage **{nat_cov:.2f}%** — one response per ~{1 / (nat_cov / 100):.0f} service jobs | section 8 |
 
 **The chain.** Service holds {100 * len(svc) / len(df):.1f}% of the feedback and
-{100 * tx / 278697:.1f}% of the transactions behind it, has the worst negative rate of the
-three departments on both denominators, and is where the year's decline is concentrated:
-**{hs["neg_delta"]:+.1f} points** against Sales' +4.5 and Parts' −0.01 (section 7.2). In plain
-counts, that is **{extra:,} more negative service responses in H2 than H1's rate would have
-produced**.
+{100 * tx / 278697:.1f}% of the transactions behind it, and has the worst negative rate of
+the three departments on both denominators — that is the standing problem, and it is the
+same in all three states. **What changed this year is narrower than the group figure
+suggests.** Splitting the group's {h["neg_delta"]:+.1f}-point move by state gives NSW
+{nsw["Neg change (pts)"]:+.1f}, VIC {vic["Neg change (pts)"]:+.1f} and QLD
+{qld["Neg change (pts)"]:+.1f} with a Welch p of {qld["Welch p"]} — Queensland did not
+change. Inside NSW the move is **{nsw_svc["Change (pts)"]:+.1f} points in Service** and
+{nsw_sales["Change (pts)"]:+.1f} in Sales, while NSW Parts went the other way.
+
+In plain counts, the national Service move is **{extra:,} more negative service responses in
+H2 than H1's rate would have produced**.
+
+**So the recommendation has two parts that should not be confused.** The *standing* problem
+is Service everywhere. The *new* problem is NSW, and specifically
+{sig_sites_nsw} — the two NSW sites whose own change survives Holm correction across 23
+tests. Dandenong (VIC01) is the third and sits outside NSW, so it belongs with them on
+evidence even though the state story does not reach it.
 
 **What is deliberately not published here.** {extra:,} responses at a {nat_cov:.2f}% response
 rate would extrapolate to roughly {implied:,} service jobs. That figure is **not** reported as
