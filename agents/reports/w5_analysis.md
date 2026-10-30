@@ -121,8 +121,8 @@ Four more, all stated in the reports themselves:
 
 ## One number I computed and deliberately did not publish
 
-305 more negative service responses in H2 than H1's rate would have produced, at a 2.45%
-service response rate, extrapolates to roughly **12,445 service jobs**. It is arithmetic and
+156 more negative service responses in H2 than H1's rate would have produced, at a 2.45%
+service response rate, extrapolates to roughly **6,341 service jobs**. It is arithmetic and
 it would have been the most quotable figure in the business report.
 
 It is not published, and the arithmetic is shown in `analysis.md` §9 followed by the reason:

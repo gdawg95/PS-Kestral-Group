@@ -248,9 +248,9 @@ codes shaped like number plates, and two adjudicated false positives: `Corsa Rub
 where a customer ran a car model into a complaint without a full stop, and `Box Hill's`, a
 suburb.
 
-**One blocker remains and it is in PUBLIC_RELEASE.md item 1.** The export committed in
-`bec914d` carried all 15 columns, and no later commit can remove a blob from history, so
-that commit has to be rewritten before the repository is ever public.
+**The history blocker in PUBLIC_RELEASE.md item 1 is resolved.** The original export in
+`bec914d` carried all 15 columns; `git-filter-repo` stripped those blobs from every commit
+and the 12-column export was re-committed on top. See `PUBLIC_RELEASE.md` for details.
 
 ## 7. Data quality
 
@@ -756,7 +756,7 @@ Everything in PLAN.md section 2 is now delivered. What remains is checking, not 
 | 5 | **Industry benchmarks for the value model.** `reports/benchmarks.md` is **now committed** — it was cited by three deliverables while untracked (verifier finding V-5) — but it is still unreviewed and D-025 is unset, so the value model stays cut and the gap is stated in both reports | Owner's call; cut-list item 1 for Wave 5 |
 | 6 | `tests/test_llm_review.py` — named in the Wave 4 LLM brief's outputs | **Does not exist.** The freeze arrived first |
 | 7 | `thresholds.nlp_pass_mark.theme_bar` | Still `TBD`. A credible per-theme F1 needs its own sample, sized after discovery; D-055 records why 150 comments cannot carry one |
-| 8 | **`gitleaks` scan of full history**, and the history rewrite `PUBLIC_RELEASE.md` describes | Before publication. D-067 is explicit that **this repository must stay private until the rewrite is done**: commit `bec914d` carries the 15-column export whose lineage columns identify 99.0% of rows uniquely |
+| 8 | **`gitleaks` scan of full history** | `gitleaks` has not been run (D-013: no network to install it). A manual credential sweep found nothing. The history rewrite (PUBLIC_RELEASE.md item 1) is complete — the 15-column export blobs are gone from every commit |
 
 `make all` runs end to end: ingest → validate → classify → analyse → figures.
 

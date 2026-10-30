@@ -1,17 +1,18 @@
 # PLAN — Kestrel Motor Group: Data & AI Challenge
 
 **Owner:** gdawg95 (sole human contributor)
-**Repo:** https://github.com/gdawg95/PS-Kestral-Group (private until reviewers approve)
+**Repo:** https://github.com/gdawg95/PS-Kestral-Group
 **Code freeze:** Friday 30 Oct 2026, 3:00pm (then proofread and edit until COB)
-**Last updated:** Friday 30 Oct 2026, 13:40 · **Waves 1–4 complete. Wave 5 is the whole of
-what remains, and it has no code.** Waves 1–3 are reviewed and merged to `main` (gate G5);
-Wave 4 is on `w1-wrapup`, pushed but not reviewed or merged.
+**Last updated:** Friday 30 Oct 2026, evening · **All five waves complete.** Waves 1–5 are
+merged to `main` (gate G5, 30 Oct 2026). The independent verifier ran after the code freeze
+and its findings (V-1 to V-6) were acted on before the merge.
 
-**The two outstanding §2 non-negotiables are both Wave 5's: a trend, and a recommendation.**
 Wave 4's result is that the sentiment model **missed its pass mark** (κ 0.403 against the 0.60
 committed in D-055) and the pre-committed fallback applies — **the customer's star rating is
 the primary signal**, because it scored κ 0.460 on the same labels and beat the model (D-065).
-The brief for the remaining work is `agents/briefs/w5_analysis.md`.
+Wave 5's result is that NSW Service drives the group-level decline, with Parramatta,
+Dandenong and Liverpool named on their own evidence. The value model (business question 3)
+was cut: D-025 unset, benchmarks unreviewed, and the revenue null-result undercuts any figure.
 
 This is the single source of truth for the project. Every new conversation and every agent brief starts from this file and `DECISIONS.md`.
 

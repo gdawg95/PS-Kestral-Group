@@ -875,19 +875,74 @@ Source: `agents/reports/w1_profilers.md` (15 findings). Wave 2 ingestion applies
 - **Enforced, not just documented:** `src/export.py` blocks the export if a lineage column or
   an exact date reaches the public frame, with a test per column. The audit from D-064 — no
   surviving email, phone, address, plate or person-shaped name — still runs first.
-- **The committed history is the open problem.** `bec914d` carried all 15 columns and exact
-  dates, and three commits now sit on top of it, all already pushed. A later commit cannot
-  remove a blob from history, so publishing this repository as it stands would publish the
-  99% re-identification key regardless of what the current files say. It has to be rewritten
-  before the repository is ever public, and that is the owner's call because it force-pushes
-  over commits that already exist on the remote. `PUBLIC_RELEASE.md` holds the checklist and
-  the two options. **Until that is done, this repository must stay private.**
+- **History rewrite complete (30 Oct 2026).** The original commit `bec914d` carried all 15
+  columns and exact dates. `git-filter-repo` stripped the three export blobs from every
+  commit, and the 12-column export was re-committed on top. All branches force-pushed.
+  See `PUBLIC_RELEASE.md` for the full checklist.
 - **Also checked before release, and clean:** every blob in all 54 commits across every branch
   and tag was scanned for real email addresses, phone numbers, street addresses, plates and
   person-shaped names. The only hits are the regex patterns in `src/pii.py` itself and the
   synthetic fixtures in `tests/`. No staff roster or name list exists on disk at any commit.
   96 verbatim comments are quoted in four committed reports, none of them beside a dealer
   code, date or `feedback_id`, so they carry no linkage.
+
+### D-068 · The half-year boundary is fixed at the midpoint of the twelve months · Decided · 30 Oct 2026
+
+- **Decision:** the trend comparison splits the data at 1 April 2026 — the midpoint of the
+  Oct 2025 – Sep 2026 window and the month VIC09 closed. This boundary was **not** found
+  by searching for the date that maximises the gap.
+- **Why:** a change point chosen to maximise the gap it then reports would not be evidence
+  of anything. A fixed, pre-specified boundary is the only one a reviewer should trust,
+  and the coincidence with VIC09's closure is handled by reporting the trend with and
+  without VIC09 (the fall barely moves: −0.171 → −0.169).
+- **Trade-off:** if the real inflection happened in February or June, this split dilutes it.
+  Twelve months cannot separate a seasonal cycle from a decline either way.
+
+### D-069 · Publish the group trend, not site-level trends · Decided · 30 Oct 2026
+
+- **Decision:** the headline trend is reported at group and state level, not per-site.
+  Per-site comparisons appear only for the three sites that survive a Holm correction
+  across all 23 tests (Parramatta, Dandenong, Liverpool).
+- **Why:** D-052 set the minimum evidence at 20 responses per month and 0.5 stars. Most
+  sites fall below that in at least one half, so publishing a per-site trend for them would
+  overstate what the data can support. The state-level split is the finding that matters:
+  it separates NSW (−0.330, p = 7.9e-08) from QLD (−0.015, p = 0.80), which changes
+  the recommendation from "the group is declining" to "NSW Service is declining."
+- **What a reviewer can check:** `analysis.md` §7 publishes every site's half-year means,
+  change, p-value and corrected p-value, so a reader can re-derive any comparison.
+
+### D-070 · Do not extrapolate the negative rate onto non-responders · Decided · 30 Oct 2026
+
+- **Decision:** 156 more negative service responses appeared in H2 than H1's rate would
+  produce. At the 2.45% service response rate, that extrapolates to ~6,341 service jobs.
+  That figure is computed in `analysis.md` §9 and **not published** in either report.
+- **Why:** D-058 measured response as not independent of satisfaction — commented rows
+  average 3.54 stars against 4.40 for commentless ones — so projecting the responder rate
+  onto all 200,249 service jobs overstates it by an unknown amount. The defensible version
+  of the volume argument is that Service is where both the feedback and the revenue sit,
+  and that is what both reports use.
+- **What this costs:** the single most quotable number in the analysis is absent from the
+  business report. A dollar value would have been built on it via the benchmarks, so this
+  also strengthens the D-025 cut.
+
+### D-071 · Independent verifier findings V-1 to V-6, acted on · Decided · 30 Oct 2026
+
+- **Context:** D-017 requires producer ≠ checker. The independent verifier ran after the
+  code freeze, in a fresh session, against commit `2577910`. Six findings were reported.
+- **V-1 (corrected):** `section_recommendation` used `len(svc)` (all service rows) instead
+  of `hs["n_h2"]` (H2 only) for the counterfactual. Published figure was 305/12,445;
+  correct figure is **156/6,341** — off by 1.96×. Fixed in `src/analyse.py`;
+  `analysis.md` regenerated byte-identically.
+- **V-2 (corrected):** `site_halves` stored p-values as formatted strings, not floats.
+  The Holm correction would have compared them lexicographically. Fixed to keep `_p_adj`
+  as float.
+- **V-3 (docs fixed):** `uv sync` instructions in `README.md` lacked `--group nlp`.
+- **V-4 (noted):** per-site p-values in `analysis.md` §7 are uncorrected. A note was added.
+- **V-5 (docs fixed):** three dead citations removed from `README.md`.
+- **V-6 (charts fixed):** two rendering issues in the figures.
+- **Three omissions noted:** `test_llm_review.py` absent, `config.yaml` G7 fields
+  unclosed (`theme_bar: TBD`), `gitleaks` unrun. None blocks delivery; the first two are
+  recorded as accepted scope gaps.
 
 ## Technology
 

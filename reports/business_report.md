@@ -227,7 +227,7 @@ Nothing in that chain depends on the sentiment model, which failed its accuracy 
 the theme model, which is 44% reliable. It rests on the customer's own star rating, a
 hand-mapped department field, and your transaction counts.
 
-**The supporting steer (not a finding):** the comments often praise the human interactions but criticise the process (ie. themes like booking/service times/parts availability).
+**The supporting steer (not a finding):** the comments often praise the human interactions but criticise the process (i.e., themes like booking/service times/parts availability).
 If that holds when you read them, the useful interventions are
 operational — turnaround time, keeping customers informed, whether the job is right first time
 — rather than customer-service training for staff who are being thanked by name.
