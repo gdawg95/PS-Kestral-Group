@@ -113,9 +113,12 @@ Treat item 5 as "swept, not gitleaks-clean" until that passes.
 - [x] Export re-committed with 12 columns; sha256 matches `export/MANIFEST.md`
 - [x] `uv run pytest -q` green (328 passed, 2 skipped)
 - [ ] `make gitleaks` run, or item 5 accepted as a sweep
-- [ ] Re-run the history PII scan if commits were added after this file was written
-- [ ] Confirm `data/raw/`, `data/interim/` and `data/clean/` are absent from the published tree
-- [ ] Decide whether the four `archive/*` tags and the `w5-research` branch should go public too — they were scanned and are clean, but they hold superseded content and old verdict placeholders
+- [x] History PII scan re-run after rewrite (318 blobs, 73 commits). One hit: ruff
+  lint codes `BLE001`/`SLF001` in `scripts/scan_history_pii.py` match the plate
+  pattern — false positives (they are ruff rule names, documented in the script)
+- [x] `data/raw/`, `data/interim/` and `data/clean/` confirmed absent from the published tree
+- [ ] Decide whether the four `archive/*` tags should go public — they were scanned
+  and are clean, but hold superseded content and old verdict placeholders
 
 ## What a public reader loses, stated honestly
 
