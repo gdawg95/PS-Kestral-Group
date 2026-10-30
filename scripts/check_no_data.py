@@ -9,6 +9,12 @@ Allowed exceptions:
   reports/       profiles and reconciliation tables, written under the privacy rule
   tests/         small synthetic fixtures, never real feedback rows
   data/llm_cache/  de-identified model outputs, committed on purpose (PLAN.md section 6)
+  export/        the reviewer export of the clean dataset (D-064). This is real feedback,
+                 so the exception is narrower than it looks: `src/export.py` is the only
+                 thing that writes there, and it refuses to write until it has proved on
+                 that run's data that no email, phone, address, plate or person-shaped
+                 name survived redaction. A file dropped into export/ by hand carries no
+                 such proof, so check reports/ or the manifest before trusting one.
 
 Usage: check_no_data.py [staged file ...]   (pre-commit passes the file list)
 Exit 1 and name every offending path, so one commit attempt reports every problem.
@@ -22,7 +28,7 @@ DATA_SUFFIXES = {
     ".parquet", ".feather", ".pkl", ".pickle", ".db", ".sqlite", ".duckdb",
 }
 
-ALLOWED_PREFIXES = ("mappings/", "reports/", "tests/", "data/llm_cache/")
+ALLOWED_PREFIXES = ("mappings/", "reports/", "tests/", "data/llm_cache/", "export/")
 
 
 def offending(paths: list[str]) -> list[tuple[str, str]]:

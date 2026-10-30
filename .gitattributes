@@ -5,3 +5,9 @@
 *.xlsx binary
 *.parquet binary
 *.png binary
+
+# The reviewer export: stored verbatim, never line-ending translated. MANIFEST.md publishes
+# a sha256 per file, and a checkout that rewrote the newlines would make every one of them
+# wrong on the reviewer's machine - the checksum has to mean the same thing everywhere.
+export/feedback_clean.csv -text
+export/feedback_clean.json -text

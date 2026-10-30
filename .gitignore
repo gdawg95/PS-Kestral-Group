@@ -7,6 +7,12 @@ data/clean/
 *.csv
 !reports/**/*.csv
 
+# The reviewer export is the one exception: de-identified, audited before it is written,
+# and committed on purpose so reviewers can open the finished dataset without Python
+# (src/export.py). Deliverable #1 itself stays out of git.
+!export/*.csv
+!export/*.xlsx
+
 # Secrets and environments
 .env
 .venv/

@@ -1,0 +1,164 @@
+# The approved theme list. Closes D-023.
+#
+# Approved by the owner (gdawg95), 30 Oct 2026, in conversation, from the candidate clusters
+# in reports/theme_discovery.md and the evidence in reports/theme_proposal.md. Capped at 8 by
+# D-059.
+#
+# Provenance, because the technical report has to defend it:
+#   Six themes were DISCOVERED. KMeans at k=12 over UMAP-reduced MiniLM embeddings of all
+#   5,353 redacted comments, seed 42. KMeans rather than HDBSCAN because HDBSCAN cannot
+#   cluster this corpus - a min_cluster_size sweep returned either 84 micro-clusters or one
+#   cluster holding 87% of the data, since short service comments have no separated density
+#   peaks.
+#   Two themes were ADDED under D-023's "fixed + discovered mix": workmanship and
+#   explanation. Both are plainly present in the comments but neither separated at k=8 or
+#   k=12, so they are added from the business question with quoted evidence rather than
+#   asserted without it.
+#
+# A theme is a SUBJECT, not a complaint category. Each one below has positive and negative
+# comments in it deliberately: Wave 5 reports the negative RATE WITHIN each theme, which only
+# works if the theme itself carries no sentiment. A "bad service" theme would double-count
+# what the sentiment column already says.
+#
+# TWO FIELDS, TWO JOBS (revised 30 Oct 2026, ~01:50; names and descriptions unchanged):
+#   `description` is for people - it is what the reports quote and what the owner approved.
+#   `probes` are what get EMBEDDED for assignment, and they exist because the descriptions
+#   made poor embeddings. Assignment first ran on the descriptions alone and produced a
+#   compressed similarity scale (median 0.328) with two of ten decile spot-checks
+#   misassigned. Two causes, both in the wording:
+#     1. A 60-word description embeds to the centroid of everything it mentions, which sits
+#        far from any single 101-character comment. Short probes sit much closer.
+#     2. Descriptions borrowed other themes' consequences. Parts availability mentioned the
+#        customer "left without their vehicle", which pulled in "dreading losing the whole
+#        day without a car" - a Waiting comment.
+#   A comment's similarity to a theme is now the MAXIMUM over that theme's probes, not one
+#   score against one long description. Each probe is written in the register of the data and
+#   stays inside its own theme's subject. Changing any probe changes every assignment.
+
+version: 2
+
+themes:
+  - name: Staff manner
+    description: >-
+      How the staff treated the customer. Friendly, welcoming, helpful, patient, respectful,
+      a good bunch of people, happy to help. Or rude, dismissive, condescending, talked down
+      to, laughed at, made to feel stupid. The manner of the people, separate from the work
+      they did.
+    source: discovered (k=12 clusters 3 and 4, 1,043 comments)
+    probes:
+      - the staff were friendly and helpful
+      - everyone was welcoming and happy to help
+      - good bunch of people, easy to deal with
+      - the staff were rude and dismissive
+      - they talked down to me and made me feel stupid
+      - nobody at the counter seemed interested in helping
+
+  - name: Communication and updates
+    description: >-
+      Being kept informed while the car was in. Calls, texts and emails that came without
+      being asked for, or that never came. Having to ring to find out what was happening,
+      ringing two or three times, leaving messages nobody returned, promised callbacks that
+      did not happen, quotes that were meant to be emailed and were not.
+    source: discovered (k=12 cluster 0, 751 comments)
+    probes:
+      - they kept me updated without me having to ask
+      - texts and calls at every step of the job
+      - nobody called me back
+      - I had to ring three times to find out what was happening
+      - left messages and heard nothing
+      - the quote was never emailed through
+
+  - name: Pricing and billing
+    description: >-
+      What it cost and whether the bill matched what was agreed. Good value, reasonable
+      price, cheaper than expected, the invoice matched the quote. Or charged for work never
+      approved, a pile of extras nobody said yes to, the price changed without being told,
+      the bill came in higher than quoted.
+    source: discovered (k=12 cluster 1, 687 comments)
+    probes:
+      - the price was fair and good value
+      - the invoice matched the quote exactly
+      - cheaper than I expected
+      - charged for work I never approved
+      - the invoice had extras I did not agree to
+      - the final bill was higher than the quote
+
+  - name: Waiting and turnaround
+    description: >-
+      Time. How long the job took, how long the customer waited at the counter or for the
+      car, whether it was ready when promised. Long queues, waiting all day, waited ages,
+      half a Saturday gone, still waiting at 11:30. Or in and out quickly, back same day,
+      ready right on time.
+    source: discovered (k=12 cluster 2, 655 comments)
+    probes:
+      - the car was ready when they promised
+      - in and out quickly, back the same day
+      - faster than I expected
+      - waited ages for the car
+      - long queue at the counter
+      - the job took far longer than it should have
+
+  - name: Parts availability
+    description: >-
+      Whether the part was on hand. Work blocked or stretched out for weeks because a
+      component was not in stock, had to be ordered in, came from a warehouse interstate, or
+      was waiting on a truck. The customer left without their vehicle, catching buses, paying
+      taxi fares, or needing a hire car they could not afford.
+    source: discovered (k=12 cluster 5, 472 comments)
+    probes:
+      - the part was in stock and fitted straight away
+      - they had the part on hand
+      - the part was not in stock
+      - the part had to be ordered in from interstate
+      - still waiting weeks for a part to arrive
+      - they never have what I need on hand
+
+  - name: Booking
+    description: >-
+      Getting an appointment at all. Booking online or over the phone, how far out the next
+      available appointment was, three weeks to get in. Bookings that were lost, had no
+      record, or got bumped and rescheduled.
+    source: discovered (k=12 cluster 10, 196 comments)
+    probes:
+      - easy to book online
+      - got an appointment straight away
+      - three weeks to get a booking
+      - they had no record of my booking
+      - my appointment was bumped and rescheduled
+      - could not get in for weeks
+
+  - name: Workmanship and rework
+    description: >-
+      The quality of the work itself and whether the original fault was actually fixed. A
+      leak or a drip after the hose was replaced, the car still pulling to one side after the
+      brakes were done, a noise still there, the oil leak still there, the fuel gauge still
+      wrong, damage or marks left on the car. Having to bring it back for the same problem.
+    source: >-
+      added (D-023 mix). Did not separate at k=8 or k=12; clusters 6 and 9 mixed it with
+      pricing and turnaround. Added from the business question with quoted evidence.
+    probes:
+      - the job was done properly and the fault is gone
+      - fixed it right the first time
+      - the fault is still there after the repair
+      - there is a new leak since they worked on it
+      - the car still pulls to one side
+      - had to bring it back for the same problem
+      - they left marks on the car
+
+  - name: Explanation and transparency
+    description: >-
+      Whether the work and the invoice were explained in terms the customer understood. Being
+      shown the worn part, having the quote walked through line by line, told exactly what
+      was being replaced and why, explained without being made to feel dumb. Or left
+      guessing, never told what was wrong, nobody showing them anything.
+    source: >-
+      added (D-023 mix). Did not separate at k=8 or k=12; cluster 9's label suggested it but
+      its examples were pricing and turnaround. Added from the business question with quoted
+      evidence.
+    probes:
+      - they explained what was wrong in plain language
+      - showed me the worn part and why it needed replacing
+      - walked me through the invoice line by line
+      - nobody explained what they had done
+      - no idea what I was actually charged for
+      - they never told me what was wrong with it

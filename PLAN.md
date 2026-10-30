@@ -3,8 +3,15 @@
 **Owner:** gdawg95 (sole human contributor)
 **Repo:** https://github.com/gdawg95/PS-Kestral-Group (private until reviewers approve)
 **Code freeze:** Friday 30 Oct 2026, 3:00pm (then proofread and edit until COB)
-**Last updated:** Thursday 29 Oct 2026 · **Waves 1–3 complete, Wave 4 next.** Everything is
-on the `w1-wrapup` branch; nothing from Wave 2 or Wave 3 has reached `main` yet (gate G5).
+**Last updated:** Friday 30 Oct 2026, 13:40 · **Waves 1–4 complete. Wave 5 is the whole of
+what remains, and it has no code.** Waves 1–3 are reviewed and merged to `main` (gate G5);
+Wave 4 is on `w1-wrapup`, pushed but not reviewed or merged.
+
+**The two outstanding §2 non-negotiables are both Wave 5's: a trend, and a recommendation.**
+Wave 4's result is that the sentiment model **missed its pass mark** (κ 0.403 against the 0.60
+committed in D-055) and the pre-committed fallback applies — **the customer's star rating is
+the primary signal**, because it scored κ 0.460 on the same labels and beat the model (D-065).
+The brief for the remaining work is `agents/briefs/w5_analysis.md`.
 
 This is the single source of truth for the project. Every new conversation and every agent brief starts from this file and `DECISIONS.md`.
 
@@ -22,9 +29,9 @@ Turn 52 inconsistent dealership feedback spreadsheets (Oct 2025 – Sep 2026) in
 
 If time runs short, these are protected. Everything else can be cut.
 
-- [x] One final cleaned, de-identified dataset — `data/clean/feedback.parquet`, 7,150 rows (Wave 3)
+- [x] One final cleaned, de-identified dataset — `data/clean/feedback.parquet`, 7,150 rows (Wave 3), exported for reviewers as CSV, Excel and JSON in `export/` (D-064)
 - [ ] At least one trend identified (with evidence that it is real) — the evidence threshold is set and committed (D-052); the trend itself is Wave 5
-- [ ] Basic NLP analysis of customer comments (sentiment + themes) — Wave 4; both models verified to load and run on the laptop (`make nlp-check`)
+- [x] Basic NLP analysis of customer comments (sentiment + themes) — **done.** Sentiment on all 5,353 commented rows and all eight approved themes assigned; `data/clean/feedback_classified.parquet`. Not yet *evaluated* against the owner's labels, which is the rest of Wave 4
 - [ ] At least one recommendation for the business — Wave 5
 - [x] Technical report for the reviewers — `README.md`, drafted; its Wave 4 and 5 sections are outstanding
 
@@ -32,7 +39,8 @@ If time runs short, these are protected. Everything else can be cut.
 
 | # | Deliverable | Audience | Location |
 |---|---|---|---|
-| 1 | Clean dataset | Analysis pipeline | `data/clean/feedback_clean.parquet` (gitignored) |
+| 1 | Clean dataset | Analysis pipeline | `data/clean/feedback.parquet` (gitignored) |
+| 1b | The same dataset, for reading | Reviewers | `export/feedback_clean.{csv,xlsx,json}` + `export/MANIFEST.md`, committed. 12 columns, minimised for public release (D-064, D-067) |
 | 2 | Business report | Head of CX (non-technical) | `reports/business_report.md` |
 | 3 | Technical report | Reviewers | `README.md` |
 | 4 | Decisions log | Reviewers | `DECISIONS.md` |
@@ -97,6 +105,8 @@ PS-Kestral-Group/
 │   ├── raw/          # challenge pack, read-only, gitignored
 │   ├── interim/      # per-stage Parquet, gitignored
 │   ├── clean/        # final de-identified dataset, gitignored
+├── export/           # the same dataset as CSV/Excel/JSON for reviewers, committed
+│                  #   (12 columns; no lineage, month not day - D-067)
 │   └── llm_cache/    # de-identified model outputs, committed
 ├── mappings/columns.yaml
 ├── prompts/          # versioned prompt files
@@ -173,6 +183,26 @@ D-049 one Sales department, D-050 the mapping itself.
 | Evaluation | Compare outputs with your labels | Metrics + failure-case list |
 
 **Checkpoint 4 (you):** commit the pass mark *before* labelling · label the sample yourself, blind · approve model tags and prompt version before full runs · confirm only redacted text is sent to any model · read ~20 failure cases.
+
+**Where Wave 4 actually got to, as at 30 Oct 02:40.** What the plan above called four agents
+became one large one plus a scoped LLM step, and the route is recorded because two methods
+had to be replaced.
+
+| Agent | Status |
+|---|---|
+| Labelling prep | **Not started, and now unblocked.** It needed the pass mark (set, D-055) and a theme list (approved, D-023). 150 comments stratified ~50/50/50, per D-055 |
+| Classifier | **Done.** `src/classify.py`, 14 tests, `agents/reports/w4_classifier.md`. Sentiment on 5,353 rows; eight themes assigned; 7,150 rows in = 7,150 out |
+| LLM (optional) | **Pilot run, scope undecided.** No longer optional in purpose: it is the mitigation for a measured defect (D-063). D-011's timing pilot projects 1.89–2.49 h for all 1,887 disagreements against a 2 h cut-off, so `reports/llm_review.md` recommends 857. **D-024 is yours** |
+| Evaluation | **Blocked on your blind labels**, and it must be a separate agent (D-017) |
+
+Two methods in the plan above did not survive contact with the data, both recorded with their
+evidence: **BERTopic/HDBSCAN** could not cluster this corpus at any setting and was replaced
+by KMeans (D-061), and theme **assignment by one long description per theme** misassigned a
+comment at the median similarity and was replaced by max-pooled short probes (D-062).
+
+**Outstanding before Wave 5 can start:** the `unassigned` similarity floor (D-056), the LLM
+scope (D-024), approval of `agents/briefs/w4_llm.md`, and the 150 blind labels. Wave 5's value
+model additionally needs `reports/benchmarks.md` reviewed and D-025 set.
 
 ### Wave 5 — Friday morning: analysis and reports
 | Agent | Task |

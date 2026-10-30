@@ -1,0 +1,151 @@
+row,feedback_id,comment,sentiment,theme,notes
+1,F007102,"Friendly and helpful people, but I rang four times and was left on hold each time for ages. Call me on [PHONE].",n,4,both positive & negative sentiments
+2,F002452,"Dear Service Manager, I wish to report that the headlight alignment was not corrected as requested. At night the left beam still points into the trees.",n,7,
+3,F002903,"Ha, I expected the usual pushy sales pitch and a bill that made me cry. Instead I got a genuinely nice bloke called [STAFF] and a cheaper deal than I'd budgeted for. Rude of them, really.",p,3,sacrasm
+4,F006557,impressive how a dealership can have a whole showroom of new cars but not one air con hose.,n,0,
+5,F001074,"efficient in and out. if you want an update, be prepared to chase it yourself.",n,2,both positive & negative sentiments
+6,F000787,"Wow, what a well oiled machine. Only needed a quick look at Ridge and somehow I got a full day of sitting by the phone, a queue at the desk and a message that apparently went nowhere. Top stuff.",n,4,sarcasm
+7,F004614,"Honest opinion, the fix on my Altura Vista lasted a long weekend. The shudder at 60 is back.",n,7,
+8,F004069,"As a fleet manager I need to know where each vehicle is at. The team sent a progress update on every one of our vans, which saved me a heap of admin.",p,2,
+9,F002322,"Good on the staff, genuinely friendly. Bad on the repair, because it's still not right and I've lost another day of work.",n,7,both positive & negative sentiments
+10,F001167,"Friendly staff, no doubt. I did think it a bit cheeky to add a 'booking fee' on the bill when it was never mentioned.",n,3,both positive & negative sentiments
+11,F004460,Lovely welcome,p,1,
+12,F003034,Toilets not clean.,n,0,
+13,F000311,"Uni student, tight budget, told them my limit twice. Still got the loan-and-insurance spiel every visit. Emailed for a quote, crickets.",n,2,
+14,F000567,"Good people, really. Just keep the customer posted, that's all I ask.",n,2,both positive & negative sentiments
+15,F000332,"Booked in for 10, got seen at 11:15. Then another long wait for the car after that.",n,4,
+16,F000223,"my experience was frustrating purely because of the silence. i placed an order, was given a vague timeframe, and then heard nothing at all. when i phoned, the person on the line had no record of what i'd been told, and no one called me afterwards as they said they would.",n,4,
+17,F003686,"First car, first service, zero idea. Honestly thought I'd nod along and be lost, but [STAFF] went through what was done on my Ridge and what each bit of the paperwork meant before I signed anything. Really appreciate it.",p,8,
+18,F001211,"Super friendly staff but my message never got to the mechanic, had to repeat it all again.",n,7,both positive & negative sentiments
+19,F003690,"Told it'd be done by lunch [NAME] came and went, so did afternoon tea",n,4,
+20,F001846,"Twenty years I’ve brought my cars here and the price is still fair, which I can’t say for everywhere. The front counter crew always greet me like an old mate. (rego [REGO])",p,3,
+21,F001183,"Left a message with the front desk on Tuesday and heard nothing. Rang again Thursday, and apparently nobody had passed it on. Not a great look, honestly. Would it kill someone to send a quick text? (rego [REGO])",n,2,
+22,F006673,"Moved here from interstate and was nervous bying from afar, but [STAFF] kept sending me updates so I always knew what was happening. Really put my mind at ease.",p,2,
+23,F004430,Rang to book. Held for ages. Rang again. Held again. Call me on [PHONE].,n,4,
+24,F006354,"First car, nervous as. Everyone was lovely, nothing was too much trouble, and the GT cost less than mum and dad reckoned it would.",p,3,
+25,F003573,"Honestly, the lady at reception made my day. Big smile, remembered my name, asked about the Corsa. Small things but they count when you're skint and stressed.",p,1,
+26,F001801,"Skint uni student here and I was dreading walking in, but the team were so welcoming and the Arc came in under my budget. Stoked.",p,1,
+27,F001222,"Dealt with [STAFF] on the Altura Vista. Updates came through promptly whenever the finance or delivery status changed, and he was upfront and friendly throughout. No complaints at all.",p,8,
+28,F006058,Told me straight what the dealer delivery charge covers. Clear.,p,8,
+29,F006152,"I was prepared for a big bill and was glad it came in under the estimate That said, the issue with the power steering that I booked it in for returned within days, which was disappointing and means another trip in",n,7,both positive & negative sentiments
+30,F004528,"Rang twice. They keep telling me someone will get back to me. Nobody has, mate.",n,6,
+31,F003286,"Rang service desk and was on hold for ages, gave up and drove in instead.",n,6,
+32,F005258,"I wait for the part nearly three weeks Every time I telephone, they say they will find out and call me, but no call come I do not know if the part has arrived or not Please communicate with customer [NAME] me [EMAIL]",n,2,
+33,F002888,"Fantastic customer service from [STAFF], nothing was too much trouble. Part was on back-order though so my ute sat there over a week.",n,5,both positive & negative sentiments
+34,F000991,"[STAFF] was wonderful and went out of his way to help me, but I was left on hold for ages every time I rang. Gave up and drove in instead.",n,4,both positive & negative sentiments
+35,F004788,Oil cap was left sitting loose on the engine. Luckily I noticed it before driving far. Dread to think what could have happened.,n,7,
+36,F002765,"Prompt, regular updates throughout the day.",p,2,
+37,F005049,"Fast and on time, can't fault that Can fault the fact that my messages disappeared into the void Email me [EMAIL]",n,2,both positive & negative sentiments
+38,F001706,Sorry but the delay on the parts really let the whole thing down. Nohing else to say.,n,5,
+39,F004848,"Took my Terra in for a coolant leak, picked it up and the puddle was back in the driveway by the next morning. I called to let them know and was told [NAME] would ring me. That was over a week ago.",n,7,
+40,F005470,"Said that the job was meant to take two hours, ended up taking the whole day, and for what? Oil leak is still there and there's a scuff on the rear bumper that wasn't there before. Cheers for that. Call me on [PHONE].",n,7,
+41,F000442,"Everything lined up. Courtesy bus timing, handover, paperwork. Minimal effort required from the customer, which is the point. (rego [REGO])",p,4,
+42,F006514,I left a message with the service desk asking [STAFF] to call me. Still waiting a week later.,n,2,
+43,F001823,"Ute was promised by midday for a rego inspection. Still waiting at 3. Not on, mate. Call me on [PHONE].",n,4,
+44,F001732,"They said the quote would be emailed that day. It wasn't. I emailed to ask, no response. I rang, and was told it had been sent. It hadn't.",n,2,
+45,F004355,"If I'd known it would take two months to get bokoed in, I'd have taken the car somewhere else.",n,6,
+46,F002134,Price was way cheaper than I expected for a full service on the ute. Shame the bloke on the front desk acted like I was wasting his time.,n,1,both positive & negative sentiments
+47,F003904,"Honestly the nicest bunch I've dealt with. Reception, the advisor, even the bloke who brought my car round all had a smile and a chat.",p,1,
+48,F000940,Quick and cheap. Can't ask for more.,p,3,
+49,F006415,Sat there ages. Then charged extra.,n,3,
+50,F003320,"Reception was warm, and every person I spoke to seemed glad to help. [NAME] in particular went out of their way to make the visit pleasant. I'd happily say the courtesy extended to everyone, from the front desk through to the sales floor, which is not something I can say about other dealerships I have visited. (rego [REGO])",p,1,
+51,F006068,"Getting my first car was way easier than I thought it'd be, I was dreading it Wish [STAFF] had rung me back like he said tho",n,2,both positive & negative sentiments
+52,F000313,Super simple from start to finish. Would not have thought it possible with a toddler on my hip.,p,0,
+53,F000398,"Very good updates, but the thing I came in for is still doing it. Pretty disappointing mate.",n,7,both positive & negative sentiments
+54,F006004,"Was told no extra costs. Then got hit with a $330 ""compliance"" fee.",n,3,
+55,F005686,"[NAME] - Reasonable price, good explanation.",p,8,
+56,F002589,So the 'courtesy' wait was supposed to be an hour. I've now been here for three and the kids have eaten eevry snack in my bag.,n,4,
+57,F002868,Spent all up about six weeks getting a tail light assembly. A tail light! The car was legal-ish at best the whole time.,n,7,
+58,F004244,Please can you hold a few common prts for the Kodiak Ridge? I've been waiting a long time for a simple seal.,n,5,
+59,F001680,Told them I needed the car back by Thursday for work. Message obviously never got to the workshop. No one let me know it wouldn't be rady either.,n,2,
+60,F000748,"Staff very clear in explain about the part number and the price, I understand everything. But the part is not here, must wait long time from overseas. Very slow. Call me on [PHONE].",n,5,both positive & negative sentiments
+61,F003786,"Fast, clear, done.",p,4,
+62,F000402,"No complaints abuot how easy the purchase was, everything ready when we arrived. The sales pitch for extras in the finance room was too aggressive though, felt like I couldn't get out of there.",p,4,both positive & negative sentiments
+63,F006944,"New to town, so I had nothing to compare it to, but a $60 'consumables' line on a basic service seems cheeky.",n,3,
+64,F002575,"I DON'T UNDERSTAND CARS, AND I THINK THEY KNEW IT. THE MORE QUESTIONS I ASKED, THE MORE THINGS THEY TRIED TO SELL ME.",n,3,
+65,F000356,"having a pram, a toddler and a six year old in tow, i was grateful [STAFF] texted me when the car was ready so i could leave the waiting room sooner. it was cramped, hot and the floor was sticky.",u,2,both positive & negative sentiments
+66,F002377,Ghosted.,n,2,
+67,F002300,"Price was cheaper than I expected for the brake pads, but the rotors were on back-order for over two weeks.",n,5,both positive & negative sentiments
+68,F006104,"Warm, welcoming and genuinely happy to help. That's all I wanted to say.",p,1,
+69,F006887,Fully booked for weeks and no wait list option offered. Not helpful at all.,n,6,
+70,F001484,"Friendly team, shame they had to chase a part for days before it showed up.",n,5,both positive & negative sentiments
+71,F003567,"Quick one from the car park. Staff were great, [STAFF] texted as soon as anything moved.",p,2,
+72,F003936,"Honestly gutted. The paint touch-up after the repair doesn't match, it's a different shade and looks like a patch job.",n,7,
+73,F002449,"Nice and easy, just how I like it.",p,0,
+74,F000583,"I've been burned before by pushy types, so it was refreshing that [STAFF] was so approachable and kind. Happy to be back.",p,1,
+75,F001580,"good on ya [STAFF], lovely to deal with. not so good that i had to ring four times to find out where things were at. Call me on [PHONE].",n,2,both positive & negative sentiments
+76,F002397,"Fast and efficient with the kids waiting in the lounge, no meltdowns. But the car came back with a new rattle in the dash that wasn't there before.",n,7,both positive & negative sentiments
+77,F000211,"The explanation of how the new fuel filter is directional, and the little arrow I'd never have noticed, saved me a headache.",p,8,
+78,F001127,"Very first time I have car service and they tell me they are waiting for part from other state. I do not know how long, they say maybe ten days or more. Why they do not have it already?",n,5,
+79,F002722,I called [STAFF] directly and got voicemail each time. Left four messages. Not one returned.,n,2,
+80,F006777,"Service advisor explained the warranty paperwork very clear and slow, I understand all. But the problem with the gearbox is not repair, it is shaking again when I drive to work. Call me on [PHONE].",n,7,both positive & negative sentiments
+81,F006931,The salespeople were lovely to me and listened carefully. I am very grateful for the help of [STAFF].,p,1,
+82,F001008,"wow, a 'courtesy check' that cost $60. courtesy must mean something different at your place.",n,3,
+83,F000810,Declined the paint protection and was then told I was 'taking a big risk' with my new car. Bit rich.,n,1,
+84,F007101,"Everybody was so kind and patient with me, thank you But the price at the end was higher than what the lady told me on the phone I do not understand why (rego [REGO])",n,3,both positive & negative sentiments
+85,F001834,"Everyone was polite and made me feel welcome, being my first car and all. Unfortunately the air con still blows warm after being ’fixed’. Pretty disappointed.",n,7,both positive & negative sentiments
+86,F006770,Left a message with reception for [STAFF] and it obviously went in the bin Rang back the next day and they had no idea who I was,n,6,
+87,F005400,Nobody made a fuss when my toddler tipped over the brochure stand. Just laughed and helped me pick it up.,p,0,
+88,F003823,Took so long I msised my appointment afterwards.,n,4,
+89,F004291,No idea what's happening with my car. Nobody tells me anything. I ask and they say wait. I wait.,n,8,
+90,F000103,"Honestly the way [STAFF] broke down what each button and dial on the GT does made me feel like I could actually drive it home confident. Shame the contract total had crept up by the time I got to sign, with a couple of lines I couldn't explain.",n,3,both positive & negative sentiments
+91,F000901,"Price was very fair for the work done, thank you. But when I ask question the man at desk say he is busy and walk away. Not polite to customer.",n,1,both positive & negative sentiments
+92,F002808,"having only just moved to town, i was after a place that felt welcoming. this is it, the people are great.",p,1,
+93,F003283,Fast job. Final price was well over what I was quoted though.,n,3,both positive & negative sentiments
+94,F003524,"I would like to commend the service team for their courteous and genuinely welcoming manner. Each person I encountered, from the desk through to the workshop, was approachable and happy to assist. It is a rare thing these days and I wanted to put it in writing.",p,1,
+95,F003333,Came in just to have a look around and was treated like a valued customer anyway. Staff were friendly and went out of their way to help.,p,1,
+96,F003479,"explained the part really well but i had to chase them twice for an update on my order, nobody rang",n,2,both positive & negative sentiments
+97,F000390,Booking system lost my appointment. Car still rattles.,n,6,
+98,F001229,Queue at reception out the door by 7:45am. Thought I'd beat the rush. Nope.,u,4,
+99,F006833,turnaround was lightning. can't believe it.,p,4,
+100,F004687,"Efficient from start to finish, and [STAFF] explained the diagnostic findings on the Altura Vista in detail, including the sensor readings. Rare to get that level of clarity.",p,8,
+101,F005168,"Driveshaft boot, ordered, delayed, ordered again, delayed again.",n,5,
+102,F000405,"They didn't have my tyre size or the TPMS sensors, so I had to come back another day.",n,5,
+103,F004318,"Dear Parts Team, I wish to register my concern regarding the extended delay on a water pump for my Vista. I was advised ten business days and it has now exceeded five weeks.",n,5,
+104,F006344,staff lovely. car dirtier than when i left it.,n,7,both positive & negative sentiments
+105,F000562,No bother whatsoever.,p,0,
+106,F005123,"Ordered a part for the Altura Vista and was quoted one price over the phone, then the invoice came in nearly $90 higher with a 'freight surcharge' nobody mentioned. I rang twice and left messages with the parts counter, and no one ever called me back. Had to drive in and chase it myself just to get an explanation.",n,2,
+107,F000730,Friendly as. Nice one,p,1,
+108,F002899,i appreciated being told what each of the dashboard symbols meant on the corsa. wasn't expecting a mini lesson but it was great.,p,8,
+109,F005541,"Rang 3x, left msg w [STAFF] each time, zero callback. Typing this in the school pickup line, still nothing.",n,2,
+110,F006988,"Wasn't gouged on the price, good on ya. But the turbo hose was out of sock and took forever to come in.",n,5,both positive & negative sentiments
+111,F002281,"Thirty years I've bought my cars from this group and the paperwork has never been a bother, this time included. Pity [STAFF] kept steering me towards their finance when I'd plainly said I was happy to pay it outright.",n,3,both positive & negative sentiments
+112,F002632,"very efficient, thank you. the car is not fixed.",n,7,both positive & negative sentiments
+113,F001591,"the ladies at the front desk were so helpful and welcoming, thank you. i left two messages for the manager and neither was ever returned. very disappointing.",n,2,both positive & negative sentiments
+114,F006113,"Everyone was so nice to us, very helpful. The process it was easy, we did not need to worry about anything.",p,8,
+115,F000240,"I'd like to describe my experience in some detail. I booked the car in for a transmission fluid leak, and was assured the seal had been replaced. Within a week I was topping up fluid and noticed the same puddle on the driveway. When I returned, [STAFF] could only offer another inspection. I would expect the repair to hold for longer than seven days.",n,7,
+116,F000463,staff were lovely with my little ones and with me. wish all places were like this.,p,1,
+117,F001673,"Staff were great, bill was not. Paid more than quoted.",n,3,both positive & negative sentiments
+118,F003216,Said the team was fantastic and friendly. Made a first-time buyer feel comfortable.,p,1,
+119,F005293,Been left in the dark the whole way through. Had to chase for every little thing. Call me on [PHONE].,n,2,
+120,F004371,Invoice had labour charged twice. Also the check engine light came back on the same afternoon.,n,7,
+121,F000378,Tried the new booking page four times. Nothing. Just ring me please.,n,6,
+122,F007100,"Three phone calls, two emails, no response. Unreal.",n,6,
+123,F001143,Cheers for the clear run-down on the Veyra S4. Pity about the queue at the counter.,n,4,both positive & negative sentiments
+124,F004566,"pensioner here, and bus home is only every hour. car late by two huors meant i missed the connection and had to wait again.",n,4,
+125,F001847,"Student here, skint. Was told roughly $200 and it ended up way over that. Sent two emails and a voicemail asking what happened and heard nothing back.",n,3,
+126,F005344,"[STAFF] was an absolute gem when we came in, couldn't do enough for us. Rang the following week about the Altura Terra and got told someone would ring back. Still waiting, mate. Call me on [PHONE].",n,2,both positive & negative sentiments
+127,F003694,"From one old timer to the young folk behind the desk: you were patient, kind and a real credit to yourselves.",p,1,
+128,F004684,Haven't lived here long so wasn't sure what to expect. Got greeted like an old mate. Bloody ripper.,p,1,
+129,F003203,"Cust said she put in an enquiry online, then sent a message, then called, and no one replied to any of them. Doesn't understand why it's so hard to get an answer when she's trying to hand over money. Reckons she's no idea what's happening with the finance part because nobody explains it.",n,2,
+130,F005630,[NAME] - Cust has been bringing cars here for twenty-odd years and has never had to wait this long for a bit of rubber hose. Said it's just not good enough and expected better.,n,5,
+131,F007068,Quick service. Was in and out faster than I expected.,p,4,
+132,F002565,"Each text was short and to the point, which is exactly how I like it. Thanks [STAFF].",p,2,
+133,F003441,"Bought my first car three months ago so I don't know the form, but a whole day for the EV seems a lot. Then the squeal from the front wheels was back by Monday.",n,4,
+134,F003293,"Counter bloke talked me through the invoice line by line, which I rate. Four trucks in the fleet need the same brake pads and they had two sets. Now we're juggling jobs till the rest turn up.",n,5,both positive & negative sentiments
+135,F003492,"THE WHOLE EXPERIENCE FELT LIKE THEY WERE DOING ME A FAVOUR BY LETTING ME IN THE DOOR. SNOBBY, DISMISSIVE AND JUST PLAIN UNHELPFUL.",n,1,
+136,F006698,Explained well. Waited ages.,n,4,both positive & negative sentiments
+137,F005019,"Reckon it was about as painless as buying a car can get. Fair dinkum, I kept checking my pockets in case I'd missed a step.",p,0,
+138,F003817,Four utes on the road and I can't afford any sitting around waiting on bits. Filters for the lot were boxed and ready within the hour.,p,5,
+139,F006903,Good on them for explaining the invoice properly. Shame about the oil stains on my carpet.,n,7,both positive & negative sentiments
+140,F005549,Service done same day as promised. Said that's all they ask.,p,4,
+141,F006129,"Sarcastic as it sounds, great job at being fast. Shame the phone only works one way in your service department.",n,6,both positive & negative sentiments
+142,F004598,"The vehicle was done within the time quoted, which for our work ute is important. However I had to chase them twice for an update and no one called back. (rego [REGO])",n,2,both positive & negative sentiments
+143,F006479,"Not a word of jargon. Was told what happened, what was fixed, what it means for me.",p,8,
+144,F005953,"I didn't need to google anything afterwards, which is a first. Everything about the work was explained at the counter.",p,8,
+145,F000380,Total price differed from the written estimate. Kindly review the invoice and provide an itemised explanation for the variance of $162. I would appreciate a reply in writing.,u,3,
+146,F006979,"Service was prompt, the Ridge was ready at the time they said. Can't say I'm thrilled that I got no call back after leaving two messages.",n,2,both positive & negative sentiments
+147,F006839,I am pleased to reoprt that the procedure was orderly and uncomplicated throughout. I would not hesitate to use the same process again.,p,8,
+148,F006909,"I was told 2 hours. It was almost 6. No call, no text, nothing, I had to go and ask in person and then stand there while they looked for someone who knew. (rego [REGO])",n,2,
+149,F006045,"I was given a very clear explanation of the part and the warranty paperwork, for which I am grateful. Unfortunately, my enquiries by telephone were not returned and I was obliged to attend in person to find out where my order was up to.",n,2,both positive & negative sentiments
+150,F002944,Not usually one to write these but [STAFF] was just really nice to deal with. That's it.,p,1,

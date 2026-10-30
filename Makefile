@@ -5,7 +5,7 @@
 PY := uv run python
 PYTEST := uv run pytest
 
-.PHONY: all ingest validate classify analyse figures test lint hooks nlp-check gitleaks clean
+.PHONY: all ingest validate classify analyse figures export test lint hooks nlp-check scan-history gitleaks clean
 
 all: ingest validate classify analyse figures
 
@@ -20,6 +20,9 @@ classify:          ## sentiment + theme assignment, cached (Wave 4). FRESH=1 re-
 
 analyse:           ## drivers, trend, coverage, value model (Wave 5)
 	$(PY) -m src.analyse
+
+export:            ## clean dataset -> export/ as CSV, Excel and JSON for reviewers
+	$(PY) -m src.export
 
 figures:           ## charts for both reports (Wave 5)
 	$(PY) -m src.figures
@@ -38,6 +41,9 @@ hooks:             ## install the pre-commit hooks into .git/hooks
 
 nlp-check:         ## can the sentiment and embedding models load here? (laptop only)
 	$(PY) scripts/check_nlp_env.py
+
+scan-history:      ## PII scan of EVERY blob in all commits, branches and tags (pre-public)
+	$(PY) -I scripts/scan_history_pii.py
 
 gitleaks:          ## pre-public secret scan of full history (D-015); needs gitleaks on PATH
 	gitleaks detect --source . --log-opts="--all" --redact

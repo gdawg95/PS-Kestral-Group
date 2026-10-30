@@ -366,7 +366,7 @@ Source: `agents/reports/w1_profilers.md` (15 findings). Wave 2 ingestion applies
   D-034 approved the file → dealer code map by hand, and no free-text dealership column
   survives ingestion (D-003), so there are no strings to score. Leaving it as `TBD` would
   have read as an unresolved threshold for the rest of the project.
-- **Still `TBD`:** `nlp_pass_mark` only (D-022, Wave 4).
+- **Still `TBD`:** `nlp_pass_mark` only (D-022, Wave 4 — set later the same day, see D-055).
 
 ### D-053 · Checkpoint 3: the 16 corrected and imputed dates are approved · Decided · 29 Oct 2026
 - **Owner's words:** "the 16 date rows - i approve the changes."
@@ -475,6 +475,332 @@ Source: `agents/reports/w1_profilers.md` (15 findings). Wave 2 ingestion applies
 
 ## Outputs
 
+### D-055 · `thresholds.nlp_pass_mark` is set: Cohen's κ ≥ 0.60 on a 150-comment stratified sample · Decided · 29 Oct 2026
+- **Owner's words:** "Set κ ≥ 0.60".
+- **Closes D-022,** on the evidence in `reports/nlp_pass_mark_evidence.md` rather than ahead
+  of it (gate G7). Committed before any evaluation result exists, and before the
+  hand-labelling that would produce one.
+- **The rule:**
+  | Setting | Value |
+  |---|---|
+  | `metric` | `cohens_kappa` — chance-corrected agreement, not raw agreement |
+  | `sentiment_min_kappa` | 0.60, on three-class sentiment (negative / neutral / positive) |
+  | `sample_size` | 150 comments |
+  | `sample_stratified` | `true` — roughly 50 / 50 / 50 by score class, weighted back to the true distribution for any headline figure |
+  | `theme_bar` | `TBD` — the share of theme assignments judged defensible, set once the theme list is fixed (D-023) |
+  | `fallback` | `score_only` — if κ < 0.60, D-004's rating signal is primary and sentiment is reported as a method comparison with its κ stated |
+- **This supersedes the default proposed in `agents/briefs/w3_validate.md` Q4** — "sentiment
+  agreement ≥ 80% on a 100-comment hand-labelled sample, with the fallback being rule-based
+  sentiment only". That default was written before the baseline evidence existed, and the
+  evidence the same agent then produced argues against it on both counts.
+  - **The metric.** The commented rows are 59.3% positive, so a model that answers
+    "positive" to every comment scores 59.3% raw agreement. An 80% bar therefore sits only
+    21 points above a model that does not read the text, and can be cleared while getting
+    the negative class — the entire business question — badly wrong. Chance agreement on
+    these marginals is 0.447, so 80% raw agreement corresponds to κ ≈ 0.64: a κ floor of
+    0.60 is very nearly the same bar for a model that genuinely works, and it is what fails
+    the always-positive model, which scores κ = 0.
+  - **The sample size.** At 100 comments the 95% confidence half-width on an agreement
+    estimate near 80% is ±7.8pp, so a 100-comment sample cannot distinguish 80% from 72%
+    — the ruler is wider than the margin being judged. 150 narrows it to ±6.4pp. Drawn at
+    random, 100 comments also yield only about 13 neutral and 28 negative examples, so both
+    minority classes would be measured off a handful of rows. Stratifying is what makes the
+    negative class measurable.
+- **Why there is no theme bar yet.** D-022 mentions a theme F1. A credible per-theme F1
+  across roughly 8 themes is not available from 150 comments — some themes would have
+  three examples. The bar that a sample this size can defend is the share of assigned
+  themes judged defensible on the same comments, and that cannot be set before the theme
+  list exists (D-023). A real theme F1 needs its own sample, sized after theme discovery,
+  and is a candidate for the cut list.
+- **What this does not change:** the owner still labels the sample blind to model output,
+  and the agent that produces the classification is not the one that grades it (D-017).
+
+### D-056 · The `unassigned` similarity floor is set from the observed distribution, not chosen in advance · Decided · 29 Oct 2026
+- **Owner's answer to `agents/briefs/w4_classifier.md` Q1:** set it after assignment.
+- **The decision.** The classifier assigns every comment to its nearest approved theme by
+  cosine similarity and records that similarity. The floor below which a comment becomes
+  `unassigned` is set by the owner *after* seeing the similarity distribution with example
+  comments at each decile, and committed to `config.yaml` before any Wave 5 number uses it.
+- **Why not a number now.** Cosine values depend on the embedding model and on how the theme
+  descriptions in `mappings/themes.yaml` are worded — and neither is fixed until the owner
+  approves the theme list. A floor chosen blind could put anywhere between none and 40% of
+  comments into `unassigned`, and which it was would not be knowable until it ran.
+- **Why this does not breach gate G7.** G7 stops a bar being moved *after seeing how the
+  model scored* — it protects the verdict. The similarity distribution is a property of the
+  comment text and the theme wording, not a result: no negative rate, driver count or
+  recommendation exists or changes while it is inspected. This is the same move D-052 made
+  for `trend_evidence`, which derived 0.5 stars from the measured SD of 1.44 in
+  `reports/trend_evidence.md` and was still committed before any trend result existed.
+- **Closed 30 Oct 2026 — see D-066.** The owner's 150 blind labels were used to test the
+  mechanism and it does not separate the comments they rejected from the ones they kept, so
+  the floor is retired rather than set.
+- **Audit hardening.** The distribution is reviewed with comment text visible but with no
+  dealership or theme-count breakdown, so the floor cannot be influenced by which site it
+  would flatter.
+
+### D-057 · Rows without a comment carry null sentiment, never "neutral" · Decided · 29 Oct 2026
+- **Owner's answer to `agents/briefs/w4_classifier.md` Q2:** null.
+- **The evidence.** 1,797 of the 7,150 clean rows have no comment. Their ratings are not
+  neutral — they are overwhelmingly positive:
+
+  | Rating | No comment | Has comment |
+  |---|---:|---:|
+  | 1 | 3.7% | 16.9% |
+  | 2 | 2.2% | 11.2% |
+  | 3 | 5.7% | 12.6% |
+  | 4 | 27.0% | 19.9% |
+  | 5 | 61.4% | 39.3% |
+
+  Of the 1,797: **105 negative (1–2), 103 neutral (3), 1,589 positive (4–5)**. Labelling
+  them all "neutral" would mislabel **1,694 of 1,797 — 94.3%** — almost entirely by
+  recoding satisfied customers as indifferent ones, and would inject 1,589 invented
+  neutrals into every sentiment total and every theme denominator.
+- **Nothing is lost by null.** D-004 already makes the rating the minimum signal precisely
+  because many customers leave no comment. The 105 negative-by-rating rows still count as
+  negative feedback; they simply carry no *sentiment* label, because there is no text to
+  have a sentiment about.
+- 71 of the 1,797 are the Toowoomba summary rows that have no comment by design (D-032 #1).
+
+### D-058 · Every negative rate states its denominator · Decided · 29 Oct 2026
+- **Follows from D-057's evidence rather than from a question of its own.** Recorded
+  separately because it is a Wave 5 reporting rule, and Wave 5's brief will cite it.
+- **The finding.** Commentless rows average **4.40** on the 1–5 scale against **3.54** for
+  commented rows — a gap of 0.86. Happy customers tick 5 and leave; unhappy ones write.
+  The commented subset is therefore **not representative** of the feedback population.
+- **The consequence.** Negative rate across commented rows is **28.1%**; across all 7,150
+  rows by rating it is roughly **22.5%** (1,609 rows). A report that says "28% of feedback
+  is negative" without qualification overstates it by 5.6 points, by silently excluding the
+  group that is overwhelmingly satisfied.
+- **The rule.** Every negative-rate figure in either report names its denominator. Theme
+  and sentiment rates are necessarily over the 5,353 commented rows; dealership and
+  department rates under D-004 are over all 7,150. The two are never compared without
+  saying so.
+
+### D-059 · The theme list is capped at 8 · Decided · 29 Oct 2026
+- **Owner's words:** "yes, pls cap to 8 themes, I think that will capture most of the data &
+  dealership sites into a manageable & reportable amount."
+- **Measured against the project's own bar** — `trend_evidence.min_month_responses: 20`
+  (D-052), reused here so two parts of the project do not use different ideas of "enough":
+
+  | Themes | Average dealer × theme cell | Dealerships clearing 20 |
+  |---:|---:|---:|
+  | 8 | 27.9 | **19 of 24** |
+  | 10 | 22.3 | 17 of 24 |
+  | 12 | 18.6 | 8 of 24 |
+
+  There is a cliff between 10 and 12. These figures are also **optimistic**: they assume
+  themes split evenly, and real theme distributions are skewed, so the smaller themes' cells
+  will be thinner than the table suggests.
+- **The five dealerships that do not clear the bar at 8 themes are exactly D-052's five
+  thin sites** — VIC09 (36 commented rows), QLD05 (37), NSW07 (94), VIC08 (103), QLD07
+  (156). Two independent measures, month volume and comment volume, single out the same five
+  sites, which is corroboration rather than coincidence.
+- **Constrains D-023, does not close it.** The theme *names* remain the owner's to set after
+  discovery; this fixes the size of the list, not its content. Cut-list item 8 already made
+  themes beyond roughly 8 cuttable.
+
+### D-060 · Wave 5's drivers cut is rescoped from three-way to two-way · Decided · 29 Oct 2026
+- **This departs from PLAN.md section 8**, which promises "negative rate by theme ×
+  department × dealership". Recorded now, from Wave 4's cell arithmetic, rather than
+  discovered mid-analysis on the Friday.
+- **Why the three-way cut is not available.** 8 themes × 72 department-dealership cells is
+  576 cells for 5,353 comments: **9.3 comments per cell** before any skew. 15 of those 72
+  department × dealership cells already hold fewer than 20 comments before themes enter at
+  all.
+  - **Parts** has 508 commented rows in total; across 8 themes and 24 dealerships that is
+    about 2.6 per cell. Parts can carry a theme breakdown nationally, never per dealership.
+  - **VIC09** (36 commented rows) and **QLD05** (37) cannot support a theme split at all —
+    4 to 5 comments per theme.
+- **The rescope.** Theme × department nationally; theme × dealership for the 19 sites whose
+  average cell clears 20; the five thin sites at department level with a footnote —
+  consistent with D-052 already putting those same five on a quarterly basis for trends.
+- **What is not cut:** the business question. Drivers of negative feedback by theme, and by
+  department, are both still answered. What is dropped is the per-dealership-per-theme cell
+  that the data cannot populate.
+
+### D-061 · KMeans, not HDBSCAN, for theme discovery · Decided · 30 Oct 2026
+- **Raised by the owner,** who asked whether KMeans or GMM would be an easier fit. The
+  orchestrator predicted neither would help and was wrong; the test is below.
+- **The problem.** HDBSCAN cannot cluster this corpus. A `min_cluster_size` sweep over all
+  5,353 redacted comments:
+
+  | min_size | clusters | outliers | largest cluster |
+  |---:|---:|---:|---:|
+  | 10 | 84 | 27.3% | 533 |
+  | 15 | 42 | 20.0% | 836 |
+  | 20–30 | 7 | 0.0% | **4,649** |
+  | 40 | 5 | 1.7% | 4,632 |
+  | 89 | 2 | 1.0% | 4,862 |
+
+  Either 84 micro-clusters or a single cluster holding 87% of the data. BERTopic's own topic
+  reduction (over-cluster at 15, merge to 10) did not fix it either: the merged result still
+  had one cluster of 3,191 comments, 60% of the corpus.
+- **Why it fails.** HDBSCAN looks for separated density peaks. Comments averaging 101
+  characters about a service visit do not have them — what varies most in the embedding space
+  is which car the customer drives and how happy they are, not which CX driver they are
+  describing. Two of the k=8 clusters were pure artefacts: one of short generic praise, and
+  one grouped on vehicle model names (D-054's `altura`, `corsa`, `vista`, `terra`).
+- **The decision.** KMeans at k=12 over the same UMAP-reduced MiniLM embeddings, seed 42.
+  A forced partition cuts along the dominant variance directions, and those *do* include
+  experience: staff manner, communication, waiting, pricing, parts and booking all came back
+  as coherent groups, and booking separated cleanly at k=12 where it had not at k=8. GMM at
+  k=8 gave the same shape but muddier groups — one mixed "reasonable quote", "LONG QUEUE AT
+  THE COUNTER" and "Waited ages. No parts." — so KMeans was kept for being simpler and
+  cleaner. HDBSCAN stays reachable via `--kmeans-k 0`, so the failure is reproducible.
+- **The cost, stated plainly.** KMeans cannot refuse a comment, so it reports 0% outliers *by
+  construction*. That is a property of the algorithm and not evidence of fit. HDBSCAN's
+  20–27% outlier rate was it declining to force poorly-fitting comments anywhere, which was
+  information; KMeans discards it. The `unassigned` similarity floor (D-056) therefore does
+  more work, not less.
+- **A finding worth keeping:** c-TF-IDF top terms were misleading on this corpus three times
+  in one night — a coherent "chasing for a status update" cluster labelled "ready, ask, hold,
+  car", and a parts-availability cluster labelled "car, explained, paperwork, finance".
+  Themes must be named from example comments, never from top terms. The discovery report
+  carries five examples per cluster for that reason.
+
+### D-062 · Theme assignment matches short probes, max-pooled, not one long description · Decided · 30 Oct 2026
+- **The first attempt and its measured failure.** Assignment embedded one 50–80 word
+  description per theme. The similarity scale came out compressed — median 0.328, p90 0.475 —
+  and two of ten decile spot-checks were misassigned, **one of them at the median**, so no
+  floor could have caught it.
+- **Two causes, both in the wording rather than the model:**
+  1. A 60-word description embeds to the centroid of everything it mentions, which sits far
+     from any single 101-character comment.
+  2. The descriptions borrowed each other's consequences. Parts availability mentioned the
+     customer "left without their vehicle", which attracted *"I was dreading losing the whole
+     day without a car"* — a Waiting comment.
+- **The decision.** Each theme carries 6–7 short probe phrases in the register of the data,
+  each staying inside its own theme's subject, and a comment's score for a theme is the
+  **maximum** over that theme's probes rather than one score against one description.
+- **Result:** median similarity 0.328 → **0.424**, p90 0.475 → **0.582**, max 0.712 →
+  **0.924**. Nine of ten decile spot-checks correct, with the single remaining error at p0 —
+  the bottom of the distribution, where the floor removes it. Errors concentrating at low
+  similarity is the signature of a score that means something. Theme volumes also rebalanced
+  sensibly: Workmanship 200 → 454 and Explanation 234 → 398, so the two hand-added themes
+  carry real weight instead of scraps.
+- **What did not change:** the owner's eight theme names and their descriptions. `description`
+  remains the human-readable text the reports quote; `probes` is a separate field that does
+  the embedding. D-023 is unaffected.
+
+### D-063 · The sentiment model fails on sarcasm and Australian idiom; the LLM is the mitigation · Decided · 30 Oct 2026
+- **Owner's words:** "Route to the LLM." The owner raised sarcasm and colloquialism as a
+  hypothesis before any evidence existed for it, and the evidence then confirmed it.
+- **The defect, measured.** Of the eight pilot comments where the deterministic sentiment and
+  the customer's rating were *opposite*, **all eight were sarcasm or Australian idiom**, and
+  the model was confident while wrong:
+  - *"Lovely to see the tradition continues: arrive at 7:30, wait till lunch..."* → positive, 0.83
+  - *"Oh brilliant, another day of silence. I love guessing whether my car is finished"* → positive, 0.49
+  - *"whacked it on the card and it barely registered. bargain."* → negative, 0.85
+  - *"Well, would you look at that, a dealer who doesn't take me for a mug."* → negative, 0.70
+- **Exposure, not error rate:** 812 of 5,353 comments (15.2%) carry Australian slang markers.
+  Most classify correctly — *"Bloody good bunch of blokes"* is read as praise.
+- **What is NOT the defect.** The 40 of 66 rating-3 comments the model labelled negative are
+  *not* errors. Read directly, they are plain complaints carrying a 3/5 rating — *"Waited and
+  waited. Staff rude."*, *"dirty toilets, no parking, car not ready. typical."* The model is
+  right there and the **rating** is the weak signal, which is exactly why D-055 set the pass
+  mark against the owner's blind labels and not against the rating. On the full corpus the
+  model is also *conservative*, not optimistic: it calls 660 fewer positives than the ratings
+  do and 523 more neutrals, and its single largest error cell is 781 positive→neutral.
+- **The decision.** A local LLM (`qwen2.5:3b`, prompt `sentiment_v1`) gives a third opinion on
+  comments where the sentiment model and the rating disagree. It **annotates only** — it does
+  not overwrite `sentiment_label`, so Wave 5's headline numbers stay reproducible by a
+  reviewer who never starts Ollama. The LLM's value is the *measurement* of how wrong the
+  deterministic labels are on ironic text: a limitation the technical report can state with a
+  number rather than a hedge.
+- **Scope is D-024 and still open.** The pilot projects 1.89–2.49 hours for all 1,887
+  disagreements against D-011's 2-hour cut-off. `reports/llm_review.md` recommends 857
+  comments (the 350 polarity flips plus the 507 where the rating is neutral) at 0.86 hours.
+- **Fallback if the LLM is cut** (PLAN.md §9 requires one in advance): report the sarcasm
+  weakness as a measured limitation in both reports, citing the eight cases and the 15.2%
+  slang exposure. The defect is documented either way; only the mitigation is optional.
+
+### D-065 · The sentiment model misses the pass mark; D-055's committed fallback applies · Decided · 30 Oct 2026
+- **The bar was not moved.** D-055 set κ ≥ 0.60 and named the fallback before any labels
+  existed. The measured κ is **0.403**. PLAN.md §9's stop rule says apply the planned
+  fallback, so that is what happens: **the customer's star rating is the primary signal for
+  negative feedback, and model sentiment is reported as a method comparison with its κ
+  stated.** D-004 already made the rating the minimum signal, so no downstream definition
+  changes.
+- **The measurement** (150 blind labels, owner, 30 Oct; `reports/evaluation.md`):
+
+  | | Value |
+  |---|---:|
+  | Cohen's κ, model vs owner | **0.403** (floor 0.60) |
+  | Raw agreement on the sample | 64.0% |
+  | Agreement weighted back to the corpus | 65.5% |
+  | **κ of the star rating alone, same labels** | **0.460** |
+  | κ of the LLM, 45 overlapping rows | 0.727 |
+
+- **The rating beats the model.** At κ 0.460 against 0.403, the customer's own star rating
+  predicts the owner's judgement better than the sentiment model does. That is the clearest
+  possible justification for the fallback, and it was not knowable before the labels existed.
+- **Why the model failed, from the confusion matrix.** Two faults, both already identified in
+  D-063 before the labels were drawn, which is the part worth noting:
+  1. **It over-uses `neutral`.** The owner used neutral **3 times in 150**; the model assigns
+     it to 22.4% of the whole corpus. 34 of the sample's comments were called neutral by the
+     model while the owner called them negative (22) or positive (12).
+  2. **It reads sarcasm and praise-then-complaint as positive.** 15 of the owner's 98
+     negatives were called positive — *"Wow, what a well oiled machine"* on a 1-star, and
+     *"Fantastic customer service from [STAFF], nothing was too much trouble. Part was on
+     back-order though"* on a 3-star.
+- **The LLM's κ 0.727 does not promote it.** It is measured on 45 rows, and those 45 are
+  exactly the disagreement cases the LLM was pointed at, so the subset is the one where it was
+  designed to help. A biased 45-row sample cannot justify making a 3B model the primary signal
+  for every headline number, and D-055's fallback is what was committed. It is reported as
+  evidence that the irony problem is tractable, not as a new primary.
+- **Consequence for Wave 5, and it is a real narrowing.** The drivers analysis leads with the
+  rating, not sentiment. Theme-level claims carry their own caveat: the owner placed comments
+  in the same theme as the model only **44.1%** of the time, so a theme's negative *rate* is
+  reportable with that stated and a theme's *ranking* against another is not safe on this
+  evidence.
+- **For D-056:** the owner answered "none of these" on 7 of 150 comments (4.7%), which is the
+  direct evidence for where the `unassigned` floor belongs.
+- **D-017 exception, recorded not hidden.** The agent that wrote `src/classify.py` wrote
+  `src/evaluate.py` too; there was no time before the 15:00 freeze to stand up an independent
+  one. Every input is a committed file and the arithmetic is sklearn's, so the numbers are
+  reproducible with `make evaluate` — but they are not independent, and Checkpoint 5's
+  verifier should re-run them.
+
+### D-066 · The `unassigned` similarity floor is retired, not set · Recommended, owner to confirm · 30 Oct 2026
+- **Closes D-056**, and not the way D-056 expected. D-056 committed to setting the floor from
+  the observed distribution. The owner's 150 blind labels were then used to test the mechanism
+  itself, and it does not work. Recorded as a recommendation rather than a decision because
+  gate G7 applies to retiring a threshold as much as to setting one, exactly as D-052 did when
+  it retired `dealer_match_min_confidence`.
+- **The test.** The owner answered "none of these" on 7 of 150 comments — the ground truth for
+  what a floor is supposed to catch.
+
+  | Group | n | Similarity range | Median |
+  |---|---:|---|---:|
+  | Placed in a theme by the owner | 143 | 0.180 – 0.740 | 0.438 |
+  | **Rejected — "none of these"** | **7** | **0.220 – 0.396** | 0.301 |
+
+  The two groups overlap almost completely. Every floor is therefore either cosmetic or
+  destructive:
+
+  | Floor | Catches | Marks unassigned |
+  |---:|---:|---|
+  | 0.259 — the 4.7th percentile, reproducing the owner's own none-rate | **2 of 7** | 248 (4.6%) |
+  | 0.300 | 3 of 7 | 585 (10.9%) |
+  | 0.350 | 5 of 7 | 1,237 (23.1%) |
+  | 0.400 | 7 of 7 | **2,185 (40.8%)** |
+
+- **Similarity also barely predicts correctness,** which is the deeper reason a floor cannot
+  work here: model-owner theme agreement is 38.3% below 0.40, 44.8% at 0.40–0.50, 42.3% at
+  0.50–0.60, and 66.7% above 0.60 on only 12 comments. A cut point needs a quantity that
+  separates right from wrong, and this one does not.
+- **Why the obvious number was rejected.** A floor at the 4.7th percentile reproduces the
+  owner's none-rate exactly and would have read as principled in the report. It catches two of
+  their seven rejections. Matching the *rate* is not matching the *judgement*, and publishing
+  the first while implying the second would have been the more flattering choice.
+- **The decision.** No floor. `theme` is reported for every commented row, with the 44.1%
+  model-owner agreement from D-065 stated wherever a theme figure appears. Theme negative
+  *rates* are reportable with that caveat; theme *rankings* are not (D-065).
+- **What would fix it, for the record and not for this week:** a theme model trained or
+  validated against more than 150 labels, or assignment by an instruction-tuned model rather
+  than embedding similarity — the LLM reached κ 0.727 on sentiment over its subset, so the
+  approach is not hopeless, just unevidenced at this sample size.
+
 ### D-007 · Two reports · Decided · 29 Oct 2026
 - **Decision:** (1) a non-technical business report for the Head of CX; (2) a technical report (`README.md`) for reviewers. The business report links to the technical one.
 
@@ -483,6 +809,85 @@ Source: `agents/reports/w1_profilers.md` (15 findings). Wave 2 ingestion applies
 
 ### D-009 · Deadline · Decided · 29 Oct 2026
 - Code freeze Friday 30 Oct 2026, 3:00pm; proofread and edit until COB.
+
+### D-064 · The clean dataset is exported de-identified to `export/` and committed · Decided · 30 Oct 2026
+
+- **Decision:** `src/export.py` (`make export`) writes the Wave 3 clean dataset to
+  `export/feedback_clean.{csv,xlsx,json}` with a manifest, and those files are committed.
+  `scripts/check_no_data.py` and `.gitignore` gain an `export/` allowance for exactly this.
+- **Why:** D-008 makes the cleaned dataset a non-negotiable output and D-015 keeps data out
+  of git history. Both are right, and they conflict here: deliverable #1 is parquet, which a
+  reviewer cannot open without Python, so "the dataset is in the repo" was true for the
+  pipeline and false for the people the deliverable is for. Three formats, all de-identified,
+  settles it without touching the raw or interim paths, which stay blocked.
+- **What makes the exception narrow:** the export refuses to write until it has proved on
+  that run's data that no email, phone number, street address, registration plate or
+  person-shaped name survived redaction, that no column outside the schema allowlist is
+  present, and that no cell would be read as a formula by Excel. The manifest records the
+  result and the full 64-surface spaCy candidate list, so the claim is checkable rather than
+  asserted. The guard still blocks every other data path, and a file dropped into `export/`
+  by hand carries none of that proof.
+- **Two reviewed exceptions:** `Plin English` (a typo for "Plain English") and `Speedy Next`
+  ("Speedy" is an adjective in 7 comments) are name-shaped and are not names. They are listed
+  in `NOT_PEOPLE_SURFACES` with the comment that produced each one, rather than fixed by
+  widening the rule until the run went green — which would have retired the only check
+  standing between a surviving customer name and a file handed to reviewers. Redacting either
+  would damage the data, so the dataset is right and the check was over-broad.
+- **Risk accepted:** git history cannot be cleaned later, which is the whole basis of D-015.
+  The repository is private, so the export is visible to the owner and invited reviewers only.
+  If it is ever made public, this data goes public with it and no later commit can undo that.
+  Re-check before any visibility change; `make gitleaks` stays the pre-public step.
+- **Not exported:** `data/clean/feedback_classified.parquet`. Its sentiment and theme columns
+  are model output that has not yet been measured against the owner's labelled sample
+  (D-055's κ ≥ 0.60), so exporting them now would hand reviewers numbers no gate has cleared.
+
+### D-067 · The published dataset withholds the source lineage and the exact date · Decided · 30 Oct 2026
+
+- **Context:** the owner established on 30 Oct that the repository **will be made public for
+  submission**. D-064 had committed the export on the stated basis that the repository was
+  private, and said in terms to re-check before any visibility change. This is that re-check.
+  The challenge pack is fictional; it is treated as real customer feedback throughout.
+- **Decision:** the public export carries 12 columns, not 15. `source_file`, `source_sheet`
+  and `source_row` are withheld, and `feedback_date` is replaced by `feedback_month`. The
+  full-lineage copy is written to `data/clean/export_internal/` on `--internal`, which
+  `.gitignore` and the commit guard both keep out of the repository.
+- **Why, measured on this dataset rather than argued from guidance:**
+  - `source_file + source_sheet + source_row` identifies **7,079 of 7,150 rows uniquely
+    (99.0%)**. It is a primary key back to the original spreadsheets, which hold the names,
+    phone numbers and plates that redaction removed. Any holder of the challenge pack — other
+    participants and the assessors — could join on it and undo the de-identification wholesale.
+    It is useless to a reader without the pack and a complete re-identification key to one
+    with it, so publishing it could only ever have helped the wrong reader.
+  - `dealer_code + feedback_date + department` leaves **4,149 rows (58.0%)** alone in their
+    group. With the month instead: **100 rows (1.4%)**, a 40-fold reduction. Adding
+    `rating_1to5` takes the exact-date figure to 84.6% and the month figure to 11.8%.
+  - The month costs nothing that was in use: every analysis in this project is monthly, and
+    D-040 already records that the day never reaches a published figure.
+- **What is kept:** `feedback_id` remains unique, so every row is still citable and the
+  labelling sample in `reports/labels_done.csv` still joins. `department_raw`, `rating_raw`
+  and `rating_scale` stay, because the point of them is to let a reviewer check the mapping
+  and the scale conversion rather than believe them. `date_corrected` and `date_approx` stay:
+  the month is sound for all 16 flagged rows, and it was only ever the day that was inferred.
+- **What this costs:** a reviewer cannot re-derive a row's source cell from the published
+  file, and cannot reproduce a daily or weekly cut. The first is unavoidable — it is the
+  re-identification path itself — and in any case a public reviewer does not hold the raw
+  files to check lineage against. The second is not used anywhere in the project.
+- **Enforced, not just documented:** `src/export.py` blocks the export if a lineage column or
+  an exact date reaches the public frame, with a test per column. The audit from D-064 — no
+  surviving email, phone, address, plate or person-shaped name — still runs first.
+- **The committed history is the open problem.** `bec914d` carried all 15 columns and exact
+  dates, and three commits now sit on top of it, all already pushed. A later commit cannot
+  remove a blob from history, so publishing this repository as it stands would publish the
+  99% re-identification key regardless of what the current files say. It has to be rewritten
+  before the repository is ever public, and that is the owner's call because it force-pushes
+  over commits that already exist on the remote. `PUBLIC_RELEASE.md` holds the checklist and
+  the two options. **Until that is done, this repository must stay private.**
+- **Also checked before release, and clean:** every blob in all 54 commits across every branch
+  and tag was scanned for real email addresses, phone numbers, street addresses, plates and
+  person-shaped names. The only hits are the regex patterns in `src/pii.py` itself and the
+  synthetic fixtures in `tests/`. No staff roster or name list exists on disk at any commit.
+  96 verbatim comments are quoted in four committed reports, none of them beside a dealer
+  code, date or `feedback_id`, so they carry no linkage.
 
 ## Technology
 
@@ -552,7 +957,7 @@ Source: `agents/reports/w1_profilers.md` (15 findings). Wave 2 ingestion applies
 |---|---|---|
 | D-019 | Duplicate check result (confirms or overturns D-002 assumption) | **Closed 29 Oct 2026 — see D-047.** D-002 holds; the only true duplicates were 9 double-entered pairs at Springwood |
 | D-021 | Evidence threshold for calling a trend real | **Closed 29 Oct 2026 — see D-052.** 20 responses a month, 0.5 stars, thin sites quarterly |
-| D-022 | NLP pass mark and fallback | **Still deferred.** Put to the owner on 29 Oct 2026 with the baseline evidence (`reports/nlp_pass_mark_evidence.md`); the owner chose to set it in Wave 4, before hand-labelling, rather than now. `thresholds.nlp_pass_mark` stays `TBD` and gate G7 still applies — it must be committed before any evaluation result exists |
-| D-023 | Final theme list (fixed + discovered mix) | After theme discovery |
-| D-024 | LLM in or out | After the 20-comment pilot |
+| D-022 | NLP pass mark and fallback | **Closed 29 Oct 2026 — see D-055.** Cohen's κ ≥ 0.60 on a 150-comment stratified sample, with D-004's rating signal as the fallback. The theme bar stays open until the theme list is fixed (D-023) |
+| D-023 | Final theme list (fixed + discovered mix) | **Closed 30 Oct 2026.** Size capped at 8 by D-059; the owner approved the eight names, six discovered by KMeans (D-061) and two added under the "fixed + discovered mix" because clustering could not isolate them. The list is `mappings/themes.yaml` |
+| D-024 | LLM in or out, and at what scope | **Closed 30 Oct 2026 — in, at scope B.** The owner chose 857 of the 1,887 disagreements on the pilot's timing evidence, because all 1,887 projected at 1.89–2.49 h against D-011's 2 h cut-off. Run in 49.8 min with 0 parse failures; `reports/llm_review.md`, `agents/reports/w4_llm.md`. It annotates only — no headline number depends on it |
 | D-025 | Value benchmarks and assumptions (low/mid/high) | Wave 5 |
