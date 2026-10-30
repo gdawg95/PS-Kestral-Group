@@ -487,3 +487,129 @@ exception that can be closed by recomputation.
 repository was modified, and no finding above was patched.
 
 **Rows in / out:** read-only. 7,150 rows read; 0 written.
+
+---
+
+# Appendix A · The proposed fix for V-1, drafted and not applied
+
+Added after the verification above, at the owner's request. **This is a patch for the
+producer to apply, not a change made by this agent.** `src/analyse.py` is byte-identical to
+`2577910` at the time of writing (`git diff` is empty; the working tree's modified flags are
+line-ending artefacts), so the two lines below are still exactly as verified.
+
+## A.1 The defect, restated as a diff
+
+`src/analyse.py`, in `section_recommendation`, currently reads:
+
+```python
+    svc = df[df["department"] == "Service"]
+    hs = half_test(svc)
+    tx = revenue["service_jobs"].sum()
+    nat_cov = 100 * len(svc) / tx
+    extra = int(round(hs["neg_delta"] / 100 * len(svc)))
+    implied = int(round(hs["neg_delta"] / 100 * tx))
+```
+
+`hs["neg_delta"]` is H2's negative rate minus H1's. Multiplying it by `len(svc)` — every
+Service row in both halves — answers no question. The sentence it feeds names a precise
+counterfactual ("more negative service responses **in H2** than **H1's rate** would have
+produced"), whose denominator is H2's row count, which `half_test` already returns as
+`hs["n_h2"]`.
+
+## A.2 The patch
+
+```diff
+     svc = df[df["department"] == "Service"]
+     hs = half_test(svc)
+     tx = revenue["service_jobs"].sum()
+     nat_cov = 100 * len(svc) / tx
+-    extra = int(round(hs["neg_delta"] / 100 * len(svc)))
+-    implied = int(round(hs["neg_delta"] / 100 * tx))
++    # The counterfactual is "H2 at H1's rate", so the denominator is H2's own row count.
++    # Multiplying the H2-minus-H1 delta by len(svc) spreads a second-half movement over
++    # both halves and roughly doubles it (w5_verify.md V-1).
++    extra = int(round(hs["neg_delta"] / 100 * hs["n_h2"]))
++    # The declined extrapolation, stated the way the sentence states it: the excess
++    # divided by the response rate the sentence quotes. Note it recomputes the excess
++    # rather than dividing `extra`, which is already rounded for display - chaining off
++    # a rounded number is the mistake recorded as V-2 and the one fixed in month_pairs.
++    implied = int(round(hs["neg_delta"] / 100 * hs["n_h2"] / (len(svc) / tx)))
+```
+
+No other line changes. `nat_cov`, `tx` and every other figure in the section are untouched,
+and they were all verified correct.
+
+**This patch was applied and rendered in a scratch worktree before being written down here.**
+`python -m src.analyse` with it in place changes **exactly three lines of
+`reports/analysis.md`** — the two figures below and nothing else — which confirms V-1's
+finding that no other published number depends on them.
+
+A note from drafting it, because it is the same lesson twice. The first version of this patch
+wrote `implied = int(round(extra / (len(svc) / tx)))`, reusing `extra`. That renders
+**6,371**, not 6,366, because `extra` has already been rounded to a whole response for
+display and the division then chains off the rounded value — the identical mistake to V-2 and
+to the `month_pairs` bug this wave fixed. The version above recomputes from
+`hs["neg_delta"]`. The two differ by 0.08% and nothing turns on it; it is corrected because a
+project whose thesis is controlled analysis should not ship the error it documents.
+
+## A.3 What the rendered text becomes
+
+| Where | Now | After |
+|---|---:|---:|
+| §9, "In plain counts, the national Service move is **N** more negative service responses in H2 than H1's rate would have produced" | **305** | **156** |
+| §9, "**N** responses at a 2.45% response rate would extrapolate to roughly **M** service jobs" | 305 → **12,445** | 156 → **6,366** |
+
+Both verified by rendering, not by hand.
+
+Arithmetic, so it can be checked by hand:
+
+```
+Service H1: 575 negative of 2,395   = 24.0084%
+Service H2: 758 negative of 2,508   = 30.2233%
+delta                                =  6.2149 pts
+expected in H2 at H1's rate = 0.240084 x 2,508 = 602.13
+excess                      = 758 - 602.13     = 155.87  ->  156
+extrapolated at 2.4485%     = 155.87 / 0.024485 = 6,366
+```
+
+## A.4 Two choices inside the fix, both the producer's to make
+
+1. **`implied` has three defensible forms**, all within 0.4% of each other. The patch uses
+   the first because it is the one the published sentence describes:
+
+   | Form | Value |
+   |---|---:|
+   | `hs["neg_delta"] / 100 * hs["n_h2"] / (len(svc) / tx)` — excess ÷ the 2.45% the sentence quotes | **6,366** |
+   | `hs["neg_delta"] / 100 * tx_h2` — the delta applied to H2's 102,029 service jobs | 6,341 |
+   | `extra / (hs["n_h2"] / tx_h2)` — excess ÷ H2's own 2.458% response rate | 6,341 |
+
+   The third is the most internally consistent, but it also requires changing the "2.45%"
+   in the prose to 2.46%. Since the whole paragraph exists to **decline** the figure, the
+   simplest version that matches its own words is the right one. Any of the three supports
+   the sentence that follows unchanged.
+
+2. **Or cut both sentences.** The 156 adds nothing the recommendation needs — §9's chain
+   already argues from 68.6%, 27.2%, +6.2 pts, NSW −0.330, +10.3 pts, the three Holm sites
+   and 2.45% coverage, every one of which verified. Deleting "In plain counts…" and the
+   "What is deliberately not published here" paragraph costs the analysis nothing. **The
+   argument for keeping them, corrected, is that the declined-extrapolation paragraph is
+   good evidence of controlled analysis** — it shows a tempting number being refused on
+   D-058's measured bias — and that is worth more to a reviewer than the two sentences cost.
+   Keeping it is the better choice, but it has to be right to be worth anything.
+
+## A.5 After applying
+
+1. `uv run python -m src.analyse` to re-render `reports/analysis.md` (nothing else consumes
+   `extra` or `implied`; `business_report.md`, `README.md` and all eight charts are
+   unaffected, as V-1 records).
+2. Correct the same two figures in `agents/reports/w5_analysis.md`, "One number I computed
+   and deliberately did not publish" — the producer's own account carries 305 and 12,445 too.
+3. Re-run `pytest -q` (328 passed, 2 skipped before the change). **No existing test covers
+   `extra` or `implied`**, which is why the error survived; a one-line guard asserting
+   `extra == round(delta/100 * n_h2)` would close it the way
+   `test_threshold_is_applied_to_the_unrounded_change` closed the `month_pairs` bug.
+4. `reports/run_manifest.json` will pick up a new timestamp and git commit; that is expected
+   and its own note explains it.
+
+**Not applied by this agent.** Verified against commit `2577910`; if `src/analyse.py` changes
+before this is applied, re-check that the two lines are still as quoted in A.1.
