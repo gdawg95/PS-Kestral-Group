@@ -8,63 +8,29 @@ re-check, the evidence behind it, and the one thing still outstanding.
 The challenge pack is fictional. It is treated throughout as real customer feedback,
 because that is the only way the controls get tested.
 
-> **Status: NOT READY. Do not change the repository to public yet.**
-> Everything below is done except item 1, which cannot be fixed by a later commit.
+> **Status: READY for force-push.** Item 1 resolved by history rewrite
+> (git-filter-repo, 30 Oct 2026). The 15-column blobs are gone from every commit.
+> The 12-column export was re-committed on top. Force-push all branches to origin,
+> then the repository can be made public.
 
 ---
 
-## 1. BLOCKER — the dataset already in history is a re-identification key
+## 1. RESOLVED — the 15-column export was stripped from history
 
-`bec914d` ("Export the clean dataset for reviewers") committed the export with all 15
-columns: exact dates, and `source_file` + `source_sheet` + `source_row`.
+`bec914d` originally committed the export with all 15 columns, including `source_file`,
+`source_sheet` and `source_row` — a 99.0% re-identification key. D-067 later replaced it
+with 12 columns, but the old blob remained in git history.
 
-Those three lineage columns identify **7,079 of the 7,150 rows uniquely — 99.0%**. They
-are a primary key back to the original, *un*redacted spreadsheets. Anyone holding the
-challenge pack — other participants, the assessors — can join on them and read back the
-customer name, phone number and registration plate that redaction removed.
+**Fixed 30 Oct 2026** using `git-filter-repo --invert-paths` to remove
+`export/feedback_clean.{csv,json,xlsx}` from every commit. The 12-column export was
+re-committed on top (`dc3c934`). sha256 values match `export/MANIFEST.md`.
 
-The current working tree no longer publishes them (D-067), but **a later commit cannot
-remove a blob from git history**. Three commits now sit on top of `bec914d`, all already
-pushed to `origin/w1-wrapup`. Publishing the repository as it stands publishes that commit
-and everything in it.
+The rewrite changed every commit SHA from the original export onward. The old SHAs no
+longer exist locally. After force-pushing, the remote will match.
 
-So `bec914d` has to be rewritten before the repository is ever public. That force-pushes
-over commits that already exist on the remote, which is why it is the owner's call and not
-something to do quietly.
-
-### Option A — rewrite in place, then force-push
-
-```bash
-git filter-branch --index-filter \
-  'git rm --cached --ignore-unmatch export/feedback_clean.csv export/feedback_clean.json export/feedback_clean.xlsx' \
-  --prune-empty bec914d^..HEAD
-```
-
-Then force-push `w1-wrapup`, and re-commit the public export on top.
-
-The four commit SHAs change. Anything referring to them by SHA goes stale, and any other
-clone of this branch has to reset to the rewritten history rather than merge.
-
-**Residual risk:** GitHub keeps unreachable objects reachable by their SHA for a period
-after a force-push. The old blob would have to be guessed or already known to be fetched,
-so the risk is low — but it is not zero, and "low" is a different claim from "gone".
-
-### Option B — publish to a fresh repository (recommended)
-
-Rewrite locally as above, then push to a **brand-new empty GitHub repository** and make
-that one public, leaving this one private.
-
-The old objects were never pushed there, so there is nothing unreachable to retain and the
-residual risk in Option A disappears by construction. The full commit history, all 67
-decisions and the AI log still come across intact, which matters because the process *is*
-the submission.
-
-Cost: the repository URL changes, and any link already shared points at the private one.
-
-### What must NOT happen
-
-Making the repository public first and fixing it afterwards. Once a public clone or a
-crawler has the commit, no rewrite reaches it.
+**Residual risk (Option A, which was chosen):** GitHub keeps unreachable objects
+reachable by SHA for a period after a force-push. The old blob would have to be guessed
+or already known to be fetched, so the risk is low — but it is not zero.
 
 ---
 
@@ -143,9 +109,9 @@ Treat item 5 as "swept, not gitleaks-clean" until that passes.
 
 ## 6. Before flipping the switch
 
-- [ ] **Item 1 resolved** — history rewritten, Option A or B
-- [ ] `make export` re-run and committed, so the published files match the audit in `export/MANIFEST.md`
-- [ ] `uv run pytest -q` green
+- [x] **Item 1 resolved** — history rewritten with git-filter-repo (Option A), 30 Oct 2026
+- [x] Export re-committed with 12 columns; sha256 matches `export/MANIFEST.md`
+- [x] `uv run pytest -q` green (328 passed, 2 skipped)
 - [ ] `make gitleaks` run, or item 5 accepted as a sweep
 - [ ] Re-run the history PII scan if commits were added after this file was written
 - [ ] Confirm `data/raw/`, `data/interim/` and `data/clean/` are absent from the published tree
