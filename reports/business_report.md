@@ -46,8 +46,14 @@ not have, and understated New South Wales' by more than half.
 (27.2%). In NSW specifically, Service went from **21.7% to 32.1% negative** — ten points in
 six months. NSW Sales also worsened by 8.5 points. NSW Parts improved.
 
-**And one thing this report does not tell you.** It does not say what the problem is worth in
-dollars. Section 5 — a deliberate omission, not an oversight.
+**Five. We checked whether any of it reaches the money, and it does not — measurably.** Your
+own revenue file is the only record of what customers actually *did*. NSW's satisfaction
+collapsed and its service volume **grew 4.9%**. A month's negative rate does not predict the
+next month's volume, or the month after. The full test is section 5, and the null result is
+more useful than it sounds.
+
+**And one thing this report does not tell you.** It does not put a dollar figure on the
+problem. Section 6 — a deliberate omission, not an oversight, and section 5 is part of why.
 
 ---
 
@@ -218,7 +224,73 @@ of transactions that produced no feedback.
 
 ---
 
-## 5. What this report does not answer, and why
+## 5. Does any of it reach the revenue?
+
+**The question underneath this whole report: are these customers acting on their
+dissatisfaction, or complaining without consequence?** `monthly_revenue.csv` — 288
+dealer-months of service jobs, vehicle sales and the dollars attached — is the only record
+in the project of what customers actually did, rather than what they said.
+
+**The answer is that no link is detectable in twelve months of your data.** Three tests, all
+in [`analysis.md` section 9](analysis.md):
+
+**One. The obvious correlation is backwards.** Across all sites, more negative feedback goes
+with *more* service volume (r = +0.22). That is sites' size, not their service: busy branches
+generate both. Comparing each site against its own monthly average instead flips the sign to
+r = −0.19 — a real but small association, worth about **8 service jobs in a month of 709**,
+or 1.1%.
+
+**Two. It is a same-month association, not a warning signal.** If dissatisfaction drove
+customers away, this month's negative rate would predict next month's volume. It does not —
+the relationship is strongest in the same month and disappears at one, two and three months
+out, in both directions. That is equally consistent with "a month when the branch is
+struggling produces fewer completed jobs *and* more complaints", which is a very different
+business problem from customers leaving.
+
+**Three. The natural experiment comes out flat.** NSW's negative rate rose 8.3 points while
+Queensland's did not move — the closest thing to a controlled comparison available.
+
+| | Service jobs, 1st → 2nd half | Vehicles sold |
+|---|---:|---:|
+| **NSW** (satisfaction fell furthest) | **+4.9%** | +7.3% |
+| VIC | +6.2% | +7.8% |
+| **QLD** (satisfaction unchanged) | **+6.6%** | +9.9% |
+
+The order is the one the theory predicts, and it is worth saying so. But the gap between NSW
+and QLD is 1.5 percentage points at **p = 0.41** on seven sites against eight — a difference
+that size turns up by chance about two times in five. Of the three sites whose rating fell by
+more than chance, one lost volume, one was flat, and one grew faster than the group.
+
+### What the null result is worth
+
+**It is not "complaints don't matter".** It is "twelve months of this data cannot show that
+they do", and three things could produce that same flat answer:
+
+1. **The window is probably too short.** A service interval is six to twelve months. A
+   customer who gave up on Parramatta in April may not have been due back before the data
+   ends in September. That churn would show up *after* this dataset, not inside it.
+2. **The monthly measure is noisy.** A typical site-month has only 25 responses, so about
+   two-thirds of the month-to-month movement in its negative rate is sampling noise rather
+   than real change. That drags every correlation toward zero.
+3. **It may simply not be there.** This is a fictional challenge dataset; if its revenue was
+   generated independently of its feedback, no analysis can find a link nobody put in.
+
+What it *does* establish: a **large** short-term effect of satisfaction on service volume is
+ruled out. Whatever the cost of these complaints, it is not showing up as customers
+disappearing within a month or two.
+
+**And it is why the dollar figure in section 6 stays unpublished.** An estimate built on
+published industry retention benchmarks would assume exactly the mechanism your own revenue
+data declines to corroborate.
+
+**What would actually answer it:** customer-level repeat-visit data — did the person who left
+one star in April come back? The dataset has no customer identifier, by design and for good
+privacy reasons. **This is the single most valuable thing Kestrel could add before the next
+round of this work.**
+
+---
+
+## 6. What this report does not answer, and why
 
 **"Roughly what is it worth?" is not answered.** That was the third business question, and the
 honest position is that it cannot be answered to a standard worth putting in front of you.
@@ -229,14 +301,21 @@ and signed off**, and it states plainly that **no published source maps a 1–5 
 rating to dollars**. Any figure built on it would be a scenario wearing the clothes of a
 measurement.
 
-**If you want a value estimate**, the missing piece is a decision on three assumptions — what
-a lost service customer is worth, what share of 1–2 star customers actually leave, and what
-share of those are recoverable. Give those three numbers and the estimate is an afternoon's
-work on top of what already exists.
+**Section 5 is now the second reason, and it is the stronger one.** Those benchmarks work by
+assuming dissatisfied customers leave and that their departure costs money. Your own twelve
+months of revenue cannot detect that happening. Publishing a dollar figure built on an
+assumption the client's own data declines to support would be the least defensible number in
+this project.
+
+**If you still want a value estimate**, the missing piece is a decision on three assumptions
+— what a lost service customer is worth, what share of 1–2 star customers actually leave, and
+what share of those are recoverable. Give those three numbers and the estimate is an
+afternoon's work. It should be labelled a scenario, not a measurement, and section 5 should
+be cited beside it.
 
 ---
 
-## 6. How far to trust this
+## 7. How far to trust this
 
 The technical report ([`README.md`](../README.md)) has the full account; `method_model_vs_owner.png`
 shows it in one picture. The four things that most affect how you read the numbers above:
@@ -271,4 +350,4 @@ Once approved they belong at these points:
 | `q2_sites_that_changed.png` | which sites moved by more than chance | §3, "By individual site" |
 | `q3_where_to_focus.png` | bad now against getting worse, sized by service volume | §4, top |
 | `q3_coverage.png` | how much of the business this dataset sees | §4, second recommendation |
-| `method_model_vs_owner.png` | where the models disagree with a human, and by how much | §6 |
+| `method_model_vs_owner.png` | where the models disagree with a human, and by how much | §7 |

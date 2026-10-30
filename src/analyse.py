@@ -945,7 +945,275 @@ customers.
 - At a {nat["Service"]:.2f}% service response rate, **each service response in this dataset
   sits beside about {1 / (nat["Service"] / 100):.0f} service jobs that produced no feedback
   at all.** That is a statement about how little is seen, not a multiplier to apply to the
-  negative counts — section 9 says why the extrapolation is not published.
+  negative counts — section 10 says why the extrapolation is not published.
+"""
+
+
+def revenue_panel(df: pd.DataFrame, revenue: pd.DataFrame) -> pd.DataFrame:
+    """One row per dealer-month: the revenue file joined to that month's feedback.
+
+    VIC09's six post-closure months are dropped: `monthly_revenue.csv` carries them as
+    exact zeros, which is independent corroboration of the closure date in D-005 and would
+    otherwise enter every correlation as six extreme outliers.
+    """
+    d = df.copy()
+    d["m"] = d["feedback_date"].dt.to_period("M").astype(str)
+    fb = (
+        d.groupby(["dealer_code", "m"], observed=True)
+        .agg(
+            responses=("rating_1to5", "size"),
+            neg=("negative_by_rating", "mean"),
+            mean_rating=("rating_1to5", "mean"),
+        )
+        .reset_index()
+    )
+    p = revenue.merge(
+        fb, left_on=["dealer_code", "month"], right_on=["dealer_code", "m"], how="left"
+    )
+    p["state"] = p["dealer_code"].str[:3]
+    return p[p["service_jobs"] > 0].sort_values(["dealer_code", "month"]).reset_index(drop=True)
+
+
+def _two_way_demean(d: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
+    """Remove each dealer's own average and each month's national average.
+
+    Without this the comparison is between sites, and a big site has more service jobs AND
+    more feedback for reasons that have nothing to do with satisfaction. What is left is
+    the variation within one site over time, against its own baseline.
+    """
+    d = d.copy()
+    for c in cols:
+        d[c] = d[c] - d.groupby("dealer_code")[c].transform("mean")
+        d[c] = d[c] - d.groupby("month")[c].transform("mean")
+    return d
+
+
+def revenue_lags(p: pd.DataFrame) -> pd.DataFrame:
+    """Negative rate in month M against service jobs k months away, k = −3 … +3."""
+    p = p.copy()
+    for k in range(-3, 4):
+        p[f"jobs{k}"] = p.groupby("dealer_code")["service_jobs"].shift(-k)
+    rows = []
+    for k in range(-3, 4):
+        s = p.dropna(subset=["neg", f"jobs{k}"])
+        w = _two_way_demean(s, ["neg", f"jobs{k}"])
+        r, pv = stats.pearsonr(w["neg"], w[f"jobs{k}"])
+        rows.append(
+            {
+                "Lag (months)": f"{k:+d}" if k else "0",
+                "What it tests": (
+                    f"service jobs {abs(k)} month{'s' if abs(k) > 1 else ''} BEFORE the feedback"
+                    if k < 0
+                    else (
+                        "same month"
+                        if k == 0
+                        else f"service jobs {k} month{'s' if k > 1 else ''} AFTER the feedback"
+                    )
+                ),
+                "r": round(r, 3),
+                "p": f"{pv:.3f}",
+                "dealer-months": len(s),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def section_revenue(df: pd.DataFrame, revenue: pd.DataFrame) -> str:
+    """Does negative feedback show up in the revenue file? Short answer: not measurably."""
+    p = revenue_panel(df, revenue)
+    q = p.dropna(subset=["neg"])
+    raw_r, raw_p = stats.pearsonr(q["neg"], q["service_jobs"])
+    w = _two_way_demean(q, ["neg", "service_jobs", "service_revenue_aud"])
+    within_r, within_p = stats.pearsonr(w["neg"], w["service_jobs"])
+    rev_r, rev_p = stats.pearsonr(w["neg"], w["service_revenue_aud"])
+    sl = stats.linregress(w["neg"], w["service_jobs"])
+    per10, se10 = sl.slope * 0.10, sl.stderr * 0.10
+    mean_jobs = q["service_jobs"].mean()
+
+    # How much of the month-to-month movement in a site's negative rate is real, and how
+    # much is the sampling noise of a ~25-response month? Classical reliability.
+    sampling_var = (q["neg"] * (1 - q["neg"]) / q["responses"]).mean()
+    observed_var = q["neg"].var()
+    reliability = max(0.0, observed_var - sampling_var) / observed_var
+    # Smallest |r| this panel could detect at 80% power, alpha 0.05.
+    r_detect = math.tanh((1.959964 + 0.8416) / math.sqrt(len(q) - 3))
+
+    lags = revenue_lags(p)
+    rev2 = revenue.copy()
+    rev2["state"] = rev2["dealer_code"].str[:3]
+    rev2["half"] = np.where(rev2["month"] >= H2[0], "H2", "H1")
+    open_sites = rev2[rev2["dealer_code"] != CLOSED_SITE]
+    states = []
+    for state in ["NSW", "VIC", "QLD"]:
+        s = open_sites[open_sites["state"] == state]
+        row = {"State": state}
+        for label, col in [
+            ("Service jobs", "service_jobs"),
+            ("Service revenue", "service_revenue_aud"),
+            ("Vehicles sold", "vehicles_sold"),
+        ]:
+            a = s.loc[s["half"] == "H1", col].sum()
+            b = s.loc[s["half"] == "H2", col].sum()
+            row[f"{label} H1→H2"] = f"{100 * (b - a) / a:+.1f}%"
+        states.append(row)
+    st_tbl = pd.DataFrame(states)
+    per_site = (
+        open_sites.groupby(["dealer_code", "state", "half"])["service_jobs"].sum().unstack()
+    )
+    per_site["pct"] = 100 * (per_site["H2"] - per_site["H1"]) / per_site["H1"]
+    nsw = per_site.xs("NSW", level="state")["pct"]
+    qld = per_site.xs("QLD", level="state")["pct"]
+    did = stats.ttest_ind(nsw, qld, equal_var=False)
+
+    decliners = []
+    for dealer in ["NSW01", "VIC01", "NSW04"]:
+        s = revenue[revenue["dealer_code"] == dealer]
+        a = s.loc[s["month"] < H2[0], "service_jobs"].sum()
+        b = s.loc[s["month"] >= H2[0], "service_jobs"].sum()
+        decliners.append(
+            {
+                "Dealer": dealer,
+                "Rating fall": {"NSW01": "−0.75", "VIC01": "−0.72", "NSW04": "−0.58"}[dealer],
+                "Service jobs H1": int(a),
+                "Service jobs H2": int(b),
+                "Change": f"{100 * (b - a) / a:+.1f}%",
+            }
+        )
+    others = revenue[~revenue["dealer_code"].isin(["NSW01", "VIC01", "NSW04", CLOSED_SITE])]
+    oa = others.loc[others["month"] < H2[0], "service_jobs"].sum()
+    ob = others.loc[others["month"] >= H2[0], "service_jobs"].sum()
+    decliners.append(
+        {
+            "Dealer": "the other 20 open sites",
+            "Rating fall": "none significant",
+            "Service jobs H1": int(oa),
+            "Service jobs H2": int(ob),
+            "Change": f"{100 * (ob - oa) / oa:+.1f}%",
+        }
+    )
+
+    return f"""## 9. Does any of it reach the revenue? — the honest answer is "not measurably"
+
+**This section exists because the question has to be asked**: are these customers acting on
+their dissatisfaction, or complaining without consequence? `monthly_revenue.csv` is the only
+behavioural data in the project — {len(revenue):,} dealer-months of service jobs, vehicle
+sales, parts transactions and the dollars attached to each. **The finding is a null result,
+and it is reported as one.**
+
+### 9.1 The raw correlation points the wrong way, and that is the first lesson
+
+Across all {len(q)} dealer-months, a site's negative rate correlates **positively** with its
+service volume: **r = {raw_r:+.3f}, p = {raw_p:.2g}**. Read naively that says complaints
+*cause* business.
+
+They do not. Big sites have more service jobs and more feedback for reasons that have nothing
+to do with satisfaction, and comparing Chermside with Noosa measures size, not sentiment.
+Removing each dealer's own average and each month's national average — so the only variation
+left is **one site against its own baseline, in a month compared with that month everywhere
+else** — flips the sign:
+
+| Comparison | r | p |
+|---|---:|---:|
+| Raw, across sites *(confounded by site size)* | **{raw_r:+.3f}** | {raw_p:.2g} |
+| **Within site and month — service jobs** | **{within_r:+.3f}** | **{within_p:.4f}** |
+| **Within site and month — service revenue** | **{rev_r:+.3f}** | **{rev_p:.4f}** |
+
+So within a site, a month with a higher-than-usual negative rate is also a month with
+lower-than-usual service volume. The effect is small: **{per10:+.1f} service jobs per
+10 percentage points of negative rate** (95% CI {per10 - 1.96 * se10:.1f} to
+{per10 + 1.96 * se10:.1f}), against a mean of {mean_jobs:.0f} jobs — about
+**{100 * per10 / mean_jobs:.1f}%** of a typical dealer-month.
+
+### 9.2 But it is a same-month association, not a leading indicator
+
+This is the test that decides the business question. If dissatisfaction drove customers away,
+this month's negative rate would predict **next** month's volume. It does not:
+
+{table(lags)}
+
+**The association is strongest at lag 0 and is not significant at any lag in either
+direction.** Nothing about a bad month at a site tells you anything about its volume one,
+two or three months later. A same-month association is just as consistent with "a month when
+the branch is struggling produces both fewer completed jobs and more complaints" as with any
+story about customers leaving — and this analysis cannot separate those.
+
+### 9.3 The natural experiment, and it comes out flat
+
+Section 7.3 found that NSW's negative rate rose 8.3 points while Queensland's did not move.
+That is the closest thing to a controlled comparison this dataset offers: **if dissatisfaction
+costs volume, NSW should have lost ground against QLD.**
+
+{table(st_tbl)}
+
+**NSW's satisfaction collapsed and its service volume grew — by 4.9%.**
+
+The ordering is in the direction the hypothesis predicts: NSW, which fell furthest, grew
+least; QLD, which did not move, grew most; VIC sits between them on both. That is worth
+stating because it is the one piece of evidence in this section that points *towards* a
+link, and leaving it out would be the convenient omission.
+
+**It does not survive being tested.** Comparing per-site growth, NSW averages
+{nsw.mean():+.1f}% against QLD's {qld.mean():+.1f}% — a difference of
+{nsw.mean() - qld.mean():+.1f} percentage points with **p = {did.pvalue:.2f}** on 7 sites
+against 8. A gap that size arises by chance roughly two times in five. Three states ordered
+correctly is also the weakest possible evidence: with three groups there is a one-in-six
+chance of any particular ordering appearing at random. The direction is suggestive; the
+magnitude is indistinguishable from nothing.
+
+The same test on the three sites whose own rating fall survived correction:
+
+{table(pd.DataFrame(decliners))}
+
+One lost volume, one was flat, and one grew faster than the group. **Three sites, no
+pattern.**
+
+### 9.4 What this null result is worth, and what it is not
+
+**It is not "negative feedback has no consequences".** It is "this dataset cannot detect
+one", and the distinction matters because three separate things could produce the same
+flat result:
+
+1. **Twelve months is probably too short.** A service interval is six to twelve months. A
+   customer who gave up on Parramatta in April 2026 may simply not have been due back before
+   the data ends in September. Churn of this kind would appear *after* the window, not in it.
+2. **The monthly negative rate is a noisy instrument.** A median dealer-month carries
+   {q["responses"].median():.0f} responses, so the sampling error on its negative rate is
+   about ±8 points. Only **{100 * reliability:.0f}%** of the month-to-month variance in the
+   measured rate is real signal; the rest is sampling noise. That attenuates every
+   correlation above toward zero — the observed {within_r:+.3f} corresponds to a true value
+   nearer **{within_r / math.sqrt(reliability):+.3f}** once corrected.
+3. **The relationship may genuinely not be in this data.** The challenge pack is fictional.
+   If its revenue figures were generated independently of its feedback, no amount of analysis
+   will find a link that was never put there — and the flat result above is exactly what that
+   would look like.
+
+**What the null result does establish.** With {len(q)} dealer-months the panel could detect a
+correlation of **|r| ≥ {r_detect:.3f}** at 80% power, and no lagged correlation came close.
+So a *large* month-to-month effect of satisfaction on near-term service volume is ruled out
+by this data. A small one, or a slow one, is not.
+
+**The consequence for the value question.** D-025 asked for a dollar figure built on external
+benchmarks. This section is the internal check on whether such a figure would mean anything,
+and it says: **Kestrel's own twelve months of revenue show no measurable link between
+satisfaction and near-term customer behaviour.** Publishing a dollar value derived from
+published retention benchmarks, while the client's own data declines to corroborate the
+mechanism those benchmarks assume, would be the least defensible number in the project. This
+strengthens the decision to cut the value model rather than weakening it (section 11).
+
+**What would answer the question properly:** customer-level repeat-visit data — did the
+individual who left a 1-star in April come back? The dataset has no customer identifier by
+design (D-003), so this project cannot ask that question and no amount of analysis here will
+change that. It is the single most valuable thing Kestrel could add to the next round of
+this work.
+
+### 9.5 One data-quality finding, for free
+
+`monthly_revenue.csv` records **exactly zero** service jobs, vehicle sales and parts
+transactions for {CLOSED_SITE} in all six months from April 2026. The feedback data and the
+revenue file were produced separately, so this is **independent corroboration of the closure
+date in D-005** rather than an assumption carried between them. Those six months are dropped
+from every correlation above; left in, they would enter as six extreme outliers.
+
 """
 
 
@@ -968,7 +1236,7 @@ def section_recommendation(df: pd.DataFrame, revenue: pd.DataFrame) -> str:
         f"**{r.Site}** ({r.Dealer}, {r.Change:+.2f} stars)"
         for r in sig[sig["State"] == "NSW"].itertuples()
     )
-    return f"""## 9. Where to focus first — the analysis behind the recommendation
+    return f"""## 10. Where to focus first — the analysis behind the recommendation
 
 **The recommendation is argued from volume, the rating and coverage. It is not argued from a
 theme ranking**, because D-065 does not permit one.
@@ -1020,14 +1288,14 @@ at {THEME_AGREEMENT}% model–owner theme agreement, *which* process is uncertai
 the staff/process split is not.
 
 **What is not here.** The third business question asks roughly what it is worth. D-025 is
-unset and `reports/benchmarks.md` is unreviewed, so no dollar figure is published — see
-section 10.
+unset and `reports/benchmarks.md` is unreviewed, so no dollar figure is published. Section 9
+is the internal check on whether such a figure would mean anything; see also section 11.
 """
 
 
 def section_limits(df: pd.DataFrame) -> str:
     cmt = int(df["has_comment"].sum())
-    return f"""## 10. Limitations, and the one question this report does not answer
+    return f"""## 11. Limitations, and the one question this report does not answer
 
 1. **No dollar value (D-025 unset).** PLAN.md section 1 asks "roughly what is it worth".
    `reports/benchmarks.md` exists but **the owner has not reviewed it**, and the benchmarks
@@ -1200,6 +1468,7 @@ code rather than in the prose:
             section_theme_dealership(df),
             section_trend(df),
             section_coverage(df, revenue),
+            section_revenue(df, revenue),
             section_recommendation(df, revenue),
             section_limits(df),
         ]

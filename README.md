@@ -542,6 +542,35 @@ does **not** extrapolate the negative rate onto the 97.4% of transactions that p
 feedback — section 9 of the analysis shows the arithmetic for that extrapolation and then
 explicitly declines to publish it.
 
+### Does satisfaction reach the revenue? A reported null result
+
+`monthly_revenue.csv` (288 dealer-months) is the only behavioural data in the project, and
+section 9 of the analysis tests it against the feedback. **No link is detectable.**
+
+- The raw cross-site correlation between negative rate and service volume is **+0.22** — the
+  wrong sign, and it is site size, not service. Two-way demeaning by dealer and by month
+  flips it to **−0.19 (p = 0.0018)**, worth about 8 service jobs in a month of 709.
+- **It is contemporaneous, not leading.** The association is strongest at lag 0 and is not
+  significant at ±1, ±2 or ±3 months. A month's negative rate predicts nothing about the
+  next month's volume, which is equally consistent with a struggling branch producing both
+  fewer completed jobs and more complaints.
+- **The natural experiment is flat.** NSW's negative rate rose 8.3 points while QLD's did not
+  move; NSW service volume still **grew 4.9%** against QLD's 6.6%, a per-site difference of
+  1.5 points at **p = 0.41**. Of the three sites whose rating fell by more than chance, one
+  lost volume, one was flat and one outgrew the group.
+
+The null is reported with its own limits rather than as a conclusion: twelve months is
+shorter than a service interval, only **33%** of the variance in a site's monthly negative
+rate is signal rather than sampling noise (which attenuates every correlation shown), and the
+challenge pack is fictional, so the relationship may never have been in the data. What the
+panel *does* establish is that it could have detected **|r| ≥ 0.166** at 80% power, so a
+large short-term effect is ruled out.
+
+**A free data-quality check falls out of it:** the revenue file records exactly zero activity
+for VIC09 in all six months from April 2026. The feedback and revenue files were produced
+separately, so that is independent corroboration of D-005's closure date rather than an
+assumption carried between them.
+
 ### The value model was cut
 
 PLAN.md's third business question asks roughly what it is worth. [reports/benchmarks.md](reports/benchmarks.md)
@@ -549,6 +578,12 @@ exists but **has not been reviewed, D-025 is unset, and the benchmarks themselve
 no published source maps a 1–5 rating to dollars.** It is item 1 on the cut list for this wave
 (PLAN.md §10), and both reports state the gap rather than publishing a scenario dressed as a
 measurement.
+
+**The revenue test above is the second and stronger reason.** Retention benchmarks work by
+assuming dissatisfied customers leave and that their leaving costs money. Kestrel's own
+revenue cannot detect that mechanism operating, so a dollar figure derived from those
+benchmarks would rest on an assumption the client's own data declines to corroborate. The
+null result strengthens the decision to cut the value model rather than weakening it.
 
 ### Figures and gate G9
 

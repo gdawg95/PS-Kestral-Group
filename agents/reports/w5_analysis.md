@@ -152,6 +152,34 @@ the LLM was and was not used for. The theme matrix is new information — the 44
 headline figure until now, and the matrix shows *where* it goes: 21 comments the owner filed
 elsewhere were pulled into `Staff manner`, the largest theme.
 
+## The revenue question, added at review
+
+The owner asked whether negative feedback actually affects revenue and customer behaviour, or
+whether customers complain without consequence — and suggested basic EDA on
+`monthly_revenue.csv`, which had never been profiled. Both were fair. The brief treated the
+revenue file as a coverage denominator and section 8 used it for nothing else. **It is the
+only behavioural record in the project and it was being used to count transactions.**
+
+`analysis.md` section 9 now tests it. The result is a **null**, reported as one: the raw
+cross-site correlation has the wrong sign (+0.22 — site size, not service), the within-site
+correlation is −0.19 but **contemporaneous rather than leading** (not significant at any lag
+from −3 to +3 months), and the NSW-versus-QLD natural experiment comes out at p = 0.41 with
+NSW's service volume *growing* 4.9% while its satisfaction collapsed.
+
+Three caveats are published with it rather than after it: twelve months is shorter than a
+service interval; only 33% of the variance in a site's monthly negative rate is signal rather
+than sampling noise, which attenuates every correlation shown; and the pack is fictional, so
+the relationship may never have been there. The panel could have detected |r| ≥ 0.166 at 80%
+power, which is what makes the null worth stating at all.
+
+**This strengthens the D-025 cut rather than weakening it.** A dollar figure from published
+retention benchmarks assumes the mechanism Kestrel's own revenue declines to corroborate.
+Both reports now say so.
+
+It also produced a free check: the revenue file records exactly zero activity for VIC09 in
+all six months after closure, which independently corroborates D-005's closure date across
+two files produced separately.
+
 ## Errors found and fixed in this wave
 
 **1. The committed trend threshold was being applied to a rounded number.** `month_pairs`

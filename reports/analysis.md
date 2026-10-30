@@ -537,9 +537,149 @@ customers.
 - At a 2.45% service response rate, **each service response in this dataset
   sits beside about 41 service jobs that produced no feedback
   at all.** That is a statement about how little is seen, not a multiplier to apply to the
-  negative counts — section 9 says why the extrapolation is not published.
+  negative counts — section 10 says why the extrapolation is not published.
 
-## 9. Where to focus first — the analysis behind the recommendation
+## 9. Does any of it reach the revenue? — the honest answer is "not measurably"
+
+**This section exists because the question has to be asked**: are these customers acting on
+their dissatisfaction, or complaining without consequence? `monthly_revenue.csv` is the only
+behavioural data in the project — 288 dealer-months of service jobs, vehicle
+sales, parts transactions and the dollars attached to each. **The finding is a null result,
+and it is reported as one.**
+
+### 9.1 The raw correlation points the wrong way, and that is the first lesson
+
+Across all 281 dealer-months, a site's negative rate correlates **positively** with its
+service volume: **r = +0.218, p = 0.00024**. Read naively that says complaints
+*cause* business.
+
+They do not. Big sites have more service jobs and more feedback for reasons that have nothing
+to do with satisfaction, and comparing Chermside with Noosa measures size, not sentiment.
+Removing each dealer's own average and each month's national average — so the only variation
+left is **one site against its own baseline, in a month compared with that month everywhere
+else** — flips the sign:
+
+| Comparison | r | p |
+|---|---:|---:|
+| Raw, across sites *(confounded by site size)* | **+0.218** | 0.00024 |
+| **Within site and month — service jobs** | **-0.186** | **0.0018** |
+| **Within site and month — service revenue** | **-0.175** | **0.0032** |
+
+So within a site, a month with a higher-than-usual negative rate is also a month with
+lower-than-usual service volume. The effect is small: **-8.1 service jobs per
+10 percentage points of negative rate** (95% CI -13.1 to
+-3.1), against a mean of 709 jobs — about
+**-1.1%** of a typical dealer-month.
+
+### 9.2 But it is a same-month association, not a leading indicator
+
+This is the test that decides the business question. If dissatisfaction drove customers away,
+this month's negative rate would predict **next** month's volume. It does not:
+
+| Lag (months) | What it tests | r | p | dealer-months |
+| --- | --- | ---: | --- | ---: |
+| -3 | service jobs 3 months BEFORE the feedback | 0.096 | 0.166 | 209 |
+| -2 | service jobs 2 months BEFORE the feedback | -0.067 | 0.312 | 233 |
+| -1 | service jobs 1 month BEFORE the feedback | -0.075 | 0.231 | 257 |
+| 0 | same month | -0.186 | 0.002 | 281 |
+| +1 | service jobs 1 month AFTER the feedback | -0.106 | 0.091 | 257 |
+| +2 | service jobs 2 months AFTER the feedback | -0.038 | 0.566 | 233 |
+| +3 | service jobs 3 months AFTER the feedback | -0.069 | 0.319 | 209 |
+
+**The association is strongest at lag 0 and is not significant at any lag in either
+direction.** Nothing about a bad month at a site tells you anything about its volume one,
+two or three months later. A same-month association is just as consistent with "a month when
+the branch is struggling produces both fewer completed jobs and more complaints" as with any
+story about customers leaving — and this analysis cannot separate those.
+
+### 9.3 The natural experiment, and it comes out flat
+
+Section 7.3 found that NSW's negative rate rose 8.3 points while Queensland's did not move.
+That is the closest thing to a controlled comparison this dataset offers: **if dissatisfaction
+costs volume, NSW should have lost ground against QLD.**
+
+| State | Service jobs H1→H2 | Service revenue H1→H2 | Vehicles sold H1→H2 |
+| --- | --- | --- | --- |
+| NSW | +4.9% | +4.8% | +7.3% |
+| VIC | +6.2% | +5.2% | +7.8% |
+| QLD | +6.6% | +5.9% | +9.9% |
+
+**NSW's satisfaction collapsed and its service volume grew — by 4.9%.**
+
+The ordering is in the direction the hypothesis predicts: NSW, which fell furthest, grew
+least; QLD, which did not move, grew most; VIC sits between them on both. That is worth
+stating because it is the one piece of evidence in this section that points *towards* a
+link, and leaving it out would be the convenient omission.
+
+**It does not survive being tested.** Comparing per-site growth, NSW averages
++5.1% against QLD's +6.6% — a difference of
+-1.5 percentage points with **p = 0.41** on 7 sites
+against 8. A gap that size arises by chance roughly two times in five. Three states ordered
+correctly is also the weakest possible evidence: with three groups there is a one-in-six
+chance of any particular ordering appearing at random. The direction is suggestive; the
+magnitude is indistinguishable from nothing.
+
+The same test on the three sites whose own rating fall survived correction:
+
+| Dealer | Rating fall | Service jobs H1 | Service jobs H2 | Change |
+| --- | --- | ---: | ---: | --- |
+| NSW01 | −0.75 | 6,214 | 6,051 | -2.6% |
+| VIC01 | −0.72 | 6,083 | 6,096 | +0.2% |
+| NSW04 | −0.58 | 3,653 | 4,001 | +9.5% |
+| the other 20 open sites | none significant | 80,342 | 85,881 | +6.9% |
+
+One lost volume, one was flat, and one grew faster than the group. **Three sites, no
+pattern.**
+
+### 9.4 What this null result is worth, and what it is not
+
+**It is not "negative feedback has no consequences".** It is "this dataset cannot detect
+one", and the distinction matters because three separate things could produce the same
+flat result:
+
+1. **Twelve months is probably too short.** A service interval is six to twelve months. A
+   customer who gave up on Parramatta in April 2026 may simply not have been due back before
+   the data ends in September. Churn of this kind would appear *after* the window, not in it.
+2. **The monthly negative rate is a noisy instrument.** A median dealer-month carries
+   25 responses, so the sampling error on its negative rate is
+   about ±8 points. Only **33%** of the month-to-month variance in the
+   measured rate is real signal; the rest is sampling noise. That attenuates every
+   correlation above toward zero — the observed -0.186 corresponds to a true value
+   nearer **-0.322** once corrected.
+3. **The relationship may genuinely not be in this data.** The challenge pack is fictional.
+   If its revenue figures were generated independently of its feedback, no amount of analysis
+   will find a link that was never put there — and the flat result above is exactly what that
+   would look like.
+
+**What the null result does establish.** With 281 dealer-months the panel could detect a
+correlation of **|r| ≥ 0.166** at 80% power, and no lagged correlation came close.
+So a *large* month-to-month effect of satisfaction on near-term service volume is ruled out
+by this data. A small one, or a slow one, is not.
+
+**The consequence for the value question.** D-025 asked for a dollar figure built on external
+benchmarks. This section is the internal check on whether such a figure would mean anything,
+and it says: **Kestrel's own twelve months of revenue show no measurable link between
+satisfaction and near-term customer behaviour.** Publishing a dollar value derived from
+published retention benchmarks, while the client's own data declines to corroborate the
+mechanism those benchmarks assume, would be the least defensible number in the project. This
+strengthens the decision to cut the value model rather than weakening it (section 11).
+
+**What would answer the question properly:** customer-level repeat-visit data — did the
+individual who left a 1-star in April come back? The dataset has no customer identifier by
+design (D-003), so this project cannot ask that question and no amount of analysis here will
+change that. It is the single most valuable thing Kestrel could add to the next round of
+this work.
+
+### 9.5 One data-quality finding, for free
+
+`monthly_revenue.csv` records **exactly zero** service jobs, vehicle sales and parts
+transactions for VIC09 in all six months from April 2026. The feedback data and the
+revenue file were produced separately, so this is **independent corroboration of the closure
+date in D-005** rather than an assumption carried between them. Those six months are dropped
+from every correlation above; left in, they would enter as six extreme outliers.
+
+
+## 10. Where to focus first — the analysis behind the recommendation
 
 **The recommendation is argued from volume, the rating and coverage. It is not argued from a
 theme ranking**, because D-065 does not permit one.
@@ -591,10 +731,10 @@ at 44.1% model–owner theme agreement, *which* process is uncertain even where
 the staff/process split is not.
 
 **What is not here.** The third business question asks roughly what it is worth. D-025 is
-unset and `reports/benchmarks.md` is unreviewed, so no dollar figure is published — see
-section 10.
+unset and `reports/benchmarks.md` is unreviewed, so no dollar figure is published. Section 9
+is the internal check on whether such a figure would mean anything; see also section 11.
 
-## 10. Limitations, and the one question this report does not answer
+## 11. Limitations, and the one question this report does not answer
 
 1. **No dollar value (D-025 unset).** PLAN.md section 1 asks "roughly what is it worth".
    `reports/benchmarks.md` exists but **the owner has not reviewed it**, and the benchmarks
