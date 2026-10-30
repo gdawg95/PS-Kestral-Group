@@ -229,6 +229,85 @@ more useful than publishing a number that cannot be defended.
 
 ---
 
+## Recommendations for future data collection
+
+The source data for this project arrived as spreadsheets with inconsistent formats, mixed
+rating scales, and no standardised schema across sites. A significant portion of the
+pipeline's effort went into cleaning, mapping and validating that data before any analysis
+could begin. The following recommendations would make the next round of analysis faster,
+cheaper and more reliable.
+
+### 1. Standardise the rating scale
+
+Use a single **1–5 star scale** across all sites and departments, with clear definitions
+visible to the customer at the point of collection:
+
+| Rating | Meaning |
+|:---:|---|
+| 1 | Very poor |
+| 2 | Poor |
+| 3 | Average |
+| 4 | Good |
+| 5 | Excellent |
+
+This project dealt with multiple rating scales (1–5, 1–10, percentage-based) that had to be
+normalised before comparison. A single scale eliminates that conversion and the
+interpretation questions it raises.
+
+### 2. Collect on a consistent period
+
+Standardise collection to a **fixed monthly or quarterly cadence** across all sites. In this
+dataset, some sites reported monthly, others irregularly, and one site's June data was a
+duplicate of July (D-029). Consistent periods allow direct month-on-month comparison without
+the pairing adjustments the trend analysis required.
+
+### 3. Ensure the customer completes the form themselves
+
+At least one site appeared to complete feedback forms on behalf of customers rather than
+having customers fill them out directly. This introduces staff interpretation into what
+should be the customer's own voice, and may not accurately reflect their true experience.
+All feedback should be **self-reported by the customer**, ideally via a digital form sent
+after the service interaction.
+
+### 4. Add a customer identifier for repeat-visit tracking
+
+The single most valuable addition for answering the "what is it worth?" question. This
+project could not determine whether a dissatisfied customer came back, because the dataset
+has no customer identifier by design (D-003). A **hashed or anonymised customer ID** — not a
+name, just a token that links visits by the same person — would allow retention analysis
+and connect satisfaction to actual revenue impact.
+
+### 5. Increase response rates
+
+At 2.57% of transactions, the feedback system sees very little of the business. Three QLD
+sites collect sales feedback at under 4% — effectively nothing. Higher response rates would:
+
+- Narrow the confidence intervals that currently prevent separating middle-pack sites
+- Allow monthly site-level trend detection instead of requiring half-year pooling
+- Support the three-way theme × department × dealership analysis that had to be cut (D-060)
+  because 5,353 comments spread across 576 cells left only 9.3 per cell
+
+Consider **automated post-service SMS or email surveys** with a short, standardised form
+rather than relying on in-branch collection.
+
+### 6. Standardise department naming
+
+The source data used 16 different spellings for three departments. A controlled dropdown
+(Service / Sales / Parts) at the point of data entry would eliminate the manual mapping
+step (D-048, D-049, D-050) and the risk of misclassification.
+
+### 7. Include a structured topic field
+
+Free-text comments are valuable but hard to classify reliably — the theme model in this
+project agreed with the owner only 44.1% of the time. Adding a **short multi-select
+checklist** alongside the free-text comment (e.g. "What was your feedback mainly about?
+Booking / Communication / Wait time / Staff / Pricing / Parts / Workmanship / Other") would
+give a reliable topic signal while preserving the richness of open comments. This would
+replace the NLP theme assignment with a direct customer signal.
+
+
+---
+
 ## Appendix A — NLP methodology
 
 This section covers the NLP work (Wave 4). The sentiment model failed its pass mark, and how
@@ -310,79 +389,3 @@ assignment caught only 2 of 7 owner rejections at the natural threshold, and cat
 seven required marking 40.8% of the corpus unassigned (D-066).
 
 ---
-
-## Appendix C — Recommendations for future data collection
-
-The source data for this project arrived as spreadsheets with inconsistent formats, mixed
-rating scales, and no standardised schema across sites. A significant portion of the
-pipeline's effort went into cleaning, mapping and validating that data before any analysis
-could begin. The following recommendations would make the next round of analysis faster,
-cheaper and more reliable.
-
-### 1. Standardise the rating scale
-
-Use a single **1–5 star scale** across all sites and departments, with clear definitions
-visible to the customer at the point of collection:
-
-| Rating | Meaning |
-|:---:|---|
-| 1 | Very poor |
-| 2 | Poor |
-| 3 | Average |
-| 4 | Good |
-| 5 | Excellent |
-
-This project dealt with multiple rating scales (1–5, 1–10, percentage-based) that had to be
-normalised before comparison. A single scale eliminates that conversion and the
-interpretation questions it raises.
-
-### 2. Collect on a consistent period
-
-Standardise collection to a **fixed monthly or quarterly cadence** across all sites. In this
-dataset, some sites reported monthly, others irregularly, and one site's June data was a
-duplicate of July (D-029). Consistent periods allow direct month-on-month comparison without
-the pairing adjustments the trend analysis required.
-
-### 3. Ensure the customer completes the form themselves
-
-At least one site appeared to complete feedback forms on behalf of customers rather than
-having customers fill them out directly. This introduces staff interpretation into what
-should be the customer's own voice, and may not accurately reflect their true experience.
-All feedback should be **self-reported by the customer**, ideally via a digital form sent
-after the service interaction.
-
-### 4. Add a customer identifier for repeat-visit tracking
-
-The single most valuable addition for answering the "what is it worth?" question. This
-project could not determine whether a dissatisfied customer came back, because the dataset
-has no customer identifier by design (D-003). A **hashed or anonymised customer ID** — not a
-name, just a token that links visits by the same person — would allow retention analysis
-and connect satisfaction to actual revenue impact.
-
-### 5. Increase response rates
-
-At 2.57% of transactions, the feedback system sees very little of the business. Three QLD
-sites collect sales feedback at under 4% — effectively nothing. Higher response rates would:
-
-- Narrow the confidence intervals that currently prevent separating middle-pack sites
-- Allow monthly site-level trend detection instead of requiring half-year pooling
-- Support the three-way theme × department × dealership analysis that had to be cut (D-060)
-  because 5,353 comments spread across 576 cells left only 9.3 per cell
-
-Consider **automated post-service SMS or email surveys** with a short, standardised form
-rather than relying on in-branch collection.
-
-### 6. Standardise department naming
-
-The source data used 16 different spellings for three departments. A controlled dropdown
-(Service / Sales / Parts) at the point of data entry would eliminate the manual mapping
-step (D-048, D-049, D-050) and the risk of misclassification.
-
-### 7. Include a structured topic field
-
-Free-text comments are valuable but hard to classify reliably — the theme model in this
-project agreed with the owner only 44.1% of the time. Adding a **short multi-select
-checklist** alongside the free-text comment (e.g. "What was your feedback mainly about?
-Booking / Communication / Wait time / Staff / Pricing / Parts / Workmanship / Other") would
-give a reliable topic signal while preserving the richness of open comments. This would
-replace the NLP theme assignment with a direct customer signal.
