@@ -171,7 +171,7 @@ def q1_drivers_by_department(df: pd.DataFrame) -> None:
     t = pd.DataFrame(rows)[::-1].reset_index(drop=True)  # Parts at the bottom of a barh
     group = 100 * df["negative_by_rating"].mean()
 
-    fig, axes = plt.subplots(1, 2, figsize=(10.5, 3.8), gridspec_kw={"wspace": 0.28})
+    fig, axes = plt.subplots(1, 2, figsize=(11.5, 3.8), gridspec_kw={"wspace": 0.40})
 
     ax = axes[0]
     bars = ax.barh(t["dep"], t["rows"], color=[DEPT[d] for d in t["dep"]], height=0.6)
@@ -395,14 +395,13 @@ def q1_themes_by_department(df: pd.DataFrame) -> None:
             )
     ax.axvline(overall, color=NATIONAL, ls="--", lw=1.5)
     ax.text(
-        overall,
-        len(themes) - 0.42,
-        f"all commented rows\n{overall:.1f}%",
+        overall + 1.5,
+        -0.6,
+        f"all commented rows: {overall:.1f}%",
         fontsize=7.5,
         color=NATIONAL,
-        ha="center",
-        va="top",
-        linespacing=1.4,
+        ha="left",
+        va="center",
     )
     ax.set_xlabel("Of those comments, % the customer rated 1–2")
     ax.set_xlim(0, 78)
@@ -638,6 +637,23 @@ def q3_where_to_focus(df: pd.DataFrame, revenue: pd.DataFrame) -> None:
     ax.axhspan(0, 27, xmin=0.5, color="#fdf1f0", zorder=0)
     ax.axvline(national, color=NATIONAL, lw=1.5, ls="--", zorder=1)
     ax.axhline(0, color=NATIONAL, lw=1.5, ls="--", zorder=1)
+    label_offsets = {
+        "Ipswich": (42, 6),
+        "Newcastle": (40, -8),
+        "Ringwood": (-48, -8),
+        "Penrith": (-50, 4),
+        "Ballarat": (-10, -14),
+        "Townsville": (-48, -8),
+        "Chermside": (42, 8),
+        "Frankston": (10, -14),
+        "Wollongong": (-10, -14),
+        "Tamworth": (-10, 8),
+        "Essendon": (42, -4),
+        "Box Hill": (10, -14),
+        "Geelong": (10, -14),
+        "Toowoomba": (42, 0),
+        "Bendigo": (-10, -14),
+    }
     for _, r in t.iterrows():
         ax.scatter(
             r["rate"],
@@ -650,13 +666,16 @@ def q3_where_to_focus(df: pd.DataFrame, revenue: pd.DataFrame) -> None:
             zorder=3,
         )
         focus = r["sig"] or (r["rate"] > national and r["move"] > 0)
+        dx, dy = label_offsets.get(r["name"], (0, -6 - r["jobs"] / 1500))
+        ha = "left" if dx > 0 else ("right" if dx < 0 else "center")
+        va = "center" if r["name"] in label_offsets else "top"
         ax.annotate(
             r["name"] + ("  ★" if r["sig"] else ""),
             (r["rate"], r["move"]),
             textcoords="offset points",
-            xytext=(0, -6 - r["jobs"] / 1500),
-            ha="center",
-            va="top",
+            xytext=(dx, dy),
+            ha=ha,
+            va=va,
             fontsize=8 if focus else 6.8,
             fontweight="bold" if r["sig"] else "normal",
             color=INK if focus else MUTED,
@@ -714,10 +733,12 @@ def q3_where_to_focus(df: pd.DataFrame, revenue: pd.DataFrame) -> None:
                 label="Bubble size = annual service jobs",
             ),
         ],
-        frameon=False,
+        frameon=True,
+        framealpha=0.9,
+        edgecolor="white",
         fontsize=8.5,
         loc="lower left",
-        ncol=2,
+        ncol=1,
     )
     ax.set_title("Q3 · Where to focus first: bad now, and getting worse")
     _footer(
