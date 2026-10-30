@@ -711,6 +711,53 @@ Source: `agents/reports/w1_profilers.md` (15 findings). Wave 2 ingestion applies
   weakness as a measured limitation in both reports, citing the eight cases and the 15.2%
   slang exposure. The defect is documented either way; only the mitigation is optional.
 
+### D-065 · The sentiment model misses the pass mark; D-055's committed fallback applies · Decided · 30 Oct 2026
+- **The bar was not moved.** D-055 set κ ≥ 0.60 and named the fallback before any labels
+  existed. The measured κ is **0.403**. PLAN.md §9's stop rule says apply the planned
+  fallback, so that is what happens: **the customer's star rating is the primary signal for
+  negative feedback, and model sentiment is reported as a method comparison with its κ
+  stated.** D-004 already made the rating the minimum signal, so no downstream definition
+  changes.
+- **The measurement** (150 blind labels, owner, 30 Oct; `reports/evaluation.md`):
+
+  | | Value |
+  |---|---:|
+  | Cohen's κ, model vs owner | **0.403** (floor 0.60) |
+  | Raw agreement on the sample | 64.0% |
+  | Agreement weighted back to the corpus | 65.5% |
+  | **κ of the star rating alone, same labels** | **0.460** |
+  | κ of the LLM, 45 overlapping rows | 0.727 |
+
+- **The rating beats the model.** At κ 0.460 against 0.403, the customer's own star rating
+  predicts the owner's judgement better than the sentiment model does. That is the clearest
+  possible justification for the fallback, and it was not knowable before the labels existed.
+- **Why the model failed, from the confusion matrix.** Two faults, both already identified in
+  D-063 before the labels were drawn, which is the part worth noting:
+  1. **It over-uses `neutral`.** The owner used neutral **3 times in 150**; the model assigns
+     it to 22.4% of the whole corpus. 34 of the sample's comments were called neutral by the
+     model while the owner called them negative (22) or positive (12).
+  2. **It reads sarcasm and praise-then-complaint as positive.** 15 of the owner's 98
+     negatives were called positive — *"Wow, what a well oiled machine"* on a 1-star, and
+     *"Fantastic customer service from [STAFF], nothing was too much trouble. Part was on
+     back-order though"* on a 3-star.
+- **The LLM's κ 0.727 does not promote it.** It is measured on 45 rows, and those 45 are
+  exactly the disagreement cases the LLM was pointed at, so the subset is the one where it was
+  designed to help. A biased 45-row sample cannot justify making a 3B model the primary signal
+  for every headline number, and D-055's fallback is what was committed. It is reported as
+  evidence that the irony problem is tractable, not as a new primary.
+- **Consequence for Wave 5, and it is a real narrowing.** The drivers analysis leads with the
+  rating, not sentiment. Theme-level claims carry their own caveat: the owner placed comments
+  in the same theme as the model only **44.1%** of the time, so a theme's negative *rate* is
+  reportable with that stated and a theme's *ranking* against another is not safe on this
+  evidence.
+- **For D-056:** the owner answered "none of these" on 7 of 150 comments (4.7%), which is the
+  direct evidence for where the `unassigned` floor belongs.
+- **D-017 exception, recorded not hidden.** The agent that wrote `src/classify.py` wrote
+  `src/evaluate.py` too; there was no time before the 15:00 freeze to stand up an independent
+  one. Every input is a committed file and the arithmetic is sklearn's, so the numbers are
+  reproducible with `make evaluate` — but they are not independent, and Checkpoint 5's
+  verifier should re-run them.
+
 ### D-007 · Two reports · Decided · 29 Oct 2026
 - **Decision:** (1) a non-technical business report for the Head of CX; (2) a technical report (`README.md`) for reviewers. The business report links to the technical one.
 
