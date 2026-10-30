@@ -531,6 +531,9 @@ Source: `agents/reports/w1_profilers.md` (15 findings). Wave 2 ingestion applies
   recommendation exists or changes while it is inspected. This is the same move D-052 made
   for `trend_evidence`, which derived 0.5 stars from the measured SD of 1.44 in
   `reports/trend_evidence.md` and was still committed before any trend result existed.
+- **Closed 30 Oct 2026 — see D-066.** The owner's 150 blind labels were used to test the
+  mechanism and it does not separate the comments they rejected from the ones they kept, so
+  the floor is retired rather than set.
 - **Audit hardening.** The distribution is reviewed with comment text visible but with no
   dealership or theme-count breakdown, so the floor cannot be influenced by which site it
   would flatter.
@@ -757,6 +760,46 @@ Source: `agents/reports/w1_profilers.md` (15 findings). Wave 2 ingestion applies
   one. Every input is a committed file and the arithmetic is sklearn's, so the numbers are
   reproducible with `make evaluate` — but they are not independent, and Checkpoint 5's
   verifier should re-run them.
+
+### D-066 · The `unassigned` similarity floor is retired, not set · Recommended, owner to confirm · 30 Oct 2026
+- **Closes D-056**, and not the way D-056 expected. D-056 committed to setting the floor from
+  the observed distribution. The owner's 150 blind labels were then used to test the mechanism
+  itself, and it does not work. Recorded as a recommendation rather than a decision because
+  gate G7 applies to retiring a threshold as much as to setting one, exactly as D-052 did when
+  it retired `dealer_match_min_confidence`.
+- **The test.** The owner answered "none of these" on 7 of 150 comments — the ground truth for
+  what a floor is supposed to catch.
+
+  | Group | n | Similarity range | Median |
+  |---|---:|---|---:|
+  | Placed in a theme by the owner | 143 | 0.180 – 0.740 | 0.438 |
+  | **Rejected — "none of these"** | **7** | **0.220 – 0.396** | 0.301 |
+
+  The two groups overlap almost completely. Every floor is therefore either cosmetic or
+  destructive:
+
+  | Floor | Catches | Marks unassigned |
+  |---:|---:|---|
+  | 0.259 — the 4.7th percentile, reproducing the owner's own none-rate | **2 of 7** | 248 (4.6%) |
+  | 0.300 | 3 of 7 | 585 (10.9%) |
+  | 0.350 | 5 of 7 | 1,237 (23.1%) |
+  | 0.400 | 7 of 7 | **2,185 (40.8%)** |
+
+- **Similarity also barely predicts correctness,** which is the deeper reason a floor cannot
+  work here: model-owner theme agreement is 38.3% below 0.40, 44.8% at 0.40–0.50, 42.3% at
+  0.50–0.60, and 66.7% above 0.60 on only 12 comments. A cut point needs a quantity that
+  separates right from wrong, and this one does not.
+- **Why the obvious number was rejected.** A floor at the 4.7th percentile reproduces the
+  owner's none-rate exactly and would have read as principled in the report. It catches two of
+  their seven rejections. Matching the *rate* is not matching the *judgement*, and publishing
+  the first while implying the second would have been the more flattering choice.
+- **The decision.** No floor. `theme` is reported for every commented row, with the 44.1%
+  model-owner agreement from D-065 stated wherever a theme figure appears. Theme negative
+  *rates* are reportable with that caveat; theme *rankings* are not (D-065).
+- **What would fix it, for the record and not for this week:** a theme model trained or
+  validated against more than 150 labels, or assignment by an instruction-tuned model rather
+  than embedding similarity — the LLM reached κ 0.727 on sentiment over its subset, so the
+  approach is not hopeless, just unevidenced at this sample size.
 
 ### D-007 · Two reports · Decided · 29 Oct 2026
 - **Decision:** (1) a non-technical business report for the Head of CX; (2) a technical report (`README.md`) for reviewers. The business report links to the technical one.

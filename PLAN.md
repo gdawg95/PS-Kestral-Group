@@ -3,9 +3,15 @@
 **Owner:** gdawg95 (sole human contributor)
 **Repo:** https://github.com/gdawg95/PS-Kestral-Group (private until reviewers approve)
 **Code freeze:** Friday 30 Oct 2026, 3:00pm (then proofread and edit until COB)
-**Last updated:** Friday 30 Oct 2026, 02:40 · **Waves 1–3 complete. Wave 4's work is done;
-three owner decisions and the hand-labelling are outstanding.** Waves 1–3 are reviewed and
-merged to `main` (gate G5). Wave 4 is on `w1-wrapup`, pushed but not reviewed or merged.
+**Last updated:** Friday 30 Oct 2026, 13:40 · **Waves 1–4 complete. Wave 5 is the whole of
+what remains, and it has no code.** Waves 1–3 are reviewed and merged to `main` (gate G5);
+Wave 4 is on `w1-wrapup`, pushed but not reviewed or merged.
+
+**The two outstanding §2 non-negotiables are both Wave 5's: a trend, and a recommendation.**
+Wave 4's result is that the sentiment model **missed its pass mark** (κ 0.403 against the 0.60
+committed in D-055) and the pre-committed fallback applies — **the customer's star rating is
+the primary signal**, because it scored κ 0.460 on the same labels and beat the model (D-065).
+The brief for the remaining work is `agents/briefs/w5_analysis.md`.
 
 This is the single source of truth for the project. Every new conversation and every agent brief starts from this file and `DECISIONS.md`.
 
