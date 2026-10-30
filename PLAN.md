@@ -306,3 +306,99 @@ End by giving me an AI_LOG.md entry for this conversation.
 | Final theme list | After theme discovery (Wave 3) |
 | LLM in or out (pilot timing vs cut-off) | Wave 4 pilot |
 | Value benchmarks and assumptions | Wave 5 |
+
+## 13. Plan vs actual — comparison
+
+### Deliverables
+
+| # | Planned | Outcome | Notes |
+|---|---|---|---|
+| 1 | Clean dataset (`data/clean/feedback.parquet`) | Delivered | 7,150 rows after validation |
+| 1b | Reviewer export (`export/feedback_clean.{csv,xlsx,json}`) | Delivered | 12 columns, minimised for public release (D-067). Originally 15 columns; lineage columns withheld after D-064 re-check |
+| 2 | Business report (`reports/business_report.md`) | Delivered | Recommendations rewritten by owner (Checkpoint 5 part 2) |
+| 3 | Technical report (`README.md`) | Delivered | Detailed analysis moved to `ANALYSIS.md` for readability |
+| 4 | Decisions log (`DECISIONS.md`) | Delivered | D-001 to D-071 (plan expected ~67) |
+| 5 | AI usage log (`AI_LOG.md`) | Delivered | AI-001 to AI-014, 46 specific errors logged |
+| 6 | Agent briefs and reports | Delivered | 9 briefs, 12 reports (includes pilot review, spot-check and verifier) |
+
+### Non-negotiable outputs (section 2)
+
+| Planned | Outcome | Notes |
+|---|---|---|
+| One cleaned, de-identified dataset | Delivered | 7,150 rows, 12 public columns |
+| At least one trend identified with evidence | Delivered | Group decline confirmed (p = 4.9e-07), split by state. D-052 threshold set before results |
+| Basic NLP (sentiment + themes) | Delivered | Sentiment on 5,353 rows, 8 themes assigned. Sentiment **failed its pass mark** (κ 0.403 vs 0.60) — fallback to star rating applied (D-065) |
+| At least one recommendation | Delivered | Three in business report: NSW Service priority, Parramatta/Dandenong/Liverpool named, theme-based focus areas |
+| Technical report for reviewers | Delivered | `README.md` + `ANALYSIS.md` |
+
+### Wave-by-wave deviations
+
+| Wave | Planned | What changed | Documented in |
+|---|---|---|---|
+| 1 | Scaffold, PII, NLP check, profilers, benchmarks research | **As planned.** All five agents ran and delivered | — |
+| 2 | Mapping, 3 site joiners (VIC/NSW/QLD), ingest | **Site joiners merged into ingest.** One agent handled all joining via `mappings/columns.yaml` instead of three regional joiners | D-034 (hand-approved map made fuzzy matching unnecessary) |
+| 3 | DQ rules, dealership matching, dates/scales, theme discovery | **Two agents removed, one added, one moved.** Dealership matching removed (D-034). Dates/scales already done in Wave 2 (D-020, D-030, D-040). Theme discovery moved to Wave 4. Department fill added (not in plan) | D-034, D-035, Wave 3 rescope in PLAN.md §8 |
+| 4 | Labelling prep, classifier, LLM, evaluation (4 agents) | **Became one classifier + scoped LLM step.** BERTopic replaced by KMeans (D-061). Long theme descriptions replaced by short probes (D-062). Evaluation ran as part of the verifier, not a separate agent | D-061, D-062, D-065, D-017 |
+| 5 | Drivers, trend, coverage, value model, charts, business report drafter, technical report drafter, independent verifier (8 agents) | **Became two agents (analysis + verifier).** `src/analyse.py` and `src/figures.py` handled drivers, trend, coverage and charts in one run. Value model **cut** (D-025 unset, benchmarks unreviewed, revenue null-result). Business and technical report sections written by the analysis agent | D-070, PLAN.md §10 cut list |
+
+### Tech stack deviations
+
+| Planned | Outcome | Why |
+|---|---|---|
+| BERTopic for theme discovery | **KMeans k=12** | BERTopic/HDBSCAN returned one giant cluster or 84 micro-clusters on this corpus (D-061) |
+| `rapidfuzz` for dealership matching | **Not used** | File → dealer map approved by hand; no free-text dealership column survives ingestion (D-034) |
+| `gitleaks` for pre-public check | **Manual credential sweep** | No network access to install gitleaks (D-013). Manual sweep found nothing; accepted by owner 30 Oct 2026 |
+| Presidio as alternative PII tool | **spaCy NER only** | spaCy NER + regex + roster approach proved sufficient; Presidio not needed |
+| `export/llm_cache/` for model caches | `data/llm_cache/` | Cache stored under `data/` (gitignored), not `export/`; committed sentiment cache in `data/clean/` |
+| `notebooks/` for exploration | **Empty** | All exploration done in scripts and src modules; no notebooks used |
+| Streamlit dashboard | **Cut** | Cut list item 1 (§10) |
+| Quarto rendering | **Cut** | Cut list item 2 |
+| Docker for whole pipeline | **Cut** | Cut list item 3. Docker kept for Ollama only (`docker-compose.yml` exists) |
+| CI workflow | **Cut** | Cut list item 4 |
+
+### Cut list outcome (section 10)
+
+| # | Item | Outcome |
+|---|---|---|
+| 1 | Streamlit dashboard | Cut |
+| 2 | Quarto rendering | Cut |
+| 3 | Docker for whole pipeline | Cut — kept for Ollama only |
+| 4 | CI workflow | Cut |
+| 5 | LLM step | **Kept** — scoped to 857 comments (D-024), 49.8 min on CPU. Annotates only, never overwrites |
+| 6 | Baseline model comparison | Cut |
+| 7 | Statistical tests beyond one trend check | **Partially kept** — per-site Holm-corrected tests retained for the recommendation; other tests cut |
+| 8 | Themes beyond top ~8 | **Kept at 8** (D-059). KMeans discovered 12 clusters; owner named 8 themes |
+
+### Deferred decisions outcome (section 12)
+
+| Decision | Planned timing | Outcome | Reference |
+|---|---|---|---|
+| Duplicate check result | After Wave 2 | **Resolved.** 9 pairs at Springwood, keep first row | D-047 |
+| Score-scale mappings | After profiling | **Resolved.** 7 scales mapped to 1–5 | D-020 |
+| Trend evidence threshold | After basic EDA | **Resolved.** 20 responses, 0.5 stars, thin sites quarterly | D-052 |
+| NLP pass mark | Before hand-labelling | **Resolved.** κ ≥ 0.60 committed; model missed it; fallback applied | D-055, D-065 |
+| Final theme list | After theme discovery | **Resolved.** 8 themes approved from KMeans clusters | D-023, D-059 |
+| LLM in or out | Wave 4 pilot | **In**, scoped to 857 comments (disagreement cases) | D-024 |
+| Value benchmarks and assumptions | Wave 5 | **Unresolved.** D-025 never set; benchmarks unreviewed; value model cut | D-070 |
+
+### Gates and checkpoints
+
+| Gate | Status | Notes |
+|---|---|---|
+| G1 — Pilot before scaling | Observed | Pilot on 4–5 dealerships before each bulk run |
+| G2 — Approve each plan | Observed | All 9 briefs approved before execution |
+| G3 — No schema change without approval | Observed | `columns.yaml` approved line by line (D-036 to D-045) |
+| G4 — Confirm redaction before models | Observed | PII redaction verified before any NLP |
+| G5 — Review before merge | Observed | All merges via owner review |
+| G7 — Owner sets thresholds before results | Observed | All thresholds committed pre-results. Two thresholds retired rather than set (D-034 dealer match, D-066 unassigned floor) |
+| G9 — Approve charts before reports | Observed | 9 charts approved 30 Oct 2026 before embedding in reports |
+
+### What was not delivered
+
+| Item | Status | Why |
+|---|---|---|
+| `tests/test_llm_review.py` | Not written | Code freeze arrived first |
+| `thresholds.nlp_pass_mark.theme_bar` | Still `TBD` | Needs its own sample sized after discovery; 150 comments cannot carry a per-theme F1 (D-055) |
+| Dollar value estimate (business question 3) | Gap stated, not answered | D-025 unset, benchmarks unreviewed, revenue null-result removes the mechanism (D-070) |
+| `v1.0` tag at code freeze | Tagged | — |
+| `gitleaks` scan | Manual sweep accepted | No network to install (D-013); manual sweep found nothing |
