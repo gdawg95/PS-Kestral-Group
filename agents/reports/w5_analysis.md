@@ -96,9 +96,11 @@ Four more, all stated in the reports themselves:
 1. **Gate G9 is open.** Six charts exist and **neither report embeds any of them.** Both
    carry a figure index saying where each belongs. This is the only gate still blocking
    between here and a finished report, and it is a five-minute read.
-2. **Checkpoint 5 is open on two counts:** 2–3 headline numbers recomputed by hand, and the
-   recommendations rewritten in the owner's voice. `business_report.md` is marked DRAFT at
-   the top and at section 4 for exactly that.
+2. **Checkpoint 5 is half closed.** The owner recomputed the headline numbers on 30 Oct
+   (`reports/checkpoint5_recompute.md`): 14 figures, including all three the recommendation
+   rests on, recomputed from `export/feedback_clean.csv` by a route that imports nothing
+   from `src/`. All 14 match. **Still open:** the recommendations rewritten in the owner's
+   voice — `business_report.md` is marked DRAFT at the top and at section 4 for that.
 3. **The independent verifier did not run (step 8, D-017).** The brief said not to cut it if
    there was any way to keep it, and the freeze arrived first. This is now the single largest
    outstanding item in the project, and it compounds: `reports/evaluation.md` already records

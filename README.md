@@ -683,11 +683,12 @@ Everything in PLAN.md section 2 is now delivered. What remains is checking, not 
 |---|---|---|
 | 1 | **Independent verifier** — fresh agent, clean clone, `make all`, every reported number checked against the code | **Not done.** The single most valuable outstanding item (D-017, Checkpoint 5). `reports/evaluation.md` already records its own D-017 exception: the agent that wrote `src/classify.py` wrote the evaluation too, because the freeze arrived first |
 | 2 | **Gate G9 — the owner approves each of the eight charts** before it enters a report | **Not done.** The PNGs exist in `reports/figures/`; neither report embeds any of them, and both carry a figure index instead |
-| 3 | **Checkpoint 5 — the owner recomputes 2–3 headline numbers by hand** and rewrites the business report's recommendations in their own voice | **Not done.** `reports/business_report.md` is marked DRAFT for exactly this |
-| 4 | **Industry benchmarks for the value model.** `reports/benchmarks.md` was written but never reviewed, and D-025 is unset, so the value model is cut and the gap is stated in both reports | Owner's call; cut-list item 1 for Wave 5 |
-| 5 | `tests/test_llm_review.py` — named in the Wave 4 LLM brief's outputs | **Does not exist.** The freeze arrived first |
-| 6 | `thresholds.nlp_pass_mark.theme_bar` | Still `TBD`. A credible per-theme F1 needs its own sample, sized after discovery; D-055 records why 150 comments cannot carry one |
-| 7 | **`gitleaks` scan of full history**, and the history rewrite `PUBLIC_RELEASE.md` describes | Before publication. D-067 is explicit that **this repository must stay private until the rewrite is done**: commit `bec914d` carries the 15-column export whose lineage columns identify 99.0% of rows uniquely |
+| 3 | **Checkpoint 5, part 1 — the owner recomputes headline numbers** | **Done, 30 Oct 2026.** 14 published figures recomputed from the reviewer export by a route that imports nothing from `src/`; all 14 match. Evidence: [reports/checkpoint5_recompute.md](reports/checkpoint5_recompute.md) |
+| 4 | **Checkpoint 5, part 2 — the owner rewrites the business report's recommendations in their own voice** | **Not done.** `reports/business_report.md` is marked DRAFT for exactly this |
+| 5 | **Industry benchmarks for the value model.** `reports/benchmarks.md` was written but never reviewed, and D-025 is unset, so the value model is cut and the gap is stated in both reports | Owner's call; cut-list item 1 for Wave 5 |
+| 6 | `tests/test_llm_review.py` — named in the Wave 4 LLM brief's outputs | **Does not exist.** The freeze arrived first |
+| 7 | `thresholds.nlp_pass_mark.theme_bar` | Still `TBD`. A credible per-theme F1 needs its own sample, sized after discovery; D-055 records why 150 comments cannot carry one |
+| 8 | **`gitleaks` scan of full history**, and the history rewrite `PUBLIC_RELEASE.md` describes | Before publication. D-067 is explicit that **this repository must stay private until the rewrite is done**: commit `bec914d` carries the 15-column export whose lineage columns identify 99.0% of rows uniquely |
 
 `make all` runs end to end: ingest → validate → classify → analyse → figures.
 
