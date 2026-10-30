@@ -1,16 +1,18 @@
 # Export manifest
 
-**Generated:** `python -m src.export` · 2026-10-30 12:08
+**Generated:** `python -m src.export` · 2026-10-30 13:08
 **Source:** `data/clean/feedback.parquet` (sha256 `8832792c7583278f…`)
-**Rows:** 7,150 · **Columns:** 15
+**Rows:** 7,150 · **Columns:** 12
 
 Three formats, one dataset. Same rows, same columns, same values in each.
 
+**This is the public export.** It carries the month rather than the exact date, and it does not carry `source_file`, `source_sheet` or `source_row`. Those three identify 99.0% of rows uniquely and are a join key straight back to the identified source spreadsheets, so they are withheld from a published dataset (D-067). `feedback_id` still gives every row a stable handle.
+
 | File | Bytes | sha256 |
 |---|---:|---|
-| `feedback_clean.csv` | 1,353,755 | `7c8545944dfb5cc5c704eefdb64663ec42dc900cd228ea4c6c0a3e670bf075f8` |
-| `feedback_clean.xlsx` | 773,907 | `fb81df3b4acd56c8cd879965dedab79fa8529df49da178639218b42d596c31d3` |
-| `feedback_clean.json` | 3,727,607 | `10e3cf4d601d261cd9af900d4f723c79dc8a869aa18a5aa6be61d65630fbaa0d` |
+| `feedback_clean.csv` | 1,054,759 | `1c9499c57cf78e5736b3e855724da004c08982f0961d2fe3d2a30286c0ea2e50` |
+| `feedback_clean.xlsx` | 642,271 | `01432544687a5d40acf657968e0b18a65850c79327a399c0950a64c41b33e227` |
+| `feedback_clean.json` | 2,975,542 | `e268ec442c5a5d3032ac5d8f0bbce7f00de9b488c6adfe04d06815b6605ed72f` |
 
 ## De-identification evidence
 
@@ -23,8 +25,10 @@ Three formats, one dataset. Same rows, same columns, same values in each.
 | Street addresses surviving redaction | none |
 | Registration plates surviving redaction | none |
 | Cells Excel would read as a formula | none |
-| Columns outside the schema allowlist | none |
+| Columns outside the allowlist | none |
 | Person-shaped spaCy candidates (two or more capitalised words) | none beyond the 2 reviewed exceptions below |
+| Source-lineage columns (a key back to identified rows) | withheld |
+| Date granularity | month; 1.4% of rows alone on dealer + month + department, against 58.0% on the exact date |
 
 Redaction tokens present in the exported comments:
 

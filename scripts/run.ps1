@@ -6,7 +6,7 @@ Usage:  .\scripts\run.ps1 all        .\scripts\run.ps1 ingest       .\scripts\ru
 #>
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet('all', 'ingest', 'validate', 'classify', 'analyse', 'figures', 'export', 'test', 'lint', 'hooks', 'nlp-check')]
+    [ValidateSet('all', 'ingest', 'validate', 'classify', 'analyse', 'figures', 'export', 'scan-history', 'test', 'lint', 'hooks', 'nlp-check')]
     [string]$Target,
     [switch]$Fresh
 )
@@ -29,6 +29,7 @@ switch ($Target) {
     'analyse'   { Step 'analyse'  'uv run python -m src.analyse' }
     'figures'   { Step 'figures'  'uv run python -m src.figures' }
     'export'    { Step 'export'   'uv run python -m src.export' }
+    'scan-history' { Step 'scan-history' 'uv run python -I scripts/scan_history_pii.py' }
     'test'      { Step 'test'     'uv run pytest -q' }
     # Formatting is deliberately not gated - see the lint target in the Makefile.
     'lint'      { Step 'lint'     'uv run ruff check .' }

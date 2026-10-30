@@ -34,6 +34,7 @@ uv sync                      # exact environment from uv.lock
 make ingest                  # raw files -> data/interim/consolidated.parquet
 make validate                # data-quality rules -> data/clean/feedback.parquet
 make export                  # the clean dataset -> export/ as CSV, Excel and JSON
+make scan-history            # PII scan of every blob in every commit (pre-public)
 make test                    # 302 tests
 make nlp-check               # can the Wave 4 models load and run here?
 ```
@@ -216,9 +217,30 @@ trust. Two of those 64 are name-shaped and are not names - `Plin English`, a typ
 both are listed in `NOT_PEOPLE_SURFACES` with the comment that produced them rather than
 handled by widening the rule until the check went green.
 
-The risk that comes with it is stated plainly in D-064: git history cannot be cleaned later,
-which is the whole basis of D-015. The repository is private, so the export is visible to
-the owner and invited reviewers only; if it is ever made public, this data goes with it.
+That risk arrived the next morning. The owner established that the repository **will be
+made public for submission**, which is the condition D-064 said to re-check on, so the
+published dataset was minimised and the history audited: see
+[PUBLIC_RELEASE.md](PUBLIC_RELEASE.md) and D-067.
+
+The published export carries 12 columns, not 15. `source_file` + `source_sheet` +
+`source_row` identify 99.0% of rows uniquely and are a join key back to the *un*redacted
+spreadsheets, so anyone holding the challenge pack could have undone the de-identification
+wholesale; they are withheld. `feedback_date` becomes `feedback_month`, which takes the
+share of rows sitting alone on dealer + date + department from 58.0% to 1.4% and costs
+nothing, because every analysis here is monthly anyway (D-040). `src/export.py` blocks the
+export if either reaches the public frame, with a test per column.
+
+`make scan-history` reads every blob in every commit on every branch and tag — not HEAD,
+because publishing publishes all of it — and reports real email addresses, phone numbers,
+street addresses, plates and person-shaped names. It is clean. The only hits were the
+redaction patterns in `src/pii.py` itself, the synthetic test fixtures, two ruff `noqa`
+codes shaped like number plates, and two adjudicated false positives: `Corsa Rubbish`,
+where a customer ran a car model into a complaint without a full stop, and `Box Hill's`, a
+suburb.
+
+**One blocker remains and it is in PUBLIC_RELEASE.md item 1.** The export committed in
+`bec914d` carried all 15 columns, and no later commit can remove a blob from history, so
+that commit has to be rewritten before the repository is ever public.
 
 ## 7. Data quality (Wave 3, in progress)
 

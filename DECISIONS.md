@@ -841,6 +841,54 @@ Source: `agents/reports/w1_profilers.md` (15 findings). Wave 2 ingestion applies
   are model output that has not yet been measured against the owner's labelled sample
   (D-055's κ ≥ 0.60), so exporting them now would hand reviewers numbers no gate has cleared.
 
+### D-067 · The published dataset withholds the source lineage and the exact date · Decided · 30 Oct 2026
+
+- **Context:** the owner established on 30 Oct that the repository **will be made public for
+  submission**. D-064 had committed the export on the stated basis that the repository was
+  private, and said in terms to re-check before any visibility change. This is that re-check.
+  The challenge pack is fictional; it is treated as real customer feedback throughout.
+- **Decision:** the public export carries 12 columns, not 15. `source_file`, `source_sheet`
+  and `source_row` are withheld, and `feedback_date` is replaced by `feedback_month`. The
+  full-lineage copy is written to `data/clean/export_internal/` on `--internal`, which
+  `.gitignore` and the commit guard both keep out of the repository.
+- **Why, measured on this dataset rather than argued from guidance:**
+  - `source_file + source_sheet + source_row` identifies **7,079 of 7,150 rows uniquely
+    (99.0%)**. It is a primary key back to the original spreadsheets, which hold the names,
+    phone numbers and plates that redaction removed. Any holder of the challenge pack — other
+    participants and the assessors — could join on it and undo the de-identification wholesale.
+    It is useless to a reader without the pack and a complete re-identification key to one
+    with it, so publishing it could only ever have helped the wrong reader.
+  - `dealer_code + feedback_date + department` leaves **4,149 rows (58.0%)** alone in their
+    group. With the month instead: **100 rows (1.4%)**, a 40-fold reduction. Adding
+    `rating_1to5` takes the exact-date figure to 84.6% and the month figure to 11.8%.
+  - The month costs nothing that was in use: every analysis in this project is monthly, and
+    D-040 already records that the day never reaches a published figure.
+- **What is kept:** `feedback_id` remains unique, so every row is still citable and the
+  labelling sample in `reports/labels_done.csv` still joins. `department_raw`, `rating_raw`
+  and `rating_scale` stay, because the point of them is to let a reviewer check the mapping
+  and the scale conversion rather than believe them. `date_corrected` and `date_approx` stay:
+  the month is sound for all 16 flagged rows, and it was only ever the day that was inferred.
+- **What this costs:** a reviewer cannot re-derive a row's source cell from the published
+  file, and cannot reproduce a daily or weekly cut. The first is unavoidable — it is the
+  re-identification path itself — and in any case a public reviewer does not hold the raw
+  files to check lineage against. The second is not used anywhere in the project.
+- **Enforced, not just documented:** `src/export.py` blocks the export if a lineage column or
+  an exact date reaches the public frame, with a test per column. The audit from D-064 — no
+  surviving email, phone, address, plate or person-shaped name — still runs first.
+- **The committed history is the open problem.** `bec914d` carried all 15 columns and exact
+  dates, and three commits now sit on top of it, all already pushed. A later commit cannot
+  remove a blob from history, so publishing this repository as it stands would publish the
+  99% re-identification key regardless of what the current files say. It has to be rewritten
+  before the repository is ever public, and that is the owner's call because it force-pushes
+  over commits that already exist on the remote. `PUBLIC_RELEASE.md` holds the checklist and
+  the two options. **Until that is done, this repository must stay private.**
+- **Also checked before release, and clean:** every blob in all 54 commits across every branch
+  and tag was scanned for real email addresses, phone numbers, street addresses, plates and
+  person-shaped names. The only hits are the regex patterns in `src/pii.py` itself and the
+  synthetic fixtures in `tests/`. No staff roster or name list exists on disk at any commit.
+  96 verbatim comments are quoted in four committed reports, none of them beside a dealer
+  code, date or `feedback_id`, so they carry no linkage.
+
 ## Technology
 
 ### D-010 · Zero-budget, open-source stack · Decided · 29 Oct 2026

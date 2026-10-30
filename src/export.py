@@ -49,7 +49,44 @@ ROOT = Path(__file__).resolve().parents[1]
 CONFIG = yaml.safe_load((ROOT / "config.yaml").read_text(encoding="utf-8"))
 CLEAN = ROOT / CONFIG["paths"]["clean"] / "feedback.parquet"
 OUT_DIR = ROOT / "export"
+# The full-lineage copy. Under data/, so .gitignore and the commit guard both keep it out
+# of the repository without needing a new rule.
+INTERNAL_DIR = ROOT / CONFIG["paths"]["clean"] / "export_internal"
 STEM = "feedback_clean"
+
+# What the public export carries. Three columns of the clean schema are deliberately absent
+# and `feedback_date` is replaced by `feedback_month` (D-067). Both changes exist because
+# the repository is published for submission, which no amount of comment redaction covers:
+#
+#   source_file + source_sheet + source_row is a primary key. It identifies 7,079 of the
+#   7,150 rows uniquely - 99.0% - so anyone holding the challenge pack can join on it and
+#   read back the customer name, phone number and plate that redaction removed. It is of no
+#   use to a reader who does not have the pack, and a complete re-identification key to
+#   every reader who does, so publishing it only ever helps the wrong person.
+#
+#   dealer_code + feedback_date + department leaves 4,149 rows (58.0%) alone in their
+#   group, so someone who knows a person visited one site on one day can usually find their
+#   comment. The same three fields with the month instead leave 100 rows (1.4%). Every
+#   analysis in this project is monthly and D-040 already records that the day never
+#   reaches a published figure, so the month costs nothing that was being used.
+#
+# `feedback_id` still gives every row a stable handle, so rows remain discussable. The
+# full-lineage copy is written to INTERNAL_DIR for the owner's own audit.
+PUBLIC_COLUMNS: tuple[str, ...] = (
+    "feedback_id",
+    "dealer_code",
+    "feedback_month",
+    "department_raw",
+    "department",
+    "rating_raw",
+    "rating_scale",
+    "rating_1to5",
+    "comment",
+    "from_summary",
+    "date_corrected",
+    "date_approx",
+)
+DROPPED_FOR_PUBLICATION: tuple[str, ...] = ("source_file", "source_sheet", "source_row")
 
 # Text columns a reviewer opens in Excel. Only `comment` holds free text, but a dealer code
 # or a file name starting with "-" would be read as a formula just the same.
@@ -151,23 +188,46 @@ def _formula_cells(df: pd.DataFrame) -> list[str]:
     return problems
 
 
-def _structure(df: pd.DataFrame, expected_rows: int) -> list[str]:
+def _structure(df: pd.DataFrame, expected_rows: int, public: bool) -> list[str]:
     """Blocking: the allowlist, and the row count the export claims to be."""
     problems: list[str] = []
-    extra = [c for c in df.columns if c not in schema.COLUMNS]
+    allowed = PUBLIC_COLUMNS if public else schema.COLUMNS
+    extra = [c for c in df.columns if c not in allowed]
     if extra:
-        problems.append(f"columns outside the schema allowlist would be exported: {extra}")
+        problems.append(
+            f"columns outside the {'public' if public else 'schema'} allowlist would be "
+            f"exported: {extra}"
+        )
+    if public:
+        leaked = [c for c in DROPPED_FOR_PUBLICATION if c in df.columns]
+        if leaked:
+            problems.append(
+                f"the public export carries the source-lineage columns {leaked}, which are a "
+                "primary key back to the identified source rows (D-067)"
+            )
+        if "feedback_date" in df.columns:
+            problems.append(
+                "the public export carries an exact `feedback_date`; D-067 publishes the "
+                "month, because the exact date leaves 58% of rows alone in their group"
+            )
     if len(df) != expected_rows:
         problems.append(f"{len(df)} rows to export but the parquet holds {expected_rows}")
     return problems
 
 
+def to_public(df: pd.DataFrame) -> pd.DataFrame:
+    """The clean frame reduced to what is safe to publish (D-067)."""
+    out = df.copy()
+    out["feedback_month"] = pd.to_datetime(out["feedback_date"]).dt.strftime("%Y-%m")
+    return out[list(PUBLIC_COLUMNS)]
+
+
 def audit(
-    df: pd.DataFrame, expected_rows: int, use_ner: bool = True
+    df: pd.DataFrame, expected_rows: int, use_ner: bool = True, public: bool = True
 ) -> tuple[list[str], list[str]]:
     """(blocking problems, the name-candidate listing for the manifest)."""
     comments = df["comment"].dropna()
-    problems = _structure(df, expected_rows)
+    problems = _structure(df, expected_rows, public)
     problems += _formula_cells(df)
     problems += _pattern_leaks(comments)
     listing: list[str] = []
@@ -222,7 +282,8 @@ def write_exports(df: pd.DataFrame, out_dir: Path) -> list[Path]:
     """CSV, Excel and JSON of the same frame. Dates are ISO in all three."""
     out_dir.mkdir(parents=True, exist_ok=True)
     out = df.copy()
-    out["feedback_date"] = pd.to_datetime(out["feedback_date"]).dt.strftime("%Y-%m-%d")
+    if "feedback_date" in out.columns:  # absent from the public frame, which carries the month
+        out["feedback_date"] = pd.to_datetime(out["feedback_date"]).dt.strftime("%Y-%m-%d")
 
     csv_path = out_dir / f"{STEM}.csv"
     xlsx_path = out_dir / f"{STEM}.xlsx"
@@ -265,7 +326,12 @@ def write_exports(df: pd.DataFrame, out_dir: Path) -> list[Path]:
 
 
 def write_manifest(
-    paths: list[Path], df: pd.DataFrame, candidates: list[str], out_dir: Path, use_ner: bool
+    paths: list[Path],
+    df: pd.DataFrame,
+    candidates: list[str],
+    out_dir: Path,
+    use_ner: bool,
+    public: bool = True,
 ) -> Path:
     """What was exported, from what, and the evidence it carries no personal data."""
     token_counts = {
@@ -281,6 +347,18 @@ def write_manifest(
         f"**Rows:** {len(df):,} · **Columns:** {len(df.columns)}",
         "",
         "Three formats, one dataset. Same rows, same columns, same values in each.",
+        "",
+        (
+            "**This is the public export.** It carries the month rather than the exact date, "
+            "and it does not carry `source_file`, `source_sheet` or `source_row`. Those three "
+            "identify 99.0% of rows uniquely and are a join key straight back to the "
+            "identified source spreadsheets, so they are withheld from a published dataset "
+            "(D-067). `feedback_id` still gives every row a stable handle."
+            if public else
+            "**This is the internal, full-lineage copy** - exact dates and `source_file` / "
+            "`source_sheet` / `source_row`. It is written under `data/`, which `.gitignore` "
+            "and the commit guard both keep out of the repository. Do not publish it (D-067)."
+        ),
         "",
         "| File | Bytes | sha256 |",
         "|---|---:|---|",
@@ -310,8 +388,13 @@ def write_manifest(
         "| Street addresses surviving redaction | none |",
         "| Registration plates surviving redaction | none |",
         "| Cells Excel would read as a formula | none |",
-        "| Columns outside the schema allowlist | none |",
+        "| Columns outside the allowlist | none |",
         f"| Person-shaped spaCy candidates (two or more capitalised words) | {ner_result} |",
+        *([
+            "| Source-lineage columns (a key back to identified rows) | withheld |",
+            "| Date granularity | month; 1.4% of rows alone on dealer + month + department, "
+            "against 58.0% on the exact date |",
+        ] if public else []),
         "",
         "Redaction tokens present in the exported comments:",
         "",
@@ -379,32 +462,67 @@ def main(argv: list[str] | None = None) -> int:
         help="skip the spaCy name scan (~2 min over 5,353 comments). For iteration only: "
         "the manifest records that it did not run.",
     )
+    parser.add_argument(
+        "--internal",
+        action="store_true",
+        help="also write the full-lineage copy (exact dates, source_file/sheet/row) to "
+        f"{INTERNAL_DIR.relative_to(ROOT).as_posix()}, which is gitignored. For the owner's "
+        "own audit; never publish it (D-067).",
+    )
     args = parser.parse_args(argv)
 
     if not CLEAN.exists():
         print(f"{CLEAN.relative_to(ROOT).as_posix()} does not exist - run `make validate` first.")
         return 1
 
-    df = pd.read_parquet(CLEAN)
-    print(f"Exporting {len(df):,} rows x {len(df.columns)} columns from "
+    clean = pd.read_parquet(CLEAN)
+    public = to_public(clean)
+    print(f"Read {len(clean):,} rows x {len(clean.columns)} columns from "
           f"{CLEAN.relative_to(ROOT).as_posix()}")
+    print(f"Public export: {len(public.columns)} columns - the month instead of the exact "
+          f"date, and no {'/'.join(DROPPED_FOR_PUBLICATION)} (D-067)")
 
     print("Auditing before writing anything ...")
-    problems, candidates = audit(df, expected_rows=len(df), use_ner=not args.skip_ner)
+    problems, candidates = audit(
+        public, expected_rows=len(clean), use_ner=not args.skip_ner, public=True
+    )
     if problems:
-        print("\nREFUSING TO EXPORT - the dataset is not safe to hand over:")
+        print("\nREFUSING TO EXPORT - the dataset is not safe to publish:")
         for problem in problems:
             print(f"  - {problem}")
-        print("\nNothing was written. Fix the redaction, re-run `make validate`, try again.")
+        print("\nNothing was written. Fix it, re-run `make validate`, try again.")
         return 1
 
     scanned = "" if args.skip_ner else f", {len(candidates)} name candidates, none a person"
     print(f"  clean: no email, phone, address or plate survived{scanned}")
 
-    paths = write_exports(df, OUT_DIR)
-    manifest = write_manifest(paths, df, candidates, OUT_DIR, use_ner=not args.skip_ner)
-    for path in [*paths, manifest]:
-        print(f"  wrote {path.relative_to(ROOT).as_posix()}  ({path.stat().st_size:,} bytes)")
+    written = []
+    paths = write_exports(public, OUT_DIR)
+    written += [*paths, write_manifest(paths, public, candidates, OUT_DIR, not args.skip_ner)]
+
+    if args.internal:
+        internal_problems, _ = audit(
+            clean, expected_rows=len(clean), use_ner=False, public=False
+        )
+        if internal_problems:
+            print("\nREFUSING to write the internal copy:")
+            for problem in internal_problems:
+                print(f"  - {problem}")
+            return 1
+        internal_paths = write_exports(clean, INTERNAL_DIR)
+        written += [
+            *internal_paths,
+            write_manifest(
+                internal_paths, clean, candidates, INTERNAL_DIR, not args.skip_ner, public=False
+            ),
+        ]
+
+    for path in written:
+        where = path.relative_to(ROOT).as_posix()
+        print(f"  wrote {where}  ({path.stat().st_size:,} bytes)")
+    if args.internal:
+        print(f"\n  {INTERNAL_DIR.relative_to(ROOT).as_posix()}/ is gitignored and blocked "
+              "by the commit guard. Do not publish it.")
     return 0
 
 

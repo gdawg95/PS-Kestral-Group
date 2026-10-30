@@ -40,7 +40,7 @@ If time runs short, these are protected. Everything else can be cut.
 | # | Deliverable | Audience | Location |
 |---|---|---|---|
 | 1 | Clean dataset | Analysis pipeline | `data/clean/feedback.parquet` (gitignored) |
-| 1b | The same dataset, for reading | Reviewers | `export/feedback_clean.{csv,xlsx,json}` + `export/MANIFEST.md`, committed (D-064) |
+| 1b | The same dataset, for reading | Reviewers | `export/feedback_clean.{csv,xlsx,json}` + `export/MANIFEST.md`, committed. 12 columns, minimised for public release (D-064, D-067) |
 | 2 | Business report | Head of CX (non-technical) | `reports/business_report.md` |
 | 3 | Technical report | Reviewers | `README.md` |
 | 4 | Decisions log | Reviewers | `DECISIONS.md` |
@@ -106,6 +106,7 @@ PS-Kestral-Group/
 │   ├── interim/      # per-stage Parquet, gitignored
 │   ├── clean/        # final de-identified dataset, gitignored
 ├── export/           # the same dataset as CSV/Excel/JSON for reviewers, committed
+│                  #   (12 columns; no lineage, month not day - D-067)
 │   └── llm_cache/    # de-identified model outputs, committed
 ├── mappings/columns.yaml
 ├── prompts/          # versioned prompt files

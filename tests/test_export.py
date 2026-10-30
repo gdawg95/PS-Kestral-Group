@@ -20,9 +20,12 @@ import pytest
 
 from src import schema
 from src.export import (
+    DROPPED_FOR_PUBLICATION,
     NOT_PEOPLE_SURFACES,
     PERSON_SHAPE,
+    PUBLIC_COLUMNS,
     audit,
+    to_public,
     write_exports,
     write_manifest,
 )
@@ -55,8 +58,9 @@ def frame(**overrides) -> pd.DataFrame:
 
 
 def problems(df: pd.DataFrame, expected_rows: int | None = None) -> list[str]:
-    """The blocking problems only, with the slow spaCy pass off."""
-    found, _ = audit(df, expected_rows if expected_rows is not None else len(df), use_ner=False)
+    """Blocking problems for the public export, with the slow spaCy pass off."""
+    rows = expected_rows if expected_rows is not None else len(df)
+    found, _ = audit(to_public(df), rows, use_ner=False, public=True)
     return found
 
 
@@ -97,14 +101,17 @@ def test_formula_leading_cell_blocks_the_export(prefix):
 
 
 def test_formula_check_covers_every_text_column():
-    found = problems(frame(source_sheet="=cmd"))
-    assert any("source_sheet" in p for p in found), found
+    found = problems(frame(department_raw="=cmd"))
+    assert any("department_raw" in p for p in found), found
 
 
 def test_column_outside_the_allowlist_blocks_the_export():
-    df = frame()
+    # Audited directly, because to_public selects the allowlist and would drop the column
+    # before the check ever saw it. The check guards the writers, which take what they are
+    # given.
+    df = to_public(frame())
     df["customer_name"] = "Dave Smith"
-    found = problems(df)
+    found, _ = audit(df, expected_rows=1, use_ner=False, public=True)
     assert any("allowlist" in p for p in found), found
 
 
@@ -116,6 +123,65 @@ def test_row_count_mismatch_blocks_the_export():
 
 def test_rows_without_comments_are_fine():
     assert problems(frame(comment=None)) == []
+
+
+# ---------------------------------------------------------------- safe to publish
+
+# The repository is made public for submission, so these are not stylistic choices about
+# column selection: they are the difference between a de-identified dataset and one anyone
+# holding the challenge pack can join back to named customers (D-067).
+
+
+def test_public_export_withholds_the_source_lineage():
+    """source_file + sheet + row is a primary key - 99% of rows unique - to identified data."""
+    public = to_public(frame())
+    for column in DROPPED_FOR_PUBLICATION:
+        assert column not in public.columns, column
+
+
+def test_public_export_carries_the_month_not_the_exact_date():
+    public = to_public(frame())
+    assert "feedback_date" not in public.columns
+    assert public["feedback_month"].iloc[0] == "2026-01"
+
+
+def test_public_export_columns_are_exactly_the_allowlist():
+    assert list(to_public(frame()).columns) == list(PUBLIC_COLUMNS)
+
+
+def test_public_export_keeps_every_row():
+    """De-identifying is a column operation. Losing a row here would be a silent data bug."""
+    df = pd.concat([frame(), frame(feedback_id="F000002")], ignore_index=True)
+    assert len(to_public(df)) == len(df)
+
+
+def test_feedback_id_still_identifies_a_row():
+    """Lineage is withheld, so feedback_id is the only row handle reviewers have left."""
+    df = pd.concat([frame(), frame(feedback_id="F000002")], ignore_index=True)
+    public = to_public(df)
+    assert public["feedback_id"].is_unique
+
+
+@pytest.mark.parametrize("column", DROPPED_FOR_PUBLICATION)
+def test_lineage_reaching_the_public_export_blocks_it(column):
+    """If a later change let one back in, the export must stop rather than publish it."""
+    df = to_public(frame())
+    df[column] = "x.xlsx"
+    found, _ = audit(df, expected_rows=1, use_ner=False, public=True)
+    assert any("primary key" in p for p in found), found
+
+
+def test_an_exact_date_reaching_the_public_export_blocks_it():
+    df = to_public(frame())
+    df["feedback_date"] = "2026-01-15"
+    found, _ = audit(df, expected_rows=1, use_ner=False, public=True)
+    assert any("exact" in p for p in found), found
+
+
+def test_the_internal_form_accepts_the_full_schema():
+    """The owner's own copy keeps lineage; only the published one is reduced."""
+    found, _ = audit(frame(), expected_rows=1, use_ner=False, public=False)
+    assert found == []
 
 
 # ---------------------------------------------------------------- the name tripwire
@@ -140,7 +206,7 @@ def test_a_person_shaped_name_blocks_the_export():
 
 
 def test_a_reviewed_exception_does_not_block_the_export():
-    df = frame(comment="Plin English, all the way through. Top marks.")
+    df = to_public(frame(comment="Plin English, all the way through. Top marks."))
     found, candidates = audit(df, expected_rows=1, use_ner=True)
     assert found == []
     assert any("Plin English" in c for c in candidates), candidates
@@ -191,7 +257,7 @@ def test_dates_are_iso_in_every_format(tmp_path):
 
 
 def test_csv_quotes_a_comment_containing_a_newline(tmp_path):
-    df = frame(comment="Lovely lot.\n\nBill wrong though.")
+    df = to_public(frame(comment="Lovely lot.\n\nBill wrong though."))
     write_exports(df, tmp_path)
     back = pd.read_csv(tmp_path / "feedback_clean.csv", dtype=str)
     assert len(back) == 1
