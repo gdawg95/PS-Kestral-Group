@@ -3,16 +3,10 @@
 **Owner:** gdawg95 (sole human contributor)
 **Repo:** https://github.com/gdawg95/PS-Kestral-Group
 **Code freeze:** Friday 30 Oct 2026, 3:00pm (then proofread and edit until COB)
+
 **Last updated:** Friday 30 Oct 2026, evening · **All five waves complete.** Waves 1–5 are
 merged to `main` (gate G5, 30 Oct 2026). The independent verifier ran after the code freeze
 and its findings (V-1 to V-6) were acted on before the merge.
-
-Wave 4's result is that the sentiment model **missed its pass mark** (κ 0.403 against the 0.60
-committed in D-055) and the pre-committed fallback applies — **the customer's star rating is
-the primary signal**, because it scored κ 0.460 on the same labels and beat the model (D-065).
-Wave 5's result is that NSW Service drives the group-level decline, with Parramatta,
-Dandenong and Liverpool named on their own evidence. The value model (business question 3)
-was cut: D-025 unset, benchmarks unreviewed, and the revenue null-result undercuts any figure.
 
 This is the single source of truth for the project. Every new conversation and every agent brief starts from this file and `DECISIONS.md`.
 
@@ -31,9 +25,9 @@ Turn 52 inconsistent dealership feedback spreadsheets (Oct 2025 – Sep 2026) in
 If time runs short, these are protected. Everything else can be cut.
 
 - [x] One final cleaned, de-identified dataset — `data/clean/feedback.parquet`, 7,150 rows (Wave 3), exported for reviewers as CSV, Excel and JSON in `export/` (D-064)
-- [ ] At least one trend identified (with evidence that it is real) — the evidence threshold is set and committed (D-052); the trend itself is Wave 5
+- [x] At least one trend identified (with evidence that it is real) — the evidence threshold is set and committed (D-052); the trend itself is Wave 5
 - [x] Basic NLP analysis of customer comments (sentiment + themes) — **done.** Sentiment on all 5,353 commented rows and all eight approved themes assigned; `data/clean/feedback_classified.parquet`. Not yet *evaluated* against the owner's labels, which is the rest of Wave 4
-- [ ] At least one recommendation for the business — Wave 5
+- [x] At least one recommendation for the business — Wave 5
 - [x] Technical report for the reviewers — `README.md`, drafted; its Wave 4 and 5 sections are outstanding
 
 ## 3. Deliverables
