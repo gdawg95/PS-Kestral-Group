@@ -1,98 +1,115 @@
-# LLM adjudication — pilot timing and the D-024 decision
+# LLM adjudication — full run
 
-**Status:** pilot only. No full run has happened and nothing is cached. D-024 (LLM in or out,
-and at what scope) is the owner's call and this file is the evidence for it.
-**Run:** 30 Oct 2026, ~02:10. `qwen2.5:3b` (Ollama ID `357c53fb659c`) at
-`http://localhost:11434`, prompt `sentiment_v1` (owner-approved, Checkpoint 4),
-`temperature 0`, `seed 42`, `num_predict 24`.
+**Scope B**: 857 comments, run 30 Oct 2026. `qwen2.5:3b` (Ollama ID `357c53fb659c`), prompt `sentiment_v1`, `temperature 0`, `seed 42`, `num_predict 24`.
+**Wall clock:** 49.8 minutes (3.49 s/comment) against D-011's 2-hour cut-off.
 
-## The disagreement set
+Scope B is every polarity flip plus every case where the customer's rating is neutral. Under D-004 the sentiment label only decides whether a row counts as negative when the rating is not 1–2, so these are the cells that can move a reported number, plus both sarcasm corners. D-024.
 
-1,887 of the 5,353 commented rows, where the rating's class differs from the deterministic
-model's label: **350 polarity flips** and **1,537 adjacent** (one step apart, always with
-neutral on one side).
+## Which signal the LLM sided with
 
-## The pilot
+| | Count | Share |
+|---|---:|---:|
+| The customer's rating | 218 | 25.4% |
+| The deterministic model | 439 | 51.2% |
+| Neither | 200 | 23.3% |
 
-18 comments, three from each of the six disagreement cells, so the timing is not measured on
-one easy corner. (18 rather than 20: six cells at three each.)
+**Sarcasm reported in 390 of 857 (45.5%).** That figure is the justification for this agent: it is the share of the disagreement that irony explains, rather than the deterministic model simply being wrong.
 
-| Measure | Value |
-|---|---|
-| Parse failures | **0 of 18** — the prompt's JSON contract holds |
-| Generated tokens | 15.0 per comment, every time |
-| Sarcasm reported | 4 of 18 |
+**Parse failures: 0 of 857.** Recorded, never dropped.
 
-### Timing, stated two ways — and the honest version is the slower one
+## By disagreement cell
 
-| Basis | s/comment | Projection for 1,887 | Against the 2h cut-off |
-|---|---:|---:|---|
-| All 18 calls | 4.75 | **2.49 h** | **Over** |
-| Excluding the first call | 3.60 | **1.89 h** | Just under |
+| Rating | Model | LLM negative | LLM neutral | LLM positive | n |
+|---|---|---:|---:|---:|---:|
+| negative | positive | 136 | 0 | 0 | 136 |
+| neutral | negative | 308 | 0 | 0 | 308 |
+| neutral | positive | 197 | 1 | 1 | 199 |
+| positive | negative | 130 | 3 | 81 | 214 |
 
-The first call took **24.3 seconds** against a 2.1–7.8 second spread for the rest, because it
-paid for loading the model into memory. That cost is paid once, so including it in a
-per-comment rate and then multiplying by 1,887 charges it 1,887 times, which is wrong
-arithmetic. The 3.60 s/comment figure is the better estimate of marginal cost.
+## What this does NOT do
 
-**It does not follow that the full run is safe.** 1.89 hours leaves 6% headroom on a two-hour
-budget, unattended, on a laptop that the owner describes as occasionally unreliable. Any
-thermal throttling, any background process, any retry blows it — and PLAN.md §9 is explicit
-that the cut-off does not move when a result is inconvenient.
+It does not change `sentiment_label` (brief Q2). Every headline number in Wave 5 still comes from the deterministic model, so a reviewer who never starts Ollama reproduces them exactly. And it is not an evaluation: under D-017 this agent does not grade itself, and if the LLM and the owner's blind labels disagree, the owner's labels are correct (brief Q3).
 
-### Why the rate is far below the recorded one
+## Failure cases for Checkpoint 4
 
-`config.yaml` records **12.83 tokens/s** from a one-sentence test on 29 Oct. This pilot
-measures **3.16 generated tokens/s**. Both are correct and they measure different things: the
-prompt here carries four few-shot examples and its instruction block, so each call spends
-most of its time on *prefill* — reading roughly 400 prompt tokens — to generate 15. Ollama's
-`eval_count` counts only generated tokens, so the stated rate understates the work done.
+Comments where the LLM disagreed with **both** other signals, or returned unparseable output. The owner reads about 20 of these.
 
-**Planning implication:** the recorded 12.83 tokens/s should not be used to size any
-prompt-heavy run. That is a note worth correcting in `config.yaml`, which this agent is not
-allowed to edit (brief: Not allowed).
+**rating 3 (neutral) · model positive · llm negative**
 
-## Recommended scope: 857 comments, not 1,887
+> Great speed on the timing belt job, they got it done in the one day like they said. Getting that day was the problem, because the first two dates I asked for were both full. Call me on [PHONE].
 
-| Scope | Comments | Projected | Covers |
-|---|---:|---:|---|
-| All disagreements | 1,887 | 1.89 h | Everything, with 6% headroom |
-| **Flips + neutral row** | **857** | **0.86 h** | Both sarcasm corners, and the model's weakest class |
-| Flips only | 350 | 0.35 h | The sarcasm corners only — 19% of disagreements |
+**rating 3 (neutral) · model positive · llm negative**
 
-The middle scope is the recommendation. It takes the 350 polarity flips plus the 507 cases
-where the *rating* is neutral (308 → negative, 199 → positive) — which is the class the
-deterministic model handles worst, at only 25.1% diagonal agreement. It leaves out the 781
-positive→neutral and 249 negative→neutral cells, the mildest disagreements and the least
-likely to be irony. It costs 43% of the budget instead of 95%.
+> helpful, cheerful staff. wait on the phone was well over 15 minutes.
 
-## What the pilot already suggests
+**rating 3 (neutral) · model positive · llm negative**
 
-Of the 18 adjudications, the LLM sided with:
+> Gee, the explanation of the work was top notch, really easy to follow. The bill was a different story, they charged me for a premium oil when I'd asked for the standard one.
 
-| | Count |
-|---|---:|
-| The customer's rating | 9 |
-| The deterministic model | 5 |
-| Neither | 3 |
+**rating 3 (neutral) · model positive · llm negative**
 
-Two things stand out, both tentative at n = 18:
+> Ahh yes, a 'quick' service. Four hours, I sat there for. Wonderful way to spend a Thursday, tank you.
 
-1. **All six rating-3 cases came back `negative`.** That is now a third independent signal
-   pointing the same way as the raw text and the deterministic model: a customer who awards
-   3/5 *and writes a comment* is usually complaining. It strengthens the case that the
-   rating, not the model, is the weak signal on the middle band — and it is why D-055 set the
-   pass mark against the owner's blind labels rather than against the rating.
-2. **Sarcasm was reported in 4 of 18**, and not only in the flip cells. If that rate holds,
-   irony accounts for a meaningful slice of the disagreement rather than a curiosity.
+**rating 3 (neutral) · model positive · llm negative**
 
-Neither claim is an evaluation. Under D-017 this agent does not grade itself, and the owner's
-hand labels remain the only reference that decides anything.
+> Good people, very nice to deal with. Slow, slow, slow.
 
-## What the owner decides (D-024)
+**rating 3 (neutral) · model positive · llm negative**
 
-1. **Scope:** all 1,887, the recommended 857, flips only, or no LLM at all.
-2. **Confirm gate G4:** only the redacted `comment` column is sent, and nothing else from the
-   row. That is what the code does; the owner confirms it.
-3. Whether the LLM annotates only, or overrides `sentiment_label` — brief Q2 proposes
-   annotate only, so Wave 5's headline numbers stay reproducible without Ollama.
+> Oh brilliant, they actually finished the service when they said they would. Shame they couldn't find my booking when I rocked up.
+
+**rating 3 (neutral) · model positive · llm negative**
+
+> Service done and dusted in 90 minutes. Lovely. The booking, on the other hand, was somehow not in the diary when I arrived.
+
+**rating 3 (neutral) · model positive · llm negative**
+
+> Great welcome, helpful staff. Problem not fixed.
+
+**rating 3 (neutral) · model positive · llm negative**
+
+> Good on the team for making it all easy to understand. Not so good on the quote, which was blown out by about 30 percent.
+
+**rating 3 (neutral) · model positive · llm negative**
+
+> Wonderful, warm people. Took half the day, mind you.
+
+**rating 3 (neutral) · model positive · llm negative**
+
+> I was greeted warmly and treated with courtesy by all staff. Regrettably, the required part was unavailable and the waiting time was considerably longer than quoted.
+
+**rating 3 (neutral) · model positive · llm negative**
+
+> Thanks to [STAFF], very pleasant. Waited.
+
+**rating 3 (neutral) · model positive · llm negative**
+
+> Lovely welcome. Rubbish booking experience.
+
+**rating 3 (neutral) · model positive · llm negative**
+
+> New to the area and the front desk folks were so welcoming, gave me tips on where to get a decent coffee too. Wish the same care went into the wipers, because they're still chattering across the glass.
+
+**rating 3 (neutral) · model positive · llm negative**
+
+> Great, a new rattle in the glovebox lid. Brilliant work as always.
+
+**rating 3 (neutral) · model positive · llm negative**
+
+> The work was done well before I expected, which was lovely at my age as I don't like hanging about. But I rang twice to ask a question and nobody got back to me, I felt a bit forgotten.
+
+**rating 3 (neutral) · model positive · llm negative**
+
+> really nice staff, and i mean that. shocking how long i was left on hold though.
+
+**rating 3 (neutral) · model positive · llm negative**
+
+> The handover at pickup was spot on, [STAFF] went through each item on the invoice and what it meant for the van. Wish I could say the same for getting a time slot, I needed it back on the road for work and the diary was a mess.
+
+**rating 3 (neutral) · model positive · llm negative**
+
+> Excellent friendly service from [STAFF]. Not impressed with the long wait on the day, though.
+
+**rating 3 (neutral) · model positive · llm negative**
+
+> nice helpful staff, wait was too long tho
