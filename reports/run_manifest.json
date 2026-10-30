@@ -1,0 +1,122 @@
+{
+  "generated_utc": "2026-10-30T02:34:56Z",
+  "generated_by": "src/analyse.py",
+  "git_commit": "ea14dd1503204c5374c828099c771fc513c815b6",
+  "seed": 42,
+  "row_counts_per_stage": {
+    "ingest (data/interim/consolidated.parquet)": 7159,
+    "validate (data/clean/feedback.parquet)": 7150,
+    "classify (data/clean/feedback_classified.parquet)": 7150,
+    "analyse (rows read)": 7150,
+    "analyse (commented rows)": 5353
+  },
+  "thresholds": {
+    "negative_score_max_1to5": 2,
+    "trend_evidence": {
+      "min_month_responses": 20,
+      "min_change_1to5": 0.5,
+      "thin_dealer_basis": "quarterly"
+    },
+    "nlp_pass_mark": {
+      "metric": "cohens_kappa",
+      "sentiment_min_kappa": 0.6,
+      "sample_size": 150,
+      "sample_stratified": true,
+      "theme_bar": "TBD",
+      "fallback": "score_only"
+    },
+    "llm_max_projected_hours": 2
+  },
+  "models": {
+    "spacy": "en_core_web_sm",
+    "sentiment": "cardiffnlp/twitter-roberta-base-sentiment-latest",
+    "embeddings": "sentence-transformers/all-MiniLM-L6-v2",
+    "llm": {
+      "name": "qwen2.5:3b",
+      "ollama_model_id": "357c53fb659c",
+      "image": "ollama/ollama@sha256:20d1bbfbabe1c97ba4b16301f08a20d8484bcf77047742a3cb71c613d8e12d0b",
+      "host": "http://localhost:11434",
+      "timing_check": "12.83 tokens/s on CPU, 29 Oct 2026 (one-sentence test)"
+    }
+  },
+  "prompt_files": [
+    ".gitkeep",
+    "sentiment_v1.md"
+  ],
+  "inputs": [
+    {
+      "path": "data/clean/feedback_classified.parquet",
+      "present": true,
+      "bytes": 513499,
+      "sha256": "b9d3031edbea5611b75a0854bef4539ddd9988cf74e98cac4835cb07c354b03a"
+    },
+    {
+      "path": "data/clean/feedback.parquet",
+      "present": true,
+      "bytes": 451855,
+      "sha256": "8832792c7583278ff979ac4d133dfdb396f1dcb82c75c2216c73f9babe592b10"
+    },
+    {
+      "path": "data/interim/consolidated.parquet",
+      "present": true,
+      "bytes": 450310,
+      "sha256": "51213f7cf7bc3ec9e46d4a030614a5c5beb182a5f12ac3d628481d30e53ffba4"
+    },
+    {
+      "path": "data/raw/reference/monthly_revenue.csv",
+      "present": true,
+      "bytes": 15044,
+      "sha256": "48588dd340444b030dcfdd32adb439962623c51cae6710b2ebf389dd78762101"
+    },
+    {
+      "path": "data/raw/reference/dealerships.csv",
+      "present": true,
+      "bytes": 1658,
+      "sha256": "58dbe7f53d1414f1c64f90642131dc278e06b6ccd62d533c787d2e699821dce3"
+    },
+    {
+      "path": "config.yaml",
+      "present": true,
+      "bytes": 3083,
+      "sha256": "19bfda0c48f5061ba2c2b59c0686a4129a673df40629ec4246d5e1ca105b8535"
+    },
+    {
+      "path": "mappings/columns.yaml",
+      "present": true,
+      "bytes": 32920,
+      "sha256": "28d87e45cefd6770394bb26348f503ed03c309b2962b8a0d5d075d8896d320f1"
+    },
+    {
+      "path": "mappings/departments.yaml",
+      "present": true,
+      "bytes": 6627,
+      "sha256": "daea0015bfd30374c68445e98c33d30ebbc6018d37ebb4aa477d08b298f77e92"
+    },
+    {
+      "path": "mappings/themes.yaml",
+      "present": true,
+      "bytes": 8452,
+      "sha256": "15d94c809ce1d77392cfa3d7b234bee059a5d2cbb76e88896590b374078f157d"
+    }
+  ],
+  "environment": {
+    "python": "3.12.16",
+    "platform": "Windows-11-10.0.22631-SP0",
+    "packages": {
+      "pandas": "3.1.0",
+      "numpy": "2.5.4",
+      "scipy": "1.18.1",
+      "matplotlib": "3.11.2",
+      "pyarrow": "26.0.0",
+      "sklearn": "1.9.1",
+      "yaml": "6.0.3"
+    }
+  },
+  "measured_quality": {
+    "sentiment_cohens_kappa": 0.403,
+    "sentiment_kappa_floor": 0.6,
+    "rating_cohens_kappa": 0.46,
+    "theme_agreement_pct": 44.1,
+    "source": "reports/evaluation.md (D-065)"
+  }
+}

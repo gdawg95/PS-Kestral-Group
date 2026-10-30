@@ -2,7 +2,9 @@
 
 **PS Recruitment Data & AI Challenge 2026** · Author: gdawg95 · Python 3.12
 
-**Status: draft. Waves 1–3 are complete, Waves 4–5 have not started.** Section 12 lists exactly what is outstanding. Every number in this document is
+**Status: draft at code freeze, Friday 30 October 2026. Waves 1–5 are complete.** Section 14 lists
+what is outstanding, and the largest item is that nobody independent has reproduced these
+numbers yet. Every number in this document is
 produced by code in this repository and can be regenerated with the commands in section 2;
 where a number is not yet produced, it says so rather than estimating.
 
@@ -35,7 +37,7 @@ make ingest                  # raw files -> data/interim/consolidated.parquet
 make validate                # data-quality rules -> data/clean/feedback.parquet
 make export                  # the clean dataset -> export/ as CSV, Excel and JSON
 make scan-history            # PII scan of every blob in every commit (pre-public)
-make test                    # 302 tests
+make test                    # 328 tests
 make nlp-check               # can the Wave 4 models load and run here?
 ```
 
@@ -242,7 +244,7 @@ suburb.
 `bec914d` carried all 15 columns, and no later commit can remove a blob from history, so
 that commit has to be rewritten before the repository is ever public.
 
-## 7. Data quality (Wave 3, in progress)
+## 7. Data quality
 
 [src/validate.py](src/validate.py) applies 13 rules as a pandera schema over the 15
 columns, each classified as PLAN.md requires — **reject** (the row leaves the dataset),
@@ -311,11 +313,20 @@ exists. Current state of [config.yaml](config.yaml):
 | `trend_evidence.min_change_1to5` | 0.5 | sits just outside that band; the rejected "10 rows, 0.5 stars" rule would have called noise a trend |
 | `trend_evidence.thin_dealer_basis` | quarterly | five sites have a median month under 20 and are compared by quarter rather than dropped |
 | `llm_max_projected_hours` | 2 | the cut-off for keeping the optional LLM step |
-| `nlp_pass_mark` | **TBD** | set in Wave 4 before hand-labelling (D-022) |
+| `nlp_pass_mark.sentiment_min_kappa` | 0.60 | Cohen's κ on a 150-comment stratified sample, committed before the owner labelled anything. Raw agreement was rejected: the commented rows are 59.3% positive, so an always-positive model scores 59.3% (D-055) |
+| `nlp_pass_mark.fallback` | `score_only` | named in advance — if κ < 0.60 the rating is primary and sentiment is a method comparison. **It was invoked**: measured κ 0.403 (D-065) |
 
 The trend rule calls 33 of 257 consecutive month pairs a trend, at 16 of 24 sites. Working
 in [reports/trend_evidence.md](reports/trend_evidence.md); it was produced before the
-threshold was chosen, so the choice is visible rather than retrofitted (D-052).
+threshold was chosen, so the choice is visible rather than retrofitted (D-052). Wave 5's
+`src/analyse.py` reproduces 33 flags at the same 16 sites over 256 pairs — one fewer, because
+it requires the two months to be adjacent and the evidence script did not (section 11).
+
+**One threshold was retired rather than set, for the second time in this project.** D-056
+planned an `unassigned` similarity floor for theme assignment; tested against the owner's
+blind labels it caught 2 of their 7 rejections at the 4.7th percentile, and catching all
+seven required marking 40.8% of the corpus unassigned. D-066 retires it and makes the 44.1%
+theme agreement a stated limitation instead (section 10).
 
 `dealer_match_min_confidence` was removed rather than set. It was the confidence floor for
 a fuzzy dealership-name matcher that turned out to have nothing to match: the file → dealer
@@ -341,7 +352,196 @@ The Hugging Face models are not reachable from the cloud workspace where profili
 (HTTP 403), which is why the laptop is the reference environment for `uv lock`, `uv sync`
 and every model (D-013).
 
-## 10. How the work was controlled
+## 10. Wave 4 — the NLP, and the pass mark it missed
+
+This is the part of the project with the clearest result, and the result is a failure. It is
+written up at length because **how a failed model was handled is better evidence of control
+than a model that happened to work.**
+
+### What was built
+
+| Stage | Method | Output |
+|---|---|---|
+| Sentiment | `cardiffnlp/twitter-roberta-base-sentiment-latest`, three classes, cached by `sha256(text + model tag)` | 5,353 commented rows labelled; the 1,797 commentless rows carry **null**, never "neutral" (D-057) |
+| Theme discovery | **KMeans k=12** over UMAP-reduced MiniLM embeddings, seed 42 | [reports/theme_discovery.md](reports/theme_discovery.md), five example comments per cluster |
+| Theme list | The owner named and approved eight themes from the clusters; capped at 8 by D-059 | [mappings/themes.yaml](mappings/themes.yaml) |
+| Theme assignment | Cosine similarity to **6–7 short probe phrases per theme, max-pooled** (D-062) | Every commented row assigned, with its similarity recorded |
+| LLM adjudication | `qwen2.5:3b` in Docker, prompt `sentiment_v1`, temperature 0, seed 42 | 857 comments, 49.8 minutes, **0 parse failures** ([reports/llm_review.md](reports/llm_review.md)) |
+| Evaluation | scikit-learn, against 150 comments the owner labelled **blind** | [reports/evaluation.md](reports/evaluation.md) |
+
+### Two methods did not survive contact with the data
+
+Both are recorded with the evidence that replaced them, because a method chosen in a plan and
+a method that works on the data are different things.
+
+- **BERTopic/HDBSCAN cannot cluster this corpus (D-061).** A `min_cluster_size` sweep over all
+  5,353 comments returned either 84 micro-clusters with 27% outliers, or — at every setting
+  from 20 upwards — a single cluster holding 87% of the data. BERTopic's own topic reduction
+  did not fix it: the merged result still had one cluster of 3,191 comments. Short service
+  comments averaging 101 characters have no separated density peaks; what varies most in the
+  embedding space is which car the customer drives and how happy they are. **KMeans replaced
+  it**, on the owner's suggestion, after the orchestrator predicted it would not help and was
+  wrong. The cost is stated rather than glossed: KMeans cannot refuse a comment, so its 0%
+  outlier rate is a property of the algorithm, not a quality result. HDBSCAN stays reachable
+  via `--kmeans-k 0`, so the failure is reproducible.
+- **One long description per theme embeds badly (D-062).** Assignment first ran against a
+  50–80 word description per theme. The similarity scale came out compressed (median 0.328)
+  and two of ten decile spot-checks were misassigned — **one at the median**, where no
+  confidence floor could have caught it. The cause was in the wording, not the model: a
+  60-word description embeds to the centroid of everything it mentions, and the descriptions
+  borrowed each other's consequences. Short probes fixed it: median 0.328 → **0.424**, p90
+  0.475 → **0.582**, nine of ten deciles correct with the single remaining error at p0.
+
+### The pass mark, and what happened to it
+
+`thresholds.nlp_pass_mark` was committed to [config.yaml](config.yaml) **before the owner
+labelled anything** (gate G7, D-055): Cohen's κ ≥ 0.60 on a 150-comment stratified sample,
+with a named fallback — `score_only` — if it missed. κ rather than raw agreement because the
+commented rows are 59.3% positive, so a model that answers "positive" every time scores 59.3%
+raw agreement and κ = 0.
+
+The owner then labelled 150 comments blind to the model's output **and blind to the star
+rating**, which D-017 does not require but which would otherwise have let the labels inherit
+the signal they were measuring. 263 comments were excluded from the draw because they had
+already been quoted in conversation, several with the model's label attached.
+
+| Signal, same 150 labels | Cohen's κ |
+|---|---:|
+| **The sentiment model** | **0.403** — floor 0.60, **FAIL** |
+| **The customer's star rating alone** | **0.460** |
+| The local LLM, 45 overlapping rows | 0.727 |
+
+**The customer's star rating beat the model.** D-055's pre-committed fallback was applied and
+the bar was not moved (D-065): the rating is the primary signal in every Wave 5 figure, and
+model sentiment appears only beside a rating-based number with its κ stated. PLAN.md §9's stop
+rule — *"NLP misses the pass mark → apply the planned fallback; don't move the bar"* — is the
+rule this followed.
+
+**Why it failed, from the confusion matrix. Both causes had been identified before the labels
+existed, which is the part worth noting:**
+
+1. **It over-uses `neutral`.** The owner used neutral **3 times in 150**; the model assigns it
+   to 22.4% of the corpus. 34 of the sample's comments were called neutral by the model while
+   the owner called them negative (22) or positive (12).
+2. **It reads sarcasm and praise-then-complaint as positive** — *"Wow, what a well oiled
+   machine"* on a 1-star. 812 of 5,353 comments (15.2%) carry Australian slang markers, and
+   all eight of the pilot's polarity-inverted cases were irony or idiom (D-063).
+
+**The LLM's κ of 0.727 does not promote it.** It is measured on 45 rows, and those 45 are
+exactly the disagreement cases the LLM was pointed at. It annotates and never overwrites
+`sentiment_label`, so every Wave 5 number reproduces for a reviewer who never starts Ollama.
+
+### The theme result, and the floor that was retired
+
+Model and owner agreed on a comment's theme **44.1%** of the time. D-056 had planned to set an
+`unassigned` similarity floor from the observed distribution; tested against the owner's
+labels, **no floor works** (D-066):
+
+| Floor | Catches the owner's 7 rejections | Marks unassigned |
+|---:|---:|---|
+| 0.259 — reproduces the owner's own 4.7% none-rate | **2 of 7** | 248 (4.6%) |
+| 0.400 — catches all 7 | **7 of 7** | **2,185 (40.8%)** |
+
+Similarity barely predicts correctness either: 38.3% theme agreement below 0.40, 44.8% at
+0.40–0.50, 42.3% at 0.50–0.60. A floor at the 4.7th percentile would have reproduced the
+owner's own none-rate exactly — a figure that reads as validation — while catching two of
+their seven rejections, so **the threshold was retired rather than set**, the way
+`dealer_match_min_confidence` was. The consequence is a reporting rule, enforced in
+[src/analyse.py](src/analyse.py) rather than in prose: **theme negative rates are reportable
+with the 44.1% attached; theme rankings are not.**
+
+## 11. Wave 5 — the analysis
+
+[src/analyse.py](src/analyse.py) → [reports/analysis.md](reports/analysis.md), and
+[src/figures.py](src/figures.py) → `reports/figures/`. The working paper carries every table;
+[reports/business_report.md](reports/business_report.md) quotes it and adds nothing of its
+own.
+
+### The four rules the analysis runs under
+
+Each comes from a Wave 4 result, and each is enforced in code rather than left to the prose.
+
+| | Rule | From |
+|---|---|---|
+| 1 | The star rating is primary; sentiment appears only as a labelled method comparison | D-055, D-065 |
+| 2 | Theme tables are **alphabetical** — a rate is reportable, an ordering is not | D-065, D-066 |
+| 3 | No theme × department × dealership cut: 576 cells for 5,353 comments is 9.3 per cell | D-060 |
+| 4 | Every rate names its denominator | D-058 |
+
+Rule 4 is the one a reader of the raw figures is most likely to get wrong. **28.1% of
+commented rows are negative by rating; 22.5% of all 7,150 are.** Commentless rows average
+**4.40** stars against **3.54** for commented ones, so the commented subset is not
+representative — "28% of feedback is negative" overstates it by 5.6 points by silently
+excluding the group that is overwhelmingly satisfied.
+
+Rule 3's replacement cut is theme × department nationally, theme × dealership for the **19
+sites whose average theme cell clears 20 comments**, and the five thin sites at department
+level. Those five — NSW07, QLD05, QLD07, VIC08, VIC09 — are exactly the five D-052 put on a
+quarterly basis for trends, reached from comment volume rather than month volume.
+
+### The trend, and why it is believable
+
+**The group's mean rating fell from 3.842 (Oct 2025 – Mar 2026) to 3.671 (Apr – Sep 2026),
+and the negative rate rose 19.9% → 24.9%.**
+
+The trend rule was committed before any trend result existed (D-052): 20 responses in a month,
+0.5 stars, thin sites quarterly. Applied here it finds **33 of 256 consecutive dealer-month
+pairs at 16 of 24 sites** — and those 33 split **16 down, 17 up**, so at the grain it was
+calibrated for, *the rule finds no direction at all*. The group claim is therefore made at the
+grain that has the data, and judged by the same rule's own arithmetic rather than by borrowing
+its number:
+
+> `min_change_1to5: 0.5` came from `sd × √(1/n₁ + 1/n₂)` at n = 20 a month, which is ±0.46.
+> The same formula at n = 3,457 against 3,693 gives **±0.034**. The observed fall of 0.171 is
+> five times that band. Welch p = 4.9e-07, Mann–Whitney p = 1.6e-05, and χ² on the
+> negative/not-negative counts p = 4e-07.
+
+Three alternative explanations were tested and none holds: the department mix is stable
+(Service 69.3% → 67.9%), monthly volume is within 7%, and **removing the closed site moves the
+fall from −0.171 to −0.169** (D-005). The decline is concentrated in **Service: 24.0% → 30.2%
+negative, p = 1.8e-06**, against Sales +4.5 points and Parts unchanged.
+
+**Reconciliation against the committed evidence file.**
+[reports/trend_evidence.md](reports/trend_evidence.md) predicted 33 of **257** pairs at 16 of
+24 sites. The flag count and the site count match exactly; the pair count differs by one
+because `scripts/trend_evidence.py` paired each month with the previous *present* month, so
+Penrith's May 2026 was paired with its July across the June gap D-029 excluded.
+`src/analyse.py` requires the two months to be adjacent. 257 − 1 = 256, and nothing else
+differs.
+
+### Coverage
+
+7,150 responses against **278,697 transactions — 2.57%** (200,249 service jobs at 2.45%,
+16,011 vehicles sold at 9.62%, 62,437 parts transactions at 1.13%). Reported as a limitation
+(D-006), and it also bounds every rate in both reports: these are rates *among responders*,
+and D-058 measured response as **not** independent of satisfaction. The analysis therefore
+does **not** extrapolate the negative rate onto the 97.4% of transactions that produced no
+feedback — section 9 of the analysis shows the arithmetic for that extrapolation and then
+explicitly declines to publish it.
+
+### The value model was cut
+
+PLAN.md's third business question asks roughly what it is worth. [reports/benchmarks.md](reports/benchmarks.md)
+exists but **has not been reviewed, D-025 is unset, and the benchmarks themselves state that
+no published source maps a 1–5 rating to dollars.** It is item 1 on the cut list for this wave
+(PLAN.md §10), and both reports state the gap rather than publishing a scenario dressed as a
+measurement.
+
+### Figures and gate G9
+
+`src/figures.py` writes six PNGs and **neither report embeds any of them**, because gate G9
+makes every chart the owner's to approve first. Both reports carry a figure index naming where
+each belongs. The theme chart is alphabetical and prints the 44.1% agreement on its own face,
+so the caveat cannot be separated from the picture when someone pastes it into a slide.
+
+### Run provenance
+
+[reports/run_manifest.json](reports/run_manifest.json) (PLAN.md §6) records the sha256 of
+every input, the row count at each pipeline stage, the thresholds in force, the model and
+prompt tags, the seed, the git commit and the package versions, so a reviewer can tell which
+inputs produced which report.
+
+## 12. How the work was controlled
 
 The project ran as an orchestrator plus single-purpose agents, each with an approved brief
 in [agents/briefs/](agents/briefs) and a report in [agents/reports/](agents/reports). Seven
@@ -363,12 +563,12 @@ Three things in this repository exist because of that structure rather than in s
 
 ### Where the AI got it wrong
 
-[AI_LOG.md](AI_LOG.md) records every agent run and 20 specific errors with how each was
+[AI_LOG.md](AI_LOG.md) records every agent run and 41 specific errors with how each was
 caught. It is an honest log, not a highlight reel, and the pattern in it matters more than
 any single entry: **the errors that mattered most were caught by arithmetic that had to
 close and by the owner checking source files, not by the AI reviewing its own work.**
 
-Four worth naming:
+Six worth naming:
 
 | What went wrong | How it was caught |
 |---|---|
@@ -377,11 +577,16 @@ Four worth naming:
 | 307 comments were written as `""` instead of null, which is truthy to every `notna()` downstream and invented five duplicate groups | Investigating why the duplicate check reported groups at sites other than Springwood |
 | The leak check's raw name counter reported 100 comments, which would have overstated the residual PII risk by a factor of 50 | Re-testing each match with the capitalisation rule the redactor itself uses |
 
+| A proposed `unassigned` similarity floor at the 4.7th percentile, which reproduced the owner's own "none of these" rate exactly and would have read as principled | The AI tested it against the owner's blind labels before publishing it: it catches **2 of their 7** rejections (D-066) |
+| The 0.5-star trend threshold was applied to a change already rounded to two decimals, so a 0.496-star move cleared a 0.5-star rule. The count came out at 34 flags across 17 sites, and the first draft of the write-up then explained the gap against the committed 33/16 with the wrong cause | Reconciling the new count against `reports/trend_evidence.md` instead of accepting it, then recomputing both ways independently. The threshold now tests the unrounded value and the counts match the committed file exactly (section 11) |
+
 The first is the one to read if only one. A single negative comment disappearing silently is
 the worst possible failure for a project about negative feedback, and nothing but a row
-count that refused to balance would have surfaced it.
+count that refused to balance would have surfaced it. The last is the same shape one layer
+up: a threshold committed in advance can still be loosened by accident, by a decision about
+how to display a number.
 
-## 11. Limitations
+## 13. Limitations
 
 - **Coverage is uneven and not random.** Feedback volume per site ranges from 49 rows to
   484. Sites that collect little feedback cannot support a monthly trend claim at any
@@ -399,28 +604,46 @@ count that refused to balance would have surfaced it.
   rows were expanded from a pivot of counts and carry no comment. All are flagged so any
   analysis can exclude them; the pivot rows are usable for scores and must be excluded from
   NLP.
-- **Sentiment and themes are not yet evaluated.** Until the hand-labelled sample exists,
-  nothing in this repository establishes how accurate the NLP is.
+- **Sentiment missed its pass mark and is not used for any headline.** Cohen's κ 0.403
+  against the 0.60 committed in D-055, and the customer's star rating beat it at 0.460 on
+  the same labels. The fallback named in advance was applied: the rating is the primary
+  signal everywhere, and sentiment appears only as a labelled method comparison (section 10).
+- **Theme assignment agrees with a human 44.1% of the time**, with no confidence floor
+  because no floor separated the comments the owner rejected from the ones they kept (D-066).
+  Theme negative rates are reportable with that figure attached; theme rankings are not, and
+  no conclusion in either report depends on one.
+- **Sarcasm is a measured weakness, not a suspected one.** 812 of 5,353 comments (15.2%)
+  carry Australian slang markers, and all eight of the pilot's polarity-inverted cases were
+  irony or idiom (D-063). The local LLM's 45.5% sarcasm rate over its 857-comment scope is
+  unvalidated model output and is quoted nowhere as a measurement.
+- **Coverage is 2.57% of transactions, and response is not independent of satisfaction.**
+  Commented rows average 3.54 stars against 4.40 for commentless ones, so no rate in this
+  project generalises beyond the customers who responded (D-006, D-058).
+- **No dollar value.** D-025 is unset and `reports/benchmarks.md` is unreviewed, so the third
+  business question — roughly what is it worth — is answered with a stated gap rather than an
+  unverified scenario (section 11).
+- **Twelve months cannot separate a seasonal cycle from a decline.** The year's fall is
+  reported as a fall; no seasonality model was fitted and none is claimed.
 - **One author.** Every judgement here is one person's, assisted by AI and recorded, but not
   independently reviewed. A second reader would likely find something.
 
-## 12. What is outstanding
+## 14. What is outstanding
 
-| # | Item | Blocked by |
+Everything in PLAN.md section 2 is now delivered. What remains is checking, not building.
+
+| # | Item | Status at freeze |
 |---|---|---|
-| 1 | `nlp_pass_mark` and the blind hand-labelled sample | the owner (gate G7), Wave 4 |
-| 2 | Sentiment, theme discovery and theme assignment | Wave 4 |
-| 3 | **Industry benchmarks for the value model** — automotive service retention, customer lifetime value, cost of a lost customer, with citations. PLAN.md section 8 listed this as a Wave 1 research task in its own conversation; it was never done, and D-025 is blocked on it | nobody has started it; Wave 5 needs it |
-| 4 | Drivers, trend, coverage and value analysis | Wave 5 |
-| 5 | Charts, and the business report | Wave 5 |
-| 6 | `reports/run_manifest.json` — input hashes, versions, model tags, row counts per stage | Wave 5 |
-| 7 | Independent verifier: clean clone, `make all`, every reported number checked against code | Wave 5 |
-| 8 | `gitleaks` scan of full history before the repository goes public | before publication |
+| 1 | **Independent verifier** — fresh agent, clean clone, `make all`, every reported number checked against the code | **Not done.** The single most valuable outstanding item (D-017, Checkpoint 5). `reports/evaluation.md` already records its own D-017 exception: the agent that wrote `src/classify.py` wrote the evaluation too, because the freeze arrived first |
+| 2 | **Gate G9 — the owner approves each of the six charts** before it enters a report | **Not done.** The PNGs exist in `reports/figures/`; neither report embeds any of them, and both carry a figure index instead |
+| 3 | **Checkpoint 5 — the owner recomputes 2–3 headline numbers by hand** and rewrites the business report's recommendations in their own voice | **Not done.** `reports/business_report.md` is marked DRAFT for exactly this |
+| 4 | **Industry benchmarks for the value model.** `reports/benchmarks.md` was written but never reviewed, and D-025 is unset, so the value model is cut and the gap is stated in both reports | Owner's call; cut-list item 1 for Wave 5 |
+| 5 | `tests/test_llm_review.py` — named in the Wave 4 LLM brief's outputs | **Does not exist.** The freeze arrived first |
+| 6 | `thresholds.nlp_pass_mark.theme_bar` | Still `TBD`. A credible per-theme F1 needs its own sample, sized after discovery; D-055 records why 150 comments cannot carry one |
+| 7 | **`gitleaks` scan of full history**, and the history rewrite `PUBLIC_RELEASE.md` describes | Before publication. D-067 is explicit that **this repository must stay private until the rewrite is done**: commit `bec914d` carries the 15-column export whose lineage columns identify 99.0% of rows uniquely |
 
-`make all` cannot succeed until items 2, 4 and 5 exist, which matters because that is the
-command the independent verifier runs.
+`make all` runs end to end: ingest → validate → classify → analyse → figures.
 
-## 13. Repository
+## 15. Repository
 
 ```
 data/raw/          challenge pack, read-only, gitignored
@@ -428,14 +651,17 @@ data/interim/      consolidated.parquet (7,159 rows), gitignored
 data/clean/        validated dataset, gitignored
 export/            the same dataset as CSV/Excel/JSON + manifest, committed (D-064)
 mappings/          columns.yaml (approved), departments.yaml (approved)
-src/               pii.py, schema.py, ingest.py, validate.py
+src/               pii.py, schema.py, ingest.py, validate.py, classify.py,
+                   llm_review.py, evaluate.py, export.py, analyse.py, figures.py
 scripts/           profilers, cross-checks, environment and review aids
-tests/             302 tests, 2 skipped
-reports/           reconciliation, data quality, date edge cases, formatting register,
-                   trend and NLP threshold evidence, per-file profiles
+tests/             328 tests, 2 skipped
+reports/           analysis.md and business_report.md, evaluation, LLM review, theme
+                   discovery and assignment, reconciliation, data quality, date edge
+                   cases, formatting register, threshold evidence, figures/,
+                   run_manifest.json, per-file profiles
 agents/            briefs and reports, one per agent run
 PLAN.md            schedule, gates, cut list
-DECISIONS.md       D-001 to D-064, every decision with its reason
+DECISIONS.md       D-001 to D-067, every decision with its reason
 AI_LOG.md          every AI run and every error caught
 ```
 
