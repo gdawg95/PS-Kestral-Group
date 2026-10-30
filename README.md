@@ -1,11 +1,5 @@
-# Kestrel Motor Group — customer feedback: technical report
-
+# Kestrel Motor Group Customer Feedback Analysis
 **PS Recruitment Data & AI Challenge 2026** · Author: gdawg95 · Python 3.12
-
-**Status: draft at code freeze, Friday 30 October 2026. Waves 1–5 are complete.** Section 13 lists
-what is outstanding. Every number in this document is produced by code in this repository
-and can be regenerated with the commands in section 2; where a number is not yet produced,
-it says so rather than estimating.
 
 This is deliverable #3 of six (D-007). The others are the clean dataset, the business
 report for the Head of Customer Experience, [DECISIONS.md](DECISIONS.md),
