@@ -953,6 +953,11 @@ def write_manifest(df: pd.DataFrame) -> None:
         "generated_utc": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "generated_by": "src/analyse.py",
         "git_commit": git_commit(),
+        "git_commit_note": (
+            "HEAD at the moment this manifest was generated, which is the commit BEFORE the "
+            "one carrying this file. The `inputs` hashes below are what identify the data "
+            "this run read; they are unaffected."
+        ),
         "seed": SEED,
         "row_counts_per_stage": stages,
         "thresholds": CONFIG["thresholds"],
