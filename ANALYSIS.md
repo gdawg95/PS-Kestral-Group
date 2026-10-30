@@ -1,7 +1,7 @@
 # Analysis detail
 
-This document carries the full methodology and results for the NLP work (Wave 4) and the
-data analysis (Wave 5). The [README](README.md) summarises the key findings; everything
+This document carries the full methodology and results for the NLP work and the
+data analysis. The [README](README.md) summarises the key findings; everything
 below is the evidence behind them.
 
 ---
