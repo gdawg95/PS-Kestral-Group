@@ -1,7 +1,13 @@
 # Brief: w4_llm
-**Status:** draft, awaiting owner approval (gate G2). The 20-comment timing pilot below is
-the one step D-011 requires *before* this decision, so it runs first and on its own.
-<!-- When approved, replace with: **Approved by:** owner (gdawg95), <date>, <where> -->
+**Approved by:** owner (gdawg95), 30 Oct 2026, in conversation — "let's go with Scope B for
+now. I am on a time crunch." The D-011 timing pilot ran first and on its own, as this brief
+required, and the owner approved **scope B (857 comments)** on its evidence. That closes
+D-024.
+
+Q1 is answered as scope B rather than this brief's proposed default of all 1,887, because the
+pilot measured 3.60 s/comment against a 3 s estimate, and all 1,887 would have consumed 94%
+of the 2-hour cut-off. Q2 (annotate only) and Q3 (the owner's blind labels are always the
+arbiter) stand as proposed.
 
 **Drafted 30 Oct 2026, ~02:00.** This is the last of Wave 4's four agents. Its scope changed
 before it was written, and the change is the reason it exists at all.
