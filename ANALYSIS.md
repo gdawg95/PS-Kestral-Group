@@ -38,6 +38,10 @@ middle is not ranked by this data.
 | Parts | 706 | 113 | 16.0% | 3.95 |
 | Sales | 1,541 | 163 | 10.6% | 4.26 |
 
+![Drivers by department](reports/figures/q1_drivers_by_department.png)
+
+![Every site as a deviation from the national negative rate](reports/figures/q1_sites_vs_national.png)
+
 ### What the themes tell us (with a caveat)
 
 An NLP theme model assigned each of 5,353 comments to one of eight owner-approved themes.
@@ -51,6 +55,8 @@ pattern in the failure cases is *"Great welcome, helpful staff. Problem not fixe
 
 This means the driver of negative feedback is not staff attitude but operational execution:
 wait times, parts delays, rework, and communication gaps during the service process.
+
+![Theme mix by department](reports/figures/q1_themes_by_department.png)
 
 ### Resolution
 
@@ -115,6 +121,8 @@ No site improved significantly. That asymmetry — three falls, no rises — is 
 that the decline is real, not noise.
 
 ![The year's movement split by state](reports/figures/q2_trend_by_state.png)
+
+![Which sites changed — Holm-corrected across 23 tests](reports/figures/q2_sites_that_changed.png)
 
 ### Resolution
 
@@ -190,7 +198,11 @@ publishing a dollar figure that assumes dissatisfied customers leave, while Kest
 revenue data declines to corroborate that mechanism, would be the least defensible number in
 the project.
 
-![Feedback against revenue](reports/figures/q3_feedback_vs_revenue.png)
+![Where to focus — negative rate vs change, sized by service volume](reports/figures/q3_where_to_focus.png)
+
+![Feedback coverage per site](reports/figures/q3_coverage.png)
+
+![Feedback against revenue — the lag profile](reports/figures/q3_feedback_vs_revenue.png)
 
 ### Resolution
 
