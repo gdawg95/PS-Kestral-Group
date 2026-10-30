@@ -587,7 +587,7 @@ null result strengthens the decision to cut the value model rather than weakenin
 
 ### Figures and gate G9
 
-`src/figures.py` writes eight PNGs, named for the business question each answers, and
+`src/figures.py` writes nine PNGs, named for the business question each answers, and
 **neither report embeds any of them** because gate G9 makes every chart the owner's to
 approve first. Both reports carry a figure index naming where each belongs.
 
@@ -599,8 +599,11 @@ approve first. Both reports carry a figure index naming where each belongs.
 | `q2_trend_by_state.png` | the year's movement split VIC / NSW / QLD, quarterly with intervals |
 | `q2_sites_that_changed.png` | which sites moved, Holm-corrected across 23 tests |
 | `q3_where_to_focus.png` | negative rate against its own change, bubble-sized by annual service jobs |
+| `q3_feedback_vs_revenue.png` | the across-sites correlation and why it is site size, then the lag profile that shows no predictive link |
 | `q3_coverage.png` | feedback per transaction, nationally and per site |
 | `method_model_vs_owner.png` | both confusion matrices, the three kappas against the committed floor, and what the LLM was used for |
+
+**Two of the nine exist to prevent a conclusion rather than support one.** `q3_feedback_vs_revenue.png` shows the naive across-sites correlation first, because it is positive and it is site size, and a reader who has not seen that cannot judge the rest; its footer says in terms that it is a guard, not a finding. `q3_where_to_focus.png` ranks sites on feedback, so its footer records that section 9 found no link between a site's negative rate and its revenue, and that nothing in the chart establishes a site in the top-right quadrant is losing money.
 
 Three rules are enforced in the plotting code rather than in the captions. **The theme chart
 is alphabetical and prints the 44.1% agreement on its own face**, so a sorted bar chart cannot
@@ -717,7 +720,7 @@ Everything in PLAN.md section 2 is now delivered. What remains is checking, not 
 | # | Item | Status at freeze |
 |---|---|---|
 | 1 | **Independent verifier** — fresh agent, clean clone, `make all`, every reported number checked against the code | **Not done.** The single most valuable outstanding item (D-017, Checkpoint 5). `reports/evaluation.md` already records its own D-017 exception: the agent that wrote `src/classify.py` wrote the evaluation too, because the freeze arrived first |
-| 2 | **Gate G9 — the owner approves each of the eight charts** before it enters a report | **Not done.** The PNGs exist in `reports/figures/`; neither report embeds any of them, and both carry a figure index instead |
+| 2 | **Gate G9 — the owner approves each of the nine charts** before it enters a report | **Not done.** The PNGs exist in `reports/figures/`; neither report embeds any of them, and both carry a figure index instead |
 | 3 | **Checkpoint 5, part 1 — the owner recomputes headline numbers** | **Done, 30 Oct 2026.** 14 published figures recomputed from the reviewer export by a route that imports nothing from `src/`; all 14 match. Evidence: [reports/checkpoint5_recompute.md](reports/checkpoint5_recompute.md) |
 | 4 | **Checkpoint 5, part 2 — the owner rewrites the business report's recommendations in their own voice** | **Not done.** `reports/business_report.md` is marked DRAFT for exactly this |
 | 5 | **Industry benchmarks for the value model.** `reports/benchmarks.md` was written but never reviewed, and D-025 is unset, so the value model is cut and the gap is stated in both reports | Owner's call; cut-list item 1 for Wave 5 |

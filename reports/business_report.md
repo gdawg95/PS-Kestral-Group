@@ -337,7 +337,7 @@ shows it in one picture. The four things that most affect how you read the numbe
 
 ### Figures
 
-Eight charts are held in `reports/figures/`, named for the question each answers. **They are
+Nine charts are held in `reports/figures/`, named for the question each answers. **They are
 not embedded above, because every chart needs sign-off before it enters a report** (gate G9).
 Once approved they belong at these points:
 
@@ -349,5 +349,6 @@ Once approved they belong at these points:
 | `q2_trend_by_state.png` | the year's movement split VIC / NSW / QLD | §1 and §3, top |
 | `q2_sites_that_changed.png` | which sites moved by more than chance | §3, "By individual site" |
 | `q3_where_to_focus.png` | bad now against getting worse, sized by service volume | §4, top |
+| `q3_feedback_vs_revenue.png` | whether more feedback is just more customers, and whether it reaches revenue | §5, top |
 | `q3_coverage.png` | how much of the business this dataset sees | §4, second recommendation |
 | `method_model_vs_owner.png` | where the models disagree with a human, and by how much | §7 |

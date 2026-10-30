@@ -15,6 +15,7 @@ should not be in the report:
 | `q2_trend_by_state.png` | the year's movement split VIC / NSW / QLD, quarterly |
 | `q2_sites_that_changed.png` | which individual sites moved, Holm-corrected across 23 tests |
 | `q3_where_to_focus.png` | bad now against getting worse, sized by the service business behind it |
+| `q3_feedback_vs_revenue.png` | is more feedback just more customers, and does it reach revenue |
 | `q3_coverage.png` | how much of the business this dataset can see at all |
 | `method_model_vs_owner.png` | how far the models can be trusted, and exactly where they disagree |
 
@@ -42,6 +43,7 @@ Usage:
 
 from __future__ import annotations
 
+import math
 import textwrap
 
 import matplotlib
@@ -53,6 +55,7 @@ import numpy as np
 import pandas as pd
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
+from scipy import stats
 from sklearn.metrics import cohen_kappa_score, confusion_matrix
 
 from src.analyse import (
@@ -65,11 +68,14 @@ from src.analyse import (
     coverage_table,
     half_test,
     load,
+    revenue_lags,
+    revenue_panel,
     site_halves,
     state_halves,
     wilson_ci,
 )
 from src.analyse import KAPPA_FLOOR as FLOOR
+from src.analyse import _two_way_demean as two_way_demean
 from src.evaluate import ORDER, SCORE_CLASSES, SENTIMENT_CODES, llm_key, load_llm
 
 FIG_DIR = ROOT / "reports" / "figures"
@@ -722,9 +728,118 @@ def q3_where_to_focus(df: pd.DataFrame, revenue: pd.DataFrame) -> None:
         f"responses in either half are not plotted (D-052): {CLOSED_SITE} Shepparton (closed) "
         "and QLD05 Noosa. This chart ranks SITES, which is allowed — dealer code and the "
         "customer's own rating are both reliable fields. It is THEMES that may not be ranked "
-        "(D-065). Source: reports/analysis.md sections 3, 7.3 and 9.",
+        "(D-065). IMPORTANT: this ranks sites on FEEDBACK, not on business performance. "
+        "Section 9 of the analysis tested whether a site's negative rate reaches its revenue "
+        "and found no detectable link — of the three sites whose rating fell by more than "
+        "chance, one lost service volume, one was flat and one outgrew the group. Nothing "
+        "here establishes that a site in the top-right quadrant is losing money. "
+        "Source: reports/analysis.md sections 3, 7.3, 9 and 10.",
     )
     _save(fig, "q3_where_to_focus.png")
+
+
+def q3_feedback_vs_revenue(df: pd.DataFrame, revenue: pd.DataFrame) -> None:
+    """Two panels, and both of them exist to STOP a conclusion rather than support one.
+
+    Left: the correlation everyone reaches for is positive, and it is site size. A busy
+    branch collects more feedback and does more service work for reasons that have nothing
+    to do with how good it is, so the across-sites comparison cannot say a site is
+    underperforming. Comparing each site against its own monthly average flips the sign.
+
+    Right: even that within-site association is same-month only. It does not predict next
+    month, so it cannot support "this site's feedback is costing it business".
+    """
+    p = revenue_panel(df, revenue).dropna(subset=["neg"])
+    p["neg_pct"] = 100 * p["neg"]
+    w = two_way_demean(p, ["neg_pct", "service_jobs"])
+    raw_r, raw_p = stats.pearsonr(p["neg_pct"], p["service_jobs"])
+    win_r, win_p = stats.pearsonr(w["neg_pct"], w["service_jobs"])
+    lags = revenue_lags(revenue_panel(df, revenue))
+
+    fig, axes = plt.subplots(1, 2, figsize=(12.5, 6.6), gridspec_kw={"wspace": 0.26})
+
+    # --- left: the sign flip ------------------------------------------------
+    ax = axes[0]
+    for state in ["NSW", "VIC", "QLD"]:
+        s = p[p["state"] == state]
+        ax.scatter(s["neg_pct"], s["service_jobs"], s=16, color=STATE[state], alpha=0.45,
+                   edgecolor="none", label=state)
+    xs = np.linspace(p["neg_pct"].min(), p["neg_pct"].max(), 50)
+    fit = stats.linregress(p["neg_pct"], p["service_jobs"])
+    ax.plot(xs, fit.intercept + fit.slope * xs, color=BAD, lw=2.6,
+            label=f"r = {raw_r:+.2f}  (p = {raw_p:.1g})")
+    ax.set_xlabel("Negative rate in that dealer-month (%)")
+    ax.set_ylabel("Service jobs that month")
+    ax.grid(lw=0.5)
+    ax.set_axisbelow(True)
+    ax.legend(frameon=False, fontsize=8.5, loc="upper left")
+    ax.set_title("Comparing SITES: the slope is upwards", fontsize=10.5)
+    left_note = (
+        "…and it is nonsense. A busy branch collects more feedback AND does more\n"
+        "service work. This compares Chermside with Noosa, so it measures size."
+    )
+
+    # --- right: the lag profile --------------------------------------------
+    ax = axes[1]
+    ks = list(range(-3, 4))
+    rs = lags["r"].to_list()
+    ns = lags["dealer-months"].to_list()
+    los, his = [], []
+    for r, n in zip(rs, ns, strict=False):
+        z, se = math.atanh(r), 1 / math.sqrt(n - 3)
+        los.append(math.tanh(z - 1.96 * se))
+        his.append(math.tanh(z + 1.96 * se))
+    for k, r, lo, hi in zip(ks, rs, los, his, strict=False):
+        sig = lo > 0 or hi < 0
+        ax.plot([k, k], [lo, hi], color=BAD if sig else MUTED, lw=2.4, zorder=2)
+        ax.plot(k, r, "o", ms=10, color=BAD if sig else "white",
+                mec=BAD if sig else MUTED, mew=2, zorder=3)
+    ax.axhline(0, color=INK, lw=1.4)
+    ax.axvspan(-3.6, -0.5, color="#f2f2f2", zorder=0)
+    ax.set_xticks(ks)
+    ax.set_xticklabels(["−3", "−2", "−1", "same\nmonth", "+1", "+2", "+3"])
+    ax.set_xlim(-3.6, 3.6)
+    ax.set_xlabel("Service jobs, months before ← → months after the feedback")
+    ax.set_ylabel("Correlation with the negative rate, within site")
+    ax.grid(axis="y", lw=0.5)
+    ax.set_axisbelow(True)
+    ax.set_title("Comparing a SITE WITH ITSELF: only the same month", fontsize=10.5)
+    ax.annotate(
+        f"{win_r:+.2f}\np = {win_p:.3f}",
+        xy=(0, rs[3]), xytext=(0.72, rs[3] - 0.07), fontsize=9, fontweight="bold", color=BAD,
+        ha="left", linespacing=1.4,
+    )
+    right_note = (
+        "Bars are 95% intervals. Every one except the same month crosses zero,\n"
+        "so this month's feedback predicts NOTHING about next month's volume."
+    )
+
+    # Both red notes go in FIGURE coordinates, not axes coordinates. Placed below an axis
+    # they land in the same strip the wrapped footer occupies, and a tight bounding box
+    # does not resolve that overlap - it just grows the canvas around it.
+    fig.subplots_adjust(bottom=0.30)
+    for x, note in [(0.30, left_note), (0.745, right_note)]:
+        fig.text(x, 0.15, note, ha="center", va="top", fontsize=8.2, color=BAD,
+                 fontweight="bold", linespacing=1.5)
+
+    fig.suptitle(
+        "Q3 · Does negative feedback reach the revenue? No link is detectable",
+        fontweight="bold", fontsize=12.5, y=1.02,
+    )
+    _footer(
+        fig,
+        f"Denominator: {len(p)} dealer-months — 24 sites × 12 months, less {CLOSED_SITE}'s six "
+        f"post-closure months, which the revenue file records as exact zeros. 'Within site' "
+        f"removes each dealer's own average and each month's national average, so only a "
+        f"site's variation against its own baseline is left. THIS FIGURE IS A GUARD, NOT A "
+        f"FINDING: it is here so no one reads the left-hand panel as evidence that a site is "
+        f"underperforming. The same-month association is worth about 8 service jobs in a "
+        f"month of 709 and is equally consistent with a struggling branch completing fewer "
+        f"jobs AND generating more complaints. Caveats in analysis.md section 9.4: twelve "
+        f"months is shorter than a service interval, and only 33% of the variance in a "
+        f"monthly negative rate is signal rather than sampling noise.",
+    )
+    _save(fig, "q3_feedback_vs_revenue.png")
 
 
 def q3_coverage(df: pd.DataFrame, revenue: pd.DataFrame) -> None:
@@ -1022,6 +1137,7 @@ def main() -> int:
     q2_trend_by_state(df)
     q2_sites_that_changed(df)
     q3_where_to_focus(df, revenue)
+    q3_feedback_vs_revenue(df, revenue)
     q3_coverage(df, revenue)
     method_model_vs_owner(df)
     print(
