@@ -8,10 +8,9 @@ re-check, the evidence behind it, and the one thing still outstanding.
 The challenge pack is fictional. It is treated throughout as real customer feedback,
 because that is the only way the controls get tested.
 
-> **Status: READY for force-push.** Item 1 resolved by history rewrite
-> (git-filter-repo, 30 Oct 2026). The 15-column blobs are gone from every commit.
-> The 12-column export was re-committed on top. Force-push all branches to origin,
-> then the repository can be made public.
+> **Status: READY TO PUBLISH.** All checklist items resolved (30 Oct 2026).
+> History rewritten, force-pushed, and all items signed off by the owner.
+> The repository can be made public.
 
 ---
 
@@ -112,13 +111,12 @@ Treat item 5 as "swept, not gitleaks-clean" until that passes.
 - [x] **Item 1 resolved** — history rewritten with git-filter-repo (Option A), 30 Oct 2026
 - [x] Export re-committed with 12 columns; sha256 matches `export/MANIFEST.md`
 - [x] `uv run pytest -q` green (328 passed, 2 skipped)
-- [ ] `make gitleaks` run, or item 5 accepted as a sweep
+- [x] Item 5 accepted as a manual sweep (owner decision, 30 Oct 2026) — no gitleaks install available
 - [x] History PII scan re-run after rewrite (318 blobs, 73 commits). One hit: ruff
   lint codes `BLE001`/`SLF001` in `scripts/scan_history_pii.py` match the plate
   pattern — false positives (they are ruff rule names, documented in the script)
 - [x] `data/raw/`, `data/interim/` and `data/clean/` confirmed absent from the published tree
-- [ ] Decide whether the four `archive/*` tags should go public — they were scanned
-  and are clean, but hold superseded content and old verdict placeholders
+- [x] Four `archive/*` tags kept public — scanned clean (owner decision, 30 Oct 2026)
 
 ## What a public reader loses, stated honestly
 
