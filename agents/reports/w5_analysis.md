@@ -93,9 +93,10 @@ Four more, all stated in the reports themselves:
 
 ## Unresolved, and what I did not do
 
-1. **Gate G9 is open.** Six charts exist and **neither report embeds any of them.** Both
-   carry a figure index saying where each belongs. This is the only gate still blocking
-   between here and a finished report, and it is a five-minute read.
+1. **Gate G9 is closed.** The owner approved all nine charts on 30 Oct 2026. They are
+   embedded in `reports/business_report.md` and three of them in `README.md`. Until that
+   approval both reports carried a figure index instead of the images, which is the
+   evidence the gate was observed rather than asserted.
 2. **Checkpoint 5 is half closed.** The owner recomputed the headline numbers on 30 Oct
    (`reports/checkpoint5_recompute.md`): 14 figures, including all three the recommendation
    rests on, recomputed from `export/feedback_clean.csv` by a route that imports nothing

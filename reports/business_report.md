@@ -2,7 +2,7 @@
 
 **For:** the Head of Customer Experience, Kestrel Motor Group
 **From:** gdawg95 · **Date:** 30 October 2026
-**Status: DRAFT.** The recommendations in section 4 are written to be **rewritten in the
+**Status: DRAFT.** The figures are approved (gate G9, 30 Oct 2026). The recommendations in section 4 are written to be **rewritten in the
 owner's own voice** before this report is sent (PLAN.md Checkpoint 5). Nothing here is
 approved copy.
 
@@ -41,6 +41,11 @@ Wales. Queensland did not move at all.**
 A single national number would have told your eight Queensland sites to fix a problem they do
 not have, and understated New South Wales' by more than half.
 
+
+![Mean rating by quarter for each state, and the first-half to second-half move in negative rate](figures/q2_trend_by_state.png)
+
+*The year split three ways. New South Wales fell hard; Queensland did not move. The group average hides both.*
+
 **Four. Underneath the state picture, it is Service.** Service is 68.6% of the feedback and
 72% of the transactions behind it, and has the worst negative rate of the three departments
 (27.2%). In NSW specifically, Service went from **21.7% to 32.1% negative** — ten points in
@@ -73,6 +78,11 @@ A customer coming in for a service is roughly **two and a half times** as likely
 or 2 as a customer buying a car. This cut is trustworthy: the department label was mapped by
 hand from 16 source spellings and every mapping was signed off. It is not a model's guess.
 
+
+![Feedback volume and negative rate for Service, Sales and Parts](figures/q1_drivers_by_department.png)
+
+*Service carries two-thirds of the feedback and the worst rate. Bars are 95% confidence intervals.*
+
 ### By dealership
 
 Twelve sites sit above the national 22.5% and twelve below. The important reading is that
@@ -86,6 +96,11 @@ The sites that genuinely stand apart:
 
 `q1_sites_vs_national.png` plots all 24 as a distance from the national line, grouped by
 state, with the intervals shown.
+
+
+![Each dealership as a deviation from the national negative rate, grouped by state](figures/q1_sites_vs_national.png)
+
+*Every site against the national line, grouped by state. Where a whisker crosses zero, that site is not separated from the national average by this data — which is most of the middle of the chart.*
 
 ### By theme — with a warning attached
 
@@ -107,6 +122,11 @@ the staff and criticises the process:
 > *"Good people, very nice to deal with. Slow, slow, slow."*
 
 *Which* part of the process is exactly what the 44.1% is uncertain about.
+
+
+![Theme mix within each department, beside the negative share of each theme](figures/q1_themes_by_department.png)
+
+*What each department's customers talk about, and how much of it is a complaint. Alphabetical, never ranked — the model and a human agreed on the theme only 44.1% of the time.*
 
 ---
 
@@ -158,6 +178,11 @@ that, **three sites moved by more than chance — and all three fell. None impro
 | **VIC01 Dandenong** | −0.72 stars | 0.0000013 |
 | **NSW04 Liverpool** | −0.58 stars | 0.0057 |
 
+![Change in mean rating per site between the two halves, with the three statistically significant falls marked](figures/q2_sites_that_changed.png)
+
+*Every site's move, with the three that survive correction for testing 23 sites at once marked in red. Grey bars are not distinguishable from no change.*
+
+
 Bendigo (VIC08) is the near miss at −0.62 and adjusted p = 0.15 on 144 responses — worth a
 look, not worth a claim.
 
@@ -180,6 +205,11 @@ to 32.1% negative while Queensland did not move. Something changed in NSW betwee
 April 2026, and the data says *where* without saying *what*.
 
 ### Focus first: NSW Service, starting with Parramatta and Liverpool.
+
+![Each site's negative rate against the change in that rate, bubble-sized by annual service jobs](figures/q3_where_to_focus.png)
+
+*Bad now (right) against getting worse (up), sized by the service business behind each site. **This ranks sites on feedback, not on business performance** — see section 5.*
+
 
 | | Number | Section |
 |---|---:|---|
@@ -213,6 +243,11 @@ service jobs, vehicle sales and parts transactions. The coverage is also wildly 
   sales (1.99%), Toowoomba 9 on 379 (2.37%) and Rockhampton 7 on 208 (3.37%)**. Those three
   sites are not measuring their sales experience at all.
 
+
+![Feedback collected per transaction, nationally and per dealership](figures/q3_coverage.png)
+
+*How little of the business this dataset sees. Three Queensland sites collect almost no sales feedback at all.*
+
 Three sites with effectively no sales feedback is a cheap fix. Until it is fixed, any
 comparison involving their Sales numbers compares a measurement with an absence.
 
@@ -230,6 +265,11 @@ of transactions that produced no feedback.
 dissatisfaction, or complaining without consequence?** `monthly_revenue.csv` — 288
 dealer-months of service jobs, vehicle sales and the dollars attached — is the only record
 in the project of what customers actually did, rather than what they said.
+
+
+![Left: the across-sites correlation, which is positive and reflects site size. Right: the correlation at each monthly lag, with only the same month significant](figures/q3_feedback_vs_revenue.png)
+
+*The left panel is the correlation most people reach for, and it measures site size, not service quality. The right panel is the answer: only the same month is significant, so feedback predicts nothing about next month's volume.*
 
 **The answer is that no link is detectable in twelve months of your data.** Three tests, all
 in [`analysis.md` section 9](analysis.md):
@@ -333,22 +373,19 @@ shows it in one picture. The four things that most affect how you read the numbe
    code over committed inputs and `make analyse` regenerates them — but reproducible is not the
    same as independently checked.
 
+
+![Agreement between the models and the owner's blind labels: kappa scores, the sentiment confusion matrix, the theme confusion matrix, and what the LLM was used for](figures/method_model_vs_owner.png)
+
+*How far the NLP can be trusted, and exactly where it disagrees with a human. The star rating (0.460) beat the sentiment model (0.403) against the committed pass mark of 0.60.*
+
 ---
 
 ### Figures
 
-Nine charts are held in `reports/figures/`, named for the question each answers. **They are
-not embedded above, because every chart needs sign-off before it enters a report** (gate G9).
-Once approved they belong at these points:
+All nine figures above are produced by `src/figures.py` (`make figures`) from the same code
+that produces the numbers, so a chart and a table in this report cannot disagree. Each one
+carries its denominator in its own footer, because a chart gets separated from its caption
+the moment it is pasted into a slide.
 
-| Figure | Answers | Goes in |
-|---|---|---|
-| `q1_drivers_by_department.png` | which department carries the volume and the rate | §2, "By department" |
-| `q1_sites_vs_national.png` | every site against the national average, by state | §2, "By dealership" |
-| `q1_themes_by_department.png` | theme mix per department, and the negative share of each | §2, "By theme" |
-| `q2_trend_by_state.png` | the year's movement split VIC / NSW / QLD | §1 and §3, top |
-| `q2_sites_that_changed.png` | which sites moved by more than chance | §3, "By individual site" |
-| `q3_where_to_focus.png` | bad now against getting worse, sized by service volume | §4, top |
-| `q3_feedback_vs_revenue.png` | whether more feedback is just more customers, and whether it reaches revenue | §5, top |
-| `q3_coverage.png` | how much of the business this dataset sees | §4, second recommendation |
-| `method_model_vs_owner.png` | where the models disagree with a human, and by how much | §7 |
+**Approved by the owner (gdawg95) on 30 October 2026 under PLAN.md gate G9.** No chart
+entered this report before that approval.

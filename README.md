@@ -431,6 +431,13 @@ existed, which is the part worth noting:**
 exactly the disagreement cases the LLM was pointed at. It annotates and never overwrites
 `sentiment_label`, so every Wave 5 number reproduces for a reviewer who never starts Ollama.
 
+![Agreement between the models and the owner's blind labels](reports/figures/method_model_vs_owner.png)
+
+*Panel A: the three signals against the pass mark committed before the labelling. Panel B:
+where sentiment goes wrong — 34 of 150 called neutral, 15 real negatives called positive.
+Panel C: the full theme confusion matrix behind the 44.1%. Panel D: what the LLM was and was
+not used for.*
+
 ### The theme result, and the floor that was retired
 
 Model and owner agreed on a comment's theme **44.1%** of the time. D-056 had planned to set an
@@ -524,6 +531,10 @@ table is what the report publishes. This is the full extent of per-site testing 
 project: cut-list item 7 makes tests beyond the one trend check cuttable, and the one kept is
 the one the recommendation needs — *which* sites, not *whether* something changed.
 
+![The year's movement split by state](reports/figures/q2_trend_by_state.png)
+
+*The group figure is an average over three states that did different things.*
+
 **Reconciliation against the committed evidence file.**
 [reports/trend_evidence.md](reports/trend_evidence.md) predicted 33 of **257** pairs at 16 of
 24 sites. The flag count and the site count match exactly; the pair count differs by one
@@ -566,6 +577,11 @@ challenge pack is fictional, so the relationship may never have been in the data
 panel *does* establish is that it could have detected **|r| ≥ 0.166** at 80% power, so a
 large short-term effect is ruled out.
 
+![Feedback against revenue: the across-sites correlation, and the lag profile](reports/figures/q3_feedback_vs_revenue.png)
+
+*Left: the correlation a reader reaches for first, which is site size. Right: only the same
+month is significant, so feedback predicts nothing about next month's volume.*
+
 **A free data-quality check falls out of it:** the revenue file records exactly zero activity
 for VIC09 in all six months from April 2026. The feedback and revenue files were produced
 separately, so that is independent corroboration of D-005's closure date rather than an
@@ -587,9 +603,12 @@ null result strengthens the decision to cut the value model rather than weakenin
 
 ### Figures and gate G9
 
-`src/figures.py` writes nine PNGs, named for the business question each answers, and
-**neither report embeds any of them** because gate G9 makes every chart the owner's to
-approve first. Both reports carry a figure index naming where each belongs.
+`src/figures.py` writes nine PNGs, named for the business question each answers. Gate G9
+makes every chart the owner's to approve before it enters a report; **that approval was
+given on 30 October 2026**, and all nine are now embedded in
+[reports/business_report.md](reports/business_report.md), three of them above. Until then
+both reports carried a figure index instead, which is the evidence the gate was observed
+rather than asserted.
 
 | Figure | Answers |
 |---|---|
@@ -720,7 +739,7 @@ Everything in PLAN.md section 2 is now delivered. What remains is checking, not 
 | # | Item | Status at freeze |
 |---|---|---|
 | 1 | **Independent verifier** — fresh agent, clean clone, `make all`, every reported number checked against the code | **Not done.** The single most valuable outstanding item (D-017, Checkpoint 5). `reports/evaluation.md` already records its own D-017 exception: the agent that wrote `src/classify.py` wrote the evaluation too, because the freeze arrived first |
-| 2 | **Gate G9 — the owner approves each of the nine charts** before it enters a report | **Not done.** The PNGs exist in `reports/figures/`; neither report embeds any of them, and both carry a figure index instead |
+| 2 | **Gate G9 — the owner approves each of the nine charts** | **Done, 30 Oct 2026.** All nine are embedded in `reports/business_report.md`, and three of them here. No chart entered a report before the approval |
 | 3 | **Checkpoint 5, part 1 — the owner recomputes headline numbers** | **Done, 30 Oct 2026.** 14 published figures recomputed from the reviewer export by a route that imports nothing from `src/`; all 14 match. Evidence: [reports/checkpoint5_recompute.md](reports/checkpoint5_recompute.md) |
 | 4 | **Checkpoint 5, part 2 — the owner rewrites the business report's recommendations in their own voice** | **Not done.** `reports/business_report.md` is marked DRAFT for exactly this |
 | 5 | **Industry benchmarks for the value model.** `reports/benchmarks.md` was written but never reviewed, and D-025 is unset, so the value model is cut and the gap is stated in both reports | Owner's call; cut-list item 1 for Wave 5 |
