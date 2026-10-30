@@ -23,7 +23,7 @@ Turn 52 inconsistent dealership feedback spreadsheets (Oct 2025 – Sep 2026) in
 
 If time runs short, these are protected. Everything else can be cut.
 
-- [x] One final cleaned, de-identified dataset — `data/clean/feedback.parquet`, 7,150 rows (Wave 3)
+- [x] One final cleaned, de-identified dataset — `data/clean/feedback.parquet`, 7,150 rows (Wave 3), exported for reviewers as CSV, Excel and JSON in `export/` (D-064)
 - [ ] At least one trend identified (with evidence that it is real) — the evidence threshold is set and committed (D-052); the trend itself is Wave 5
 - [x] Basic NLP analysis of customer comments (sentiment + themes) — **done.** Sentiment on all 5,353 commented rows and all eight approved themes assigned; `data/clean/feedback_classified.parquet`. Not yet *evaluated* against the owner's labels, which is the rest of Wave 4
 - [ ] At least one recommendation for the business — Wave 5
@@ -33,7 +33,8 @@ If time runs short, these are protected. Everything else can be cut.
 
 | # | Deliverable | Audience | Location |
 |---|---|---|---|
-| 1 | Clean dataset | Analysis pipeline | `data/clean/feedback_clean.parquet` (gitignored) |
+| 1 | Clean dataset | Analysis pipeline | `data/clean/feedback.parquet` (gitignored) |
+| 1b | The same dataset, for reading | Reviewers | `export/feedback_clean.{csv,xlsx,json}` + `export/MANIFEST.md`, committed (D-064) |
 | 2 | Business report | Head of CX (non-technical) | `reports/business_report.md` |
 | 3 | Technical report | Reviewers | `README.md` |
 | 4 | Decisions log | Reviewers | `DECISIONS.md` |
@@ -98,6 +99,7 @@ PS-Kestral-Group/
 │   ├── raw/          # challenge pack, read-only, gitignored
 │   ├── interim/      # per-stage Parquet, gitignored
 │   ├── clean/        # final de-identified dataset, gitignored
+├── export/           # the same dataset as CSV/Excel/JSON for reviewers, committed
 │   └── llm_cache/    # de-identified model outputs, committed
 ├── mappings/columns.yaml
 ├── prompts/          # versioned prompt files

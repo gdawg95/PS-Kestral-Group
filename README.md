@@ -33,7 +33,8 @@ uv sync                      # exact environment from uv.lock
 # place the challenge pack in data/raw/ (not committed - see section 8)
 make ingest                  # raw files -> data/interim/consolidated.parquet
 make validate                # data-quality rules -> data/clean/feedback.parquet
-make test                    # 243 tests
+make export                  # the clean dataset -> export/ as CSV, Excel and JSON
+make test                    # 302 tests
 make nlp-check               # can the Wave 4 models load and run here?
 ```
 
@@ -81,7 +82,8 @@ a deliverable in its own right (D-045).
 | De-identify | [src/pii.py](src/pii.py) | (used inside ingest) | 1 |
 | Ingest | [src/ingest.py](src/ingest.py) | `data/interim/consolidated.parquet` | 2 |
 | Validate | [src/validate.py](src/validate.py) | `data/clean/feedback.parquet` | 3 |
-| Classify | not written | sentiment + themes | 4 |
+| Export | [src/export.py](src/export.py) | `export/feedback_clean.{csv,xlsx,json}` | 3 |
+| Classify | [src/classify.py](src/classify.py) | `data/clean/feedback_classified.parquet` | 4 |
 | Analyse, figures | not written | drivers, trend, value | 5 |
 
 `src/ingest.py` has no per-file branches. Every quirk in section 3 is expressed in
@@ -199,6 +201,24 @@ which would have put real names in git history.
 Raw data cannot be committed: `.gitignore` plus a pre-commit hook that fails on any path
 under `data/raw/`, `data/interim/` or `data/clean/`. The test for this is a force-add
 attempt that must fail (Checkpoint 1).
+
+One directory of feedback data **is** committed, and saying so here is the point: `export/`
+holds the clean dataset as CSV, Excel and JSON, because deliverable #1 is parquet and a
+reviewer cannot open parquet without Python (D-064). The exception is narrow rather than a
+hole in the rule. [src/export.py](src/export.py) is the only thing that writes there, and
+it refuses to write until it has proved, on that run's data, that no email address, phone
+number, street address, registration plate or person-shaped name survived redaction, that
+no column outside the schema allowlist is present, and that no cell would be read as a
+formula by Excel. `export/MANIFEST.md` records the result, a sha256 per file, and all 64
+surfaces spaCy reported as possible people, so the claim can be checked instead of taken on
+trust. Two of those 64 are name-shaped and are not names - `Plin English`, a typo for
+"Plain English", and `Speedy Next`, where "Speedy" is an adjective in seven comments - and
+both are listed in `NOT_PEOPLE_SURFACES` with the comment that produced them rather than
+handled by widening the rule until the check went green.
+
+The risk that comes with it is stated plainly in D-064: git history cannot be cleaned later,
+which is the whole basis of D-015. The repository is private, so the export is visible to
+the owner and invited reviewers only; if it is ever made public, this data goes with it.
 
 ## 7. Data quality (Wave 3, in progress)
 
@@ -384,15 +404,16 @@ command the independent verifier runs.
 data/raw/          challenge pack, read-only, gitignored
 data/interim/      consolidated.parquet (7,159 rows), gitignored
 data/clean/        validated dataset, gitignored
+export/            the same dataset as CSV/Excel/JSON + manifest, committed (D-064)
 mappings/          columns.yaml (approved), departments.yaml (approved)
 src/               pii.py, schema.py, ingest.py, validate.py
 scripts/           profilers, cross-checks, environment and review aids
-tests/             243 tests, 2 skipped
+tests/             302 tests, 2 skipped
 reports/           reconciliation, data quality, date edge cases, formatting register,
                    trend and NLP threshold evidence, per-file profiles
 agents/            briefs and reports, one per agent run
 PLAN.md            schedule, gates, cut list
-DECISIONS.md       D-001 to D-052, every decision with its reason
+DECISIONS.md       D-001 to D-064, every decision with its reason
 AI_LOG.md          every AI run and every error caught
 ```
 

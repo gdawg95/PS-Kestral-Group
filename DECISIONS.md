@@ -720,6 +720,37 @@ Source: `agents/reports/w1_profilers.md` (15 findings). Wave 2 ingestion applies
 ### D-009 · Deadline · Decided · 29 Oct 2026
 - Code freeze Friday 30 Oct 2026, 3:00pm; proofread and edit until COB.
 
+### D-064 · The clean dataset is exported de-identified to `export/` and committed · Decided · 30 Oct 2026
+
+- **Decision:** `src/export.py` (`make export`) writes the Wave 3 clean dataset to
+  `export/feedback_clean.{csv,xlsx,json}` with a manifest, and those files are committed.
+  `scripts/check_no_data.py` and `.gitignore` gain an `export/` allowance for exactly this.
+- **Why:** D-008 makes the cleaned dataset a non-negotiable output and D-015 keeps data out
+  of git history. Both are right, and they conflict here: deliverable #1 is parquet, which a
+  reviewer cannot open without Python, so "the dataset is in the repo" was true for the
+  pipeline and false for the people the deliverable is for. Three formats, all de-identified,
+  settles it without touching the raw or interim paths, which stay blocked.
+- **What makes the exception narrow:** the export refuses to write until it has proved on
+  that run's data that no email, phone number, street address, registration plate or
+  person-shaped name survived redaction, that no column outside the schema allowlist is
+  present, and that no cell would be read as a formula by Excel. The manifest records the
+  result and the full 64-surface spaCy candidate list, so the claim is checkable rather than
+  asserted. The guard still blocks every other data path, and a file dropped into `export/`
+  by hand carries none of that proof.
+- **Two reviewed exceptions:** `Plin English` (a typo for "Plain English") and `Speedy Next`
+  ("Speedy" is an adjective in 7 comments) are name-shaped and are not names. They are listed
+  in `NOT_PEOPLE_SURFACES` with the comment that produced each one, rather than fixed by
+  widening the rule until the run went green — which would have retired the only check
+  standing between a surviving customer name and a file handed to reviewers. Redacting either
+  would damage the data, so the dataset is right and the check was over-broad.
+- **Risk accepted:** git history cannot be cleaned later, which is the whole basis of D-015.
+  The repository is private, so the export is visible to the owner and invited reviewers only.
+  If it is ever made public, this data goes public with it and no later commit can undo that.
+  Re-check before any visibility change; `make gitleaks` stays the pre-public step.
+- **Not exported:** `data/clean/feedback_classified.parquet`. Its sentiment and theme columns
+  are model output that has not yet been measured against the owner's labelled sample
+  (D-055's κ ≥ 0.60), so exporting them now would hand reviewers numbers no gate has cleared.
+
 ## Technology
 
 ### D-010 · Zero-budget, open-source stack · Decided · 29 Oct 2026

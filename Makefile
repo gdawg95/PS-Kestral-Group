@@ -5,7 +5,7 @@
 PY := uv run python
 PYTEST := uv run pytest
 
-.PHONY: all ingest validate classify analyse figures test lint hooks nlp-check gitleaks clean
+.PHONY: all ingest validate classify analyse figures export test lint hooks nlp-check gitleaks clean
 
 all: ingest validate classify analyse figures
 
@@ -20,6 +20,9 @@ classify:          ## sentiment + theme assignment, cached (Wave 4). FRESH=1 re-
 
 analyse:           ## drivers, trend, coverage, value model (Wave 5)
 	$(PY) -m src.analyse
+
+export:            ## clean dataset -> export/ as CSV, Excel and JSON for reviewers
+	$(PY) -m src.export
 
 figures:           ## charts for both reports (Wave 5)
 	$(PY) -m src.figures
