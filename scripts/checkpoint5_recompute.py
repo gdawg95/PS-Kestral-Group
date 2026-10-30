@@ -170,7 +170,9 @@ def main() -> int:
     print("  It does NOT show the published dataset is a correct read of the 52 source")
     print("  spreadsheets - that is Wave 2's row reconciliation (README section 5) - and it")
     print("  is not independent, because the session that wrote the analysis wrote this too.")
-    print("  D-017's independent verifier remains outstanding.")
+    print("  D-017's independent verifier ran separately on 30 Oct 2026 and DID find a")
+    print("  published number these 14 checks missed - see agents/reports/w5_verify.md,")
+    print("  finding V-1. That is the argument for keeping both checks, not either one.")
     return 0
 
 

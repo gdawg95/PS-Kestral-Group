@@ -970,7 +970,7 @@ def method_model_vs_owner(df: pd.DataFrame) -> None:
     assert round(k_rating, 3) == RATING_KAPPA, k_rating
     assert round(theme_pct, 1) == THEME_AGREEMENT, theme_pct
 
-    fig, axes = plt.subplots(2, 2, figsize=(13, 11.5), gridspec_kw={"hspace": 0.78, "wspace": 0.3})
+    fig, axes = plt.subplots(2, 2, figsize=(13, 12.6), gridspec_kw={"hspace": 0.95, "wspace": 0.3})
 
     # --- A · the scoreboard -------------------------------------------------
     ax = axes[0][0]
@@ -1067,7 +1067,7 @@ def method_model_vs_owner(df: pd.DataFrame) -> None:
         f"is also the largest theme. The owner answered 'none of these'\nto "
         f"{int((m['owner_theme_no'] == 0).sum())} of 150 — and no similarity floor could "
         "separate those 7 from the rest (D-066).",
-        xy=(0.5, -0.34), xycoords="axes fraction",
+        xy=(0.5, -0.30), xycoords="axes fraction",
         ha="center", va="top", fontsize=7.6, color=BAD, linespacing=1.55,
     )
     for spine in ax.spines.values():
@@ -1075,7 +1075,7 @@ def method_model_vs_owner(df: pd.DataFrame) -> None:
 
     # --- D · what the LLM did -----------------------------------------------
     ax = axes[1][1]
-    sided = [("The customer's rating", 218), ("The sentiment model", 439), ("Neither", 200)]
+    sided = [("The rating", 218), ("The sentiment model", 439), ("Neither", 200)]
     total = sum(v for _, v in sided)
     left = 0.0
     for (label, v), colour in zip(sided, [STATE["QLD"], STATE["VIC"], MUTED], strict=False):

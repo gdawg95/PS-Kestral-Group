@@ -722,6 +722,16 @@ than {MIN_MONTH_N} responses in either half are not tested at all (D-052's floor
 improved significantly. That asymmetry is itself evidence: random variation across 23 sites
 would not produce {n_sig} one-sided results.
 
+**Which tests are corrected, and which are not.** The Holm family above is the 23 per-site
+tests and only those. The three state tests and the three NSW department tests in this
+section, and the three national department tests in 7.2, are **uncorrected Welch p-values** —
+nine in all. They are not part of the site family and are not presented as a screen, but a
+reader who notices the care taken over 23 tests is entitled to ask about the other nine. The
+two load-bearing ones survive any correction comfortably: a Bonferroni factor of 9 leaves NSW
+at 7e-07 and NSW Service at 2.8e-06. The marginal ones do not change character either
+(VIC 0.0028 → 0.025, NSW Sales 0.00068 → 0.0062). **No conclusion in this report rests on an
+uncorrected p-value.** Raised by the independent verifier (V-4).
+
 This is the full extent of the per-site testing in this project. Cut-list item 7 makes
 statistical tests beyond the one trend check cuttable, and the one kept here is the one the
 recommendation needs — *which* sites, not *whether* something changed.
@@ -809,16 +819,21 @@ def site_halves(df: pd.DataFrame) -> pd.DataFrame:
         )
     t = pd.DataFrame(rows)
     mask = t["_p"].notna()
-    t["p (Holm-adjusted)"] = None
-    t.loc[mask, "p (Holm-adjusted)"] = [
-        f"{p:.2g}" for p in multipletests(t.loc[mask, "_p"], method="holm")[1]
-    ]
+    # The adjusted p is kept as a float and the 0.05 decision is made on THAT. An earlier
+    # version formatted it to two significant figures first and parsed the string back, so
+    # a true 0.04951 displayed as "0.05" and was then read as not significant. Same class
+    # of defect as the rounded trend threshold: a cut-off moved by a display decision.
+    # Found by the independent verifier (V-2); it changed no verdict on this data, because
+    # no site's adjusted p lands in the 0.0495–0.05 window.
+    t["_p_adj"] = np.nan
+    t.loc[mask, "_p_adj"] = multipletests(t.loc[mask, "_p"], method="holm")[1]
     t["Significant"] = [
-        ("—" if pd.isna(p) else ("**yes**" if float(adj) < 0.05 else "no"))
-        for p, adj in zip(t["_p"], t["p (Holm-adjusted)"].fillna("1"), strict=False)
+        "—" if pd.isna(adj) else ("**yes**" if adj < 0.05 else "no") for adj in t["_p_adj"]
     ]
-    t.loc[~mask, "p (Holm-adjusted)"] = "not tested (n < floor)"
-    return t.drop(columns=["_p"]).sort_values("Change", na_position="last")
+    t["p (Holm-adjusted)"] = [
+        "not tested (n < floor)" if pd.isna(adj) else f"{adj:.2g}" for adj in t["_p_adj"]
+    ]
+    return t.drop(columns=["_p", "_p_adj"]).sort_values("Change", na_position="last")
 
 
 def n_significant_sites(df: pd.DataFrame) -> int:
@@ -1223,8 +1238,19 @@ def section_recommendation(df: pd.DataFrame, revenue: pd.DataFrame) -> str:
     hs = half_test(svc)
     tx = revenue["service_jobs"].sum()
     nat_cov = 100 * len(svc) / tx
-    extra = int(round(hs["neg_delta"] / 100 * len(svc)))
-    implied = int(round(hs["neg_delta"] / 100 * tx))
+    # The counterfactual is "how many more negative responses did H2 produce than H1's rate
+    # would have", so the rate difference applies to H2's OWN rows and H2's OWN service
+    # jobs. Multiplying it by all 4,903 Service rows and the full year's 200,249 jobs
+    # applied a second-half-minus-first-half delta to a denominator containing the first
+    # half, and published 305 and 12,445 where the arithmetic gives 156 and 6,370 — out by
+    # a factor of 1.96. Found by the independent verifier (V-1, agents/reports/w5_verify.md);
+    # neither the producer's own tests nor the owner's 14-number recompute caught it.
+    svc_h2 = svc[svc["half"] == "H2"]
+    svc_h1 = svc[svc["half"] == "H1"]
+    expected_h2 = svc_h1["negative_by_rating"].mean() * len(svc_h2)
+    extra = int(round(svc_h2["negative_by_rating"].sum() - expected_h2))
+    tx_h2 = revenue.loc[revenue["month"] >= H2[0], "service_jobs"].sum()
+    implied = int(round(hs["neg_delta"] / 100 * tx_h2))
     st = state_halves(df).set_index("State")
     nsw, vic, qld = st.loc["NSW"], st.loc["VIC"], st.loc["QLD"]
     nsw_dep = state_department_halves(df, "NSW").set_index("Department")

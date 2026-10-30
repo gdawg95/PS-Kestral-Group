@@ -415,36 +415,46 @@ twenty turns up "significant" with nothing happening. The Holm step-down correct
 applied across all 23 tests, and the column to read is the adjusted one. Sites with fewer
 than 20 responses in either half are not tested at all (D-052's floor).
 
-| Dealer | State | Site | Rows | H1 rating | H2 rating | Change | p (Holm-adjusted) | Significant |
+| Dealer | State | Site | Rows | H1 rating | H2 rating | Change | Significant | p (Holm-adjusted) |
 | --- | --- | --- | ---: | ---: | ---: | ---: | --- | --- |
-| NSW01 | NSW | Parramatta | 479 | 3.97 | 3.22 | -0.753 | 1.4e-06 | **yes** |
-| VIC01 | VIC | Dandenong | 484 | 4.03 | 3.31 | -0.719 | 1.3e-06 | **yes** |
-| VIC08 | VIC | Bendigo | 144 | 4.1 | 3.49 | -0.616 | 0.15 | no |
-| NSW04 | NSW | Liverpool | 311 | 4.13 | 3.54 | -0.584 | 0.0057 | **yes** |
-| QLD04 | QLD | Southport | 250 | 3.79 | 3.49 | -0.298 | 1 | no |
-| NSW05 | NSW | Newcastle | 303 | 3.91 | 3.66 | -0.251 | 1 | no |
-| NSW03 | NSW | Chatswood | 278 | 3.83 | 3.62 | -0.214 | 1 | no |
-| VIC02 | VIC | Ringwood | 454 | 3.92 | 3.75 | -0.172 | 1 | no |
-| NSW06 | NSW | Wollongong | 285 | 3.98 | 3.85 | -0.128 | 1 | no |
-| VIC07 | VIC | Ballarat | 292 | 3.82 | 3.7 | -0.12 | 1 | no |
-| QLD03 | QLD | Ipswich | 277 | 3.89 | 3.79 | -0.095 | 1 | no |
-| NSW02 | NSW | Penrith | 454 | 3.83 | 3.75 | -0.089 | 1 | no |
-| QLD07 | QLD | Rockhampton | 202 | 3.55 | 3.5 | -0.051 | 1 | no |
-| QLD06 | QLD | Toowoomba | 321 | 3.75 | 3.71 | -0.047 | 1 | no |
-| QLD02 | QLD | Springwood | 301 | 4.03 | 3.99 | -0.046 | 1 | no |
-| VIC03 | VIC | Essendon | 346 | 3.66 | 3.63 | -0.036 | 1 | no |
-| VIC04 | VIC | Frankston | 308 | 3.72 | 3.78 | 0.055 | 1 | no |
-| NSW07 | NSW | Tamworth | 133 | 4.03 | 4.12 | 0.09 | 1 | no |
-| QLD08 | QLD | Townsville | 354 | 3.71 | 3.8 | 0.091 | 1 | no |
-| QLD05 | QLD | Noosa | 49 | 4.58 | 4.68 | 0.097 | 1 | no |
-| VIC05 | VIC | Box Hill | 309 | 3.57 | 3.68 | 0.104 | 1 | no |
-| QLD01 | QLD | Chermside | 460 | 3.59 | 3.75 | 0.163 | 1 | no |
-| VIC06 | VIC | Geelong | 304 | 3.59 | 3.93 | 0.334 | 0.81 | no |
-| VIC09 | VIC | Shepparton | 52 | 3.98 | — | — | not tested (n < floor) | — |
+| NSW01 | NSW | Parramatta | 479 | 3.97 | 3.22 | -0.753 | **yes** | 1.4e-06 |
+| VIC01 | VIC | Dandenong | 484 | 4.03 | 3.31 | -0.719 | **yes** | 1.3e-06 |
+| VIC08 | VIC | Bendigo | 144 | 4.1 | 3.49 | -0.616 | no | 0.15 |
+| NSW04 | NSW | Liverpool | 311 | 4.13 | 3.54 | -0.584 | **yes** | 0.0057 |
+| QLD04 | QLD | Southport | 250 | 3.79 | 3.49 | -0.298 | no | 1 |
+| NSW05 | NSW | Newcastle | 303 | 3.91 | 3.66 | -0.251 | no | 1 |
+| NSW03 | NSW | Chatswood | 278 | 3.83 | 3.62 | -0.214 | no | 1 |
+| VIC02 | VIC | Ringwood | 454 | 3.92 | 3.75 | -0.172 | no | 1 |
+| NSW06 | NSW | Wollongong | 285 | 3.98 | 3.85 | -0.128 | no | 1 |
+| VIC07 | VIC | Ballarat | 292 | 3.82 | 3.7 | -0.12 | no | 1 |
+| QLD03 | QLD | Ipswich | 277 | 3.89 | 3.79 | -0.095 | no | 1 |
+| NSW02 | NSW | Penrith | 454 | 3.83 | 3.75 | -0.089 | no | 1 |
+| QLD07 | QLD | Rockhampton | 202 | 3.55 | 3.5 | -0.051 | no | 1 |
+| QLD06 | QLD | Toowoomba | 321 | 3.75 | 3.71 | -0.047 | no | 1 |
+| QLD02 | QLD | Springwood | 301 | 4.03 | 3.99 | -0.046 | no | 1 |
+| VIC03 | VIC | Essendon | 346 | 3.66 | 3.63 | -0.036 | no | 1 |
+| VIC04 | VIC | Frankston | 308 | 3.72 | 3.78 | 0.055 | no | 1 |
+| NSW07 | NSW | Tamworth | 133 | 4.03 | 4.12 | 0.09 | no | 1 |
+| QLD08 | QLD | Townsville | 354 | 3.71 | 3.8 | 0.091 | no | 1 |
+| QLD05 | QLD | Noosa | 49 | 4.58 | 4.68 | 0.097 | no | 1 |
+| VIC05 | VIC | Box Hill | 309 | 3.57 | 3.68 | 0.104 | no | 1 |
+| QLD01 | QLD | Chermside | 460 | 3.59 | 3.75 | 0.163 | no | 1 |
+| VIC06 | VIC | Geelong | 304 | 3.59 | 3.93 | 0.334 | no | 0.81 |
+| VIC09 | VIC | Shepparton | 52 | 3.98 | — | — | — | not tested (n < floor) |
 
 **3 of 23 sites survive the correction, and every one of them is a fall.** No site
 improved significantly. That asymmetry is itself evidence: random variation across 23 sites
 would not produce 3 one-sided results.
+
+**Which tests are corrected, and which are not.** The Holm family above is the 23 per-site
+tests and only those. The three state tests and the three NSW department tests in this
+section, and the three national department tests in 7.2, are **uncorrected Welch p-values** —
+nine in all. They are not part of the site family and are not presented as a screen, but a
+reader who notices the care taken over 23 tests is entitled to ask about the other nine. The
+two load-bearing ones survive any correction comfortably: a Bonferroni factor of 9 leaves NSW
+at 7e-07 and NSW Service at 2.8e-06. The marginal ones do not change character either
+(VIC 0.0028 → 0.025, NSW Sales 0.00068 → 0.0062). **No conclusion in this report rests on an
+uncorrected p-value.** Raised by the independent verifier (V-4).
 
 This is the full extent of the per-site testing in this project. Cut-list item 7 makes
 statistical tests beyond the one trend check cuttable, and the one kept here is the one the
@@ -704,7 +714,7 @@ suggests.** Splitting the group's +5.0-point move by state gives NSW
 change. Inside NSW the move is **+10.3 points in Service** and
 +8.5 in Sales, while NSW Parts went the other way.
 
-In plain counts, the national Service move is **305 more negative service responses in
+In plain counts, the national Service move is **156 more negative service responses in
 H2 than H1's rate would have produced**.
 
 **So the recommendation has two parts that should not be confused.** The *standing* problem
@@ -713,8 +723,8 @@ is Service everywhere. The *new* problem is NSW, and specifically
 tests. Dandenong (VIC01) is the third and sits outside NSW, so it belongs with them on
 evidence even though the state story does not reach it.
 
-**What is deliberately not published here.** 305 responses at a 2.45% response
-rate would extrapolate to roughly 12,445 service jobs. That figure is **not** reported as
+**What is deliberately not published here.** 156 responses at a 2.45% response
+rate would extrapolate to roughly 6,341 service jobs. That figure is **not** reported as
 a finding, because D-058 measured response bias running the wrong way for it — within the
 responses, the people who wrote are markedly less satisfied than the people who did not — so
 projecting a responder rate onto all 200,249 jobs would overstate it by an unknown amount.

@@ -2,9 +2,10 @@
 
 **For:** the Head of Customer Experience, Kestrel Motor Group
 **From:** gdawg95 · **Date:** 30 October 2026
-**Status: DRAFT.** The figures are approved (gate G9, 30 Oct 2026). The recommendations in section 4 are written to be **rewritten in the
-owner's own voice** before this report is sent (PLAN.md Checkpoint 5). Nothing here is
-approved copy.
+**Status: final, 30 October 2026.** Figures approved under gate G9 and the recommendations
+rewritten in the owner's own voice, which closes both halves of PLAN.md Checkpoint 5. Every
+number in this report was independently recomputed from the raw data by a separate agent
+that wrote none of it (`agents/reports/w5_verify.md`).
 
 Every number comes from [`reports/analysis.md`](analysis.md), which shows the working, and
 from code a reviewer can run (`make analyse`). Method, data quality and limitations are in
@@ -190,21 +191,18 @@ look, not worth a claim.
 
 ## 4. Recommendation
 
-> **DRAFT — to be rewritten in the owner's voice.** The reasoning and the numbers are settled;
-> the wording is not.
+### There are two different problems here
 
-### There are two different problems here, and conflating them wastes the effort.
-
-**The standing problem is Service, everywhere.** 68.6% of the feedback, 72% of the
+**One: Service, everywhere.** 68.6% of the feedback, 72% of the
 transactions, and the worst negative rate of the three departments at 27.2%. That is true in
 all three states and it has been true all year. It is a structural issue with the service
 experience, not an incident.
 
-**The new problem is New South Wales, and it is six months old.** NSW Service went from 21.7%
+**Two: New South Wales, and it is six months old.** NSW Service went from 21.7%
 to 32.1% negative while Queensland did not move. Something changed in NSW between March and
 April 2026, and the data says *where* without saying *what*.
 
-### Focus first: NSW Service, starting with Parramatta and Liverpool.
+### Focus first: NSW Service, starting with Parramatta and Liverpool
 
 ![Each site's negative rate against the change in that rate, bubble-sized by annual service jobs](figures/q3_where_to_focus.png)
 
@@ -220,15 +218,17 @@ April 2026, and the data says *where* without saying *what*.
 | Sites that fell by more than chance | **Parramatta, Dandenong, Liverpool** — all falls | 7.3 |
 
 Parramatta and Liverpool are both NSW and both survive the statistical correction, so they are
-where the state story and the site story agree. **Dandenong (VIC01) is the third and sits
+where the state story and the site story agree. Parramatta is also the second-largest service
+site in NSW (12,265 jobs a year, fifth of 24 nationally); Liverpool is mid-sized (7,654 jobs,
+fifteenth of 24), so it earns its place on the strength of its change rather than its size. **Dandenong (VIC01) is the third and sits
 outside NSW** — it belongs on the list on its own evidence, not because of the state pattern.
 
 Nothing in that chain depends on the sentiment model, which failed its accuracy test, or on
 the theme model, which is 44% reliable. It rests on the customer's own star rating, a
 hand-mapped department field, and your transaction counts.
 
-**The supporting steer, offered as a steer and not a finding:** the comments praise the people
-and criticise the process. If that holds when you read them, the useful interventions are
+**The supporting steer (not a finding):** the comments often praise the human interactions but criticise the process (ie. themes like booking/service times/parts availability).
+If that holds when you read them, the useful interventions are
 operational — turnaround time, keeping customers informed, whether the job is right first time
 — rather than customer-service training for staff who are being thanked by name.
 

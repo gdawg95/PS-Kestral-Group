@@ -1,7 +1,7 @@
 {
-  "generated_utc": "2026-10-30T06:26:28Z",
+  "generated_utc": "2026-10-30T07:04:06Z",
   "generated_by": "src/analyse.py",
-  "git_commit": "25779100e07f3251abf078b5a3f45a98d6176faf",
+  "git_commit": "a966260a65c847b92c7527ce3df5fc9ef95e0938",
   "git_commit_note": "HEAD at the moment this manifest was generated, which is the commit BEFORE the one carrying this file. The `inputs` hashes below are what identify the data this run read; they are unaffected.",
   "seed": 42,
   "row_counts_per_stage": {

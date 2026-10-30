@@ -30,8 +30,16 @@ laptop with no GPU, and a Friday 3pm code freeze.
 
 ## 2. Reproducing this
 
+> **`uv sync` on its own is not enough, and that is a defect this project found late.**
+> `nlp` (torch, transformers, sentence-transformers) is a non-default dependency group under
+> D-013, so a plain `uv sync` leaves `make classify` failing at
+> `ModuleNotFoundError: sentence_transformers`. Sentiment is fully served from the committed
+> cache, but **theme embeddings are not cached and are recomputed on every run**, so the
+> model is needed. Found by the independent verifier (V-3) running these very commands on a
+> clean environment, which is what that check exists for.
+
 ```bash
-uv sync                      # exact environment from uv.lock
+uv sync --group nlp          # exact environment from uv.lock, INCLUDING the NLP models
 # place the challenge pack in data/raw/ (not committed - see section 8)
 make ingest                  # raw files -> data/interim/consolidated.parquet
 make validate                # data-quality rules -> data/clean/feedback.parquet
@@ -666,12 +674,12 @@ Three things in this repository exist because of that structure rather than in s
 
 ### Where the AI got it wrong
 
-[AI_LOG.md](AI_LOG.md) records every agent run and 41 specific errors with how each was
+[AI_LOG.md](AI_LOG.md) records every agent run and 46 specific errors with how each was
 caught. It is an honest log, not a highlight reel, and the pattern in it matters more than
 any single entry: **the errors that mattered most were caught by arithmetic that had to
 close and by the owner checking source files, not by the AI reviewing its own work.**
 
-Eight worth naming:
+Eleven worth naming:
 
 | What went wrong | How it was caught |
 |---|---|
@@ -684,6 +692,9 @@ Eight worth naming:
 | The 0.5-star trend threshold was applied to a change already rounded to two decimals, so a 0.496-star move cleared a 0.5-star rule. The count came out at 34 flags across 17 sites, and the first draft of the write-up then explained the gap against the committed 33/16 with the wrong cause | Reconciling the new count against `reports/trend_evidence.md` instead of accepting it, then recomputing both ways independently. The threshold now tests the unrounded value and the counts match the committed file exactly (section 11) |
 | **The national trend was published before it was split by state.** The group's −0.171-star fall is real, but it is an average over NSW (−0.330, p = 7.9e-08), VIC (−0.166) and QLD (−0.015, p = 0.80 — no change). The first draft of both reports recommended acting on a group figure that does not describe two of the three states | The owner asked for the trend grouped by state. The analysis gained section 7.3 and the recommendation was restructured around it |
 | Every chart was rendered at roughly four times its intended aspect ratio, with the plot squashed into a strip, because `savefig(bbox_inches="tight")` grows the canvas to fit any text it finds and the figure footers were single unwrapped lines | Reading the rendered PNGs rather than trusting that the code that wrote them was correct | Footers wrap to the figure's own width before they are drawn |
+| **A published finding was out by a factor of two.** `analysis.md` reported "305 more negative service responses in H2 than H1's rate would have produced"; the arithmetic gives **156**. The code multiplied the H2-minus-H1 rate difference by all 4,903 Service rows — a denominator containing the first half — instead of by H2's 2,508. The derived 12,445 service jobs inherited it | **The independent verifier** (V-1). Neither the producer's own tests nor the owner's 14-number Checkpoint 5 recompute covered this figure. It is the argument for D-017 in one line | Both denominators corrected to H2's own; the sentence now reads 156, and 6,341 for the figure it then declines to publish |
+| **A second threshold decided from a rounded display value.** The Holm-adjusted p was formatted to two significant figures and the string parsed back to decide significance, so a true 0.04951 displayed as "0.05" would have been read as not significant | The independent verifier (V-2), checking the brief's instruction that no other threshold was compared against a rounded number — the same class of defect as the trend threshold above, in a second place | The 0.05 decision is made on the float; the formatted string is display only. No verdict changed on this data |
+| **`uv sync` + `make all` does not run end to end**, which is the command PLAN.md gives reviewers. `nlp` is a non-default dependency group, so `make classify` fails at `ModuleNotFoundError: sentence_transformers` — theme embeddings, unlike sentiment, are not cached | The independent verifier (V-3) running the documented commands on a clean environment | Section 2 now says `uv sync --group nlp` and explains why. `reports/theme_discovery.md` is recorded as not reproducing, which changes no published number |
 
 The first is the one to read if only one. A single negative comment disappearing silently is
 the worst possible failure for a project about negative feedback, and nothing but a row
@@ -738,11 +749,11 @@ Everything in PLAN.md section 2 is now delivered. What remains is checking, not 
 
 | # | Item | Status at freeze |
 |---|---|---|
-| 1 | **Independent verifier** — fresh agent, clean clone, `make all`, every reported number checked against the code | **Not done.** The single most valuable outstanding item (D-017, Checkpoint 5). `reports/evaluation.md` already records its own D-017 exception: the agent that wrote `src/classify.py` wrote the evaluation too, because the freeze arrived first |
+| 1 | **Independent verifier** — fresh agent, separate worktree, full reproduction from the raw pack, every reported number checked | **Done, 30 Oct 2026** — [agents/reports/w5_verify.md](agents/reports/w5_verify.md). 73 of 75 published figures matched exactly; three parquets and all charts regenerated to identical hashes from the 52 source spreadsheets. It found six issues, **including one wrong published number no self-check had caught** (V-1). All six are now fixed or recorded. It re-derived `evaluation.md`'s headline numbers too, closing the part of that file's D-017 exception that recomputation can close |
 | 2 | **Gate G9 — the owner approves each of the nine charts** | **Done, 30 Oct 2026.** All nine are embedded in `reports/business_report.md`, and three of them here. No chart entered a report before the approval |
 | 3 | **Checkpoint 5, part 1 — the owner recomputes headline numbers** | **Done, 30 Oct 2026.** 14 published figures recomputed from the reviewer export by a route that imports nothing from `src/`; all 14 match. Evidence: [reports/checkpoint5_recompute.md](reports/checkpoint5_recompute.md) |
-| 4 | **Checkpoint 5, part 2 — the owner rewrites the business report's recommendations in their own voice** | **Not done.** `reports/business_report.md` is marked DRAFT for exactly this |
-| 5 | **Industry benchmarks for the value model.** `reports/benchmarks.md` was written but never reviewed, and D-025 is unset, so the value model is cut and the gap is stated in both reports | Owner's call; cut-list item 1 for Wave 5 |
+| 4 | **Checkpoint 5, part 2 — the owner rewrites the business report's recommendations in their own voice** | **Done, 30 Oct 2026.** Section 4 is the owner's wording; the report's status line is no longer DRAFT |
+| 5 | **Industry benchmarks for the value model.** `reports/benchmarks.md` is **now committed** — it was cited by three deliverables while untracked (verifier finding V-5) — but it is still unreviewed and D-025 is unset, so the value model stays cut and the gap is stated in both reports | Owner's call; cut-list item 1 for Wave 5 |
 | 6 | `tests/test_llm_review.py` — named in the Wave 4 LLM brief's outputs | **Does not exist.** The freeze arrived first |
 | 7 | `thresholds.nlp_pass_mark.theme_bar` | Still `TBD`. A credible per-theme F1 needs its own sample, sized after discovery; D-055 records why 150 comments cannot carry one |
 | 8 | **`gitleaks` scan of full history**, and the history rewrite `PUBLIC_RELEASE.md` describes | Before publication. D-067 is explicit that **this repository must stay private until the rewrite is done**: commit `bec914d` carries the 15-column export whose lineage columns identify 99.0% of rows uniquely |
