@@ -1,334 +1,298 @@
-# Analysis detail
+# Customer feedback analysis — insights and recommendations
 
-This document carries the full methodology and results for the NLP work and the
-data analysis. The [README](README.md) summarises the key findings; everything
-below is the evidence behind them.
+This document answers the three business questions posed in the challenge brief, drawing on
+7,150 customer feedback responses collected across 24 dealerships from October 2025 to
+September 2026. The full working paper is [reports/analysis.md](reports/analysis.md);
+methodology and thresholds are in the appendices at the end.
 
----
-
-## Thresholds, set before the results
-
-Gate G7: the owner sets every threshold and commits it before any result that depends on it
-exists. Current state of [config.yaml](config.yaml):
-
-| Threshold | Value | Basis |
-|---|---|---|
-| `negative_score_max_1to5` | 2 | D-004, provisional |
-| `trend_evidence.min_month_responses` | 20 | ratings have SD 1.44, so a change between two 20-response months carries ±0.46 of noise |
-| `trend_evidence.min_change_1to5` | 0.5 | sits just outside that band; the rejected "10 rows, 0.5 stars" rule would have called noise a trend |
-| `trend_evidence.thin_dealer_basis` | quarterly | five sites have a median month under 20 and are compared by quarter rather than dropped |
-| `llm_max_projected_hours` | 2 | the cut-off for keeping the optional LLM step |
-| `nlp_pass_mark.sentiment_min_kappa` | 0.60 | Cohen's κ on a 150-comment stratified sample, committed before the owner labelled anything. Raw agreement was rejected: the commented rows are 59.3% positive, so an always-positive model scores 59.3% (D-055) |
-| `nlp_pass_mark.fallback` | `score_only` | named in advance — if κ < 0.60 the rating is primary and sentiment is a method comparison. **It was invoked**: measured κ 0.403 (D-065) |
-
-The trend rule calls 33 of 257 consecutive month pairs a trend, at 16 of 24 sites. Working
-in [reports/trend_evidence.md](reports/trend_evidence.md); it was produced before the
-threshold was chosen, so the choice is visible rather than retrofitted (D-052). Wave 5's
-`src/analyse.py` reproduces 33 flags at the same 16 sites over 256 pairs — one fewer, because
-it requires the two months to be adjacent and the evidence script did not.
-
-**One threshold was retired rather than set, for the second time in this project.** D-056
-planned an `unassigned` similarity floor for theme assignment; tested against the owner's
-blind labels it caught 2 of their 7 rejections at the 4.7th percentile, and catching all
-seven required marking 40.8% of the corpus unassigned. D-066 retires it and makes the 44.1%
-theme agreement a stated limitation instead.
-
-`dealer_match_min_confidence` was removed rather than set. It was the confidence floor for
-a fuzzy dealership-name matcher that turned out to have nothing to match: the file → dealer
-code map is approved by hand (D-034) and no free-text dealership column survives ingestion.
+**Important context on coverage.** These 7,150 responses represent **2.57%** of Kestrel's
+278,697 transactions in the period. Every finding below is a finding about *customers who
+responded*, not about all customers. Customers who leave a comment are measurably less
+satisfied than those who don't (3.54 vs 4.40 average stars), so the responding group is not
+representative of the whole. This does not make the findings useless — it means they show
+where dissatisfied customers are concentrating, which is exactly what a satisfaction team
+needs.
 
 ---
 
-## NLP methodology
+## 1. What are the main drivers of negative feedback, and how do they vary across dealerships and departments?
 
-This is the part of the project with the clearest result, and the result is a failure. It is
-written up at length because **how a failed model was handled is better evidence of control
-than a model that happened to work.**
+### The short answer
+
+**Service is the problem department.** It carries 68.6% of all feedback (4,903 of 7,150
+rows) and has the worst negative rate: **27.2%** of Service responses are rated 1–2 stars,
+compared to 16.0% for Parts and 10.6% for Sales. This is the clearest finding in the
+dataset and requires no modelling to reach — it comes from the customer's own star rating
+and a hand-verified department field.
+
+**Across dealerships, a few sites sit clearly above the group average and a few clearly
+below, but the middle sixteen overlap.** NSW01 (Parramatta) has the highest negative rate at
+27.8%, and QLD05 (Noosa) the lowest at 2.0%. However, the confidence intervals for sites
+ranked roughly 4th through 20th overlap heavily — the data does not separate them. The
+honest reading is that there is a clearly worse tier and a clearly better tier, but the
+middle is not ranked by this data.
+
+| Department | Responses | Negative (1–2 stars) | Rate | Mean rating |
+|---|---:|---:|---:|---:|
+| **Service** | 4,903 | 1,333 | **27.2%** | 3.57 |
+| Parts | 706 | 113 | 16.0% | 3.95 |
+| Sales | 1,541 | 163 | 10.6% | 4.26 |
+
+### What the themes tell us (with a caveat)
+
+An NLP theme model assigned each of 5,353 comments to one of eight owner-approved themes.
+The model agrees with the owner **44.1%** of the time, so individual theme assignments are
+uncertain — but one finding survives that uncertainty clearly:
+
+**People are praised; processes are complained about.** Staff manner is the largest theme
+(26.1% of comments) and by far the least negative at 8.6%. The operational themes — booking,
+parts availability, workmanship and rework — each run above 43% negative. The recurring
+pattern in the failure cases is *"Great welcome, helpful staff. Problem not fixed."*
+
+This means the driver of negative feedback is not staff attitude but operational execution:
+wait times, parts delays, rework, and communication gaps during the service process.
+
+### Resolution
+
+The data answers this question clearly at the department level: **Service is where the
+problem is**, and it is a process problem, not a people problem. At the dealership level,
+the data separates the extremes but not the middle pack.
+
+### Suggestion
+
+1. **Focus improvement effort on Service department processes** — not on staff training or
+   manner, which customers already rate well.
+2. **Investigate the specific operational pain points** at the three to five worst-performing
+   sites (Parramatta, Chatswood, Essendon, Southport), starting with booking, communication
+   during repairs, and rework/comeback rates.
+3. **Use the theme × dealership heatmap** (section 6 of the working paper) as a map of where
+   to look — which process issue is worst at which site — rather than as a league table.
+
+---
+
+## 2. Has anything changed over the year?
+
+### The short answer
+
+**Yes. The group got worse, but the decline is not uniform — it is concentrated in NSW and
+specifically in Service.**
+
+| Half | Responses | Mean rating | Negative rate |
+|---|---:|---:|---:|
+| H1 (Oct 2025 – Mar 2026) | 3,457 | **3.842** | **19.9%** |
+| H2 (Apr – Sep 2026) | 3,693 | **3.671** | **24.9%** |
+
+The fall of 0.171 stars is statistically robust (Welch p = 4.9e-07) and is not explained by
+the closure of VIC09 (Shepparton), a shift in department mix, or a change in response volume.
+
+**But the national number hides three different stories:**
+
+| State | Rating change | Negative rate change | Significant? |
+|---|---:|---:|---|
+| **NSW** (7 sites) | **−0.330** | 18.1% → **26.4%** (+8.3 pts) | **Yes** (p = 7.9e-08) |
+| VIC (9 sites) | −0.166 | 20.5% → 25.1% (+4.6 pts) | Yes (p = 0.003) |
+| **QLD** (8 sites) | **−0.015** | 21.0% → 23.3% (+2.2 pts) | **No** (p = 0.80) |
+
+**Queensland did not change.** Reporting only the national figure would tell Queensland's
+eight sites to fix a problem they don't have and understate NSW's by more than half.
+
+Inside NSW, the deterioration is in Service: negative rate rose from 21.7% to **32.1%**
+(+10.3 points, p = 3.1e-07). NSW Sales also worsened (+8.5 pts), while NSW Parts
+actually improved.
+
+### Which sites changed?
+
+Testing all 23 open sites with correction for multiple comparisons (Holm step-down), **three
+sites show a statistically significant decline:**
+
+| Site | State | Rating fall | Holm-adjusted p |
+|---|---|---:|---|
+| **Parramatta** (NSW01) | NSW | −0.75 stars | 1.4e-06 |
+| **Dandenong** (VIC01) | VIC | −0.72 stars | 1.3e-06 |
+| **Liverpool** (NSW04) | NSW | −0.58 stars | 0.006 |
+
+No site improved significantly. That asymmetry — three falls, no rises — is itself evidence
+that the decline is real, not noise.
+
+![The year's movement split by state](reports/figures/q2_trend_by_state.png)
+
+### Resolution
+
+The data answers this question with high confidence. The group declined, but the decline is
+overwhelmingly a NSW Service problem. Queensland is stable. The three named sites —
+Parramatta, Dandenong and Liverpool — are the ones where the data is strong enough to make a
+site-level claim.
+
+### Suggestion
+
+1. **Treat Parramatta, Dandenong and Liverpool as priority cases for operational review** —
+   these are the sites where the data is unambiguous about a decline.
+2. **Do not apply a blanket "fix" across all 24 sites.** Queensland's sites do not have the
+   same problem, and a national programme would waste effort there while diluting focus where
+   it matters.
+3. **Investigate what changed at NSW Service sites in early 2026** — the shift begins around
+   January and is sustained, not a one-month spike. Was there a process change, a staffing
+   change, or a policy change that coincided?
+4. **Watch Victoria.** VIC's decline is moderate and only Dandenong is individually
+   significant, but the state-level trend is heading the same direction as NSW. Early
+   intervention may prevent it from reaching NSW's level.
+
+---
+
+## 3. Where should Kestrel focus first, and roughly what is it worth?
+
+### Where to focus
+
+The evidence chains together in a single direction:
+
+1. **Department:** Service carries 68.6% of feedback, 71.9% of transactions behind it, and
+   the worst negative rate.
+2. **State:** NSW drove the year's decline (−0.330 stars, +8.3 pts negative).
+3. **Specific cell:** NSW Service went from 21.7% to 32.1% negative (+10.3 pts, p = 3.1e-07).
+4. **Named sites:** Parramatta (−0.75 stars), Liverpool (−0.58 stars), and Dandenong
+   (−0.72 stars, VIC but evidence-matched) survived correction across all 23 tests.
+
+**The standing problem is Service everywhere. The new problem is NSW Service, and
+specifically Parramatta, Liverpool and Dandenong.**
+
+In plain counts, the national Service move is **156 more negative service responses in H2
+than H1's rate would have produced**. At a 2.45% service response rate, those 156 sit beside
+a much larger number of unheard service jobs — but the analysis deliberately does not
+extrapolate that number, because response is not independent of satisfaction (see coverage
+note above).
+
+### What is it worth?
+
+**Honestly: we cannot put a reliable dollar figure on it from this data.**
+
+The analysis tested whether negative feedback predicts revenue loss, using 288 dealer-months
+of service jobs, vehicle sales, parts transactions and revenue. The finding is a null result:
+
+- A same-month association exists (r = −0.19, p = 0.002) — about 8 fewer service jobs in a
+  month of 709, roughly −1.1% — but it is contemporaneous, not leading.
+- **Feedback in one month predicts nothing about the next month's volume** at ±1, ±2 or ±3
+  months.
+- **The natural experiment is flat.** NSW's satisfaction collapsed and its service volume
+  still grew by 4.9%. The ordering across states is in the predicted direction (NSW grew
+  least, QLD grew most), but the difference is p = 0.41 — indistinguishable from chance.
+- Of the three named declining sites, one lost volume, one was flat, and one outgrew the
+  group. No pattern.
+
+This does not mean negative feedback has no consequences. It means this dataset — twelve
+months, monthly granularity, no customer-level tracking — cannot detect one. A service
+interval is six to twelve months, so a customer who gave up on Parramatta in April 2026 may
+simply not have been due back before the data ends in September. **The single most valuable
+thing Kestrel could add to the next round of this work is customer-level repeat-visit data:**
+did the individual who left a 1-star come back?
+
+A value model based on external retention benchmarks was planned but **cut** (D-025 unset):
+publishing a dollar figure that assumes dissatisfied customers leave, while Kestrel's own
+revenue data declines to corroborate that mechanism, would be the least defensible number in
+the project.
+
+![Feedback against revenue](reports/figures/q3_feedback_vs_revenue.png)
+
+### Resolution
+
+The data tells Kestrel *where* to focus with high confidence: Service, NSW, and three named
+sites. It cannot tell Kestrel *what the problem costs* in dollars, and saying so honestly is
+more useful than publishing a number that cannot be defended.
+
+### Suggestion
+
+1. **Start with Parramatta, Liverpool and Dandenong Service departments.** These are the
+   sites with the strongest statistical evidence of decline. A targeted operational review
+   at these three sites will have more impact than a broad programme.
+2. **Increase feedback collection rates.** At 2.45% of service jobs, the feedback system
+   sees very little. Three QLD sites collect sales feedback at under 4% — effectively
+   nothing. Higher collection rates would narrow the confidence intervals, separate the
+   middle-pack sites, and make the next round of analysis far more precise.
+3. **Add customer-level repeat-visit tracking.** This is the missing piece for answering the
+   value question. Without knowing whether a dissatisfied customer came back, no amount of
+   analysis on this data can connect satisfaction to revenue.
+4. **Don't wait for a dollar figure to act.** The operational issues — particularly in
+   booking, communication during service, and rework — are visible now. The three worst
+   sites have clear, measurable declines. Process improvements at those sites can be
+   measured directly in next year's feedback without needing a revenue model.
+
+---
+
+## Appendix A — NLP methodology
+
+This section covers the NLP work (Wave 4). The sentiment model failed its pass mark, and how
+that failure was handled is the key methodological point.
 
 ### What was built
 
 | Stage | Method | Output |
 |---|---|---|
-| Sentiment | `cardiffnlp/twitter-roberta-base-sentiment-latest`, three classes, cached by `sha256(text + model tag)` | 5,353 commented rows labelled; the 1,797 commentless rows carry **null**, never "neutral" (D-057) |
-| Theme discovery | **KMeans k=12** over UMAP-reduced MiniLM embeddings, seed 42 | [reports/theme_discovery.md](reports/theme_discovery.md), five example comments per cluster |
-| Theme list | The owner named and approved eight themes from the clusters; capped at 8 by D-059 | [mappings/themes.yaml](mappings/themes.yaml) |
-| Theme assignment | Cosine similarity to **6–7 short probe phrases per theme, max-pooled** (D-062) | Every commented row assigned, with its similarity recorded |
-| LLM adjudication | `qwen2.5:3b` in Docker, prompt `sentiment_v1`, temperature 0, seed 42 | 857 comments, 49.8 minutes, **0 parse failures** ([reports/llm_review.md](reports/llm_review.md)) |
-| Evaluation | scikit-learn, against 150 comments the owner labelled **blind** | [reports/evaluation.md](reports/evaluation.md) |
+| Sentiment | `cardiffnlp/twitter-roberta-base-sentiment-latest`, three classes | 5,353 commented rows labelled |
+| Theme discovery | KMeans k=12 over UMAP-reduced MiniLM embeddings, seed 42 | [reports/theme_discovery.md](reports/theme_discovery.md) |
+| Theme list | Owner named and approved 8 themes from the clusters (D-059) | [mappings/themes.yaml](mappings/themes.yaml) |
+| Theme assignment | Cosine similarity to 6–7 short probe phrases per theme, max-pooled (D-062) | Every commented row assigned with similarity recorded |
+| LLM adjudication | `qwen2.5:3b`, prompt `sentiment_v1`, temperature 0, seed 42 | 857 comments reviewed ([reports/llm_review.md](reports/llm_review.md)) |
+| Evaluation | scikit-learn, against 150 owner-blind-labelled comments | [reports/evaluation.md](reports/evaluation.md) |
 
-### Two methods did not survive contact with the data
+### The pass mark, and what happened
 
-Both are recorded with the evidence that replaced them, because a method chosen in a plan and
-a method that works on the data are different things.
+The pass mark was committed before any labelling (gate G7, D-055): Cohen's κ ≥ 0.60 on a
+150-comment stratified sample, with a named fallback (`score_only`) if it missed.
 
-- **BERTopic/HDBSCAN cannot cluster this corpus (D-061).** A `min_cluster_size` sweep over all
-  5,353 comments returned either 84 micro-clusters with 27% outliers, or — at every setting
-  from 20 upwards — a single cluster holding 87% of the data. BERTopic's own topic reduction
-  did not fix it: the merged result still had one cluster of 3,191 comments. Short service
-  comments averaging 101 characters have no separated density peaks; what varies most in the
-  embedding space is which car the customer drives and how happy they are. **KMeans replaced
-  it**, on the owner's suggestion, after the orchestrator predicted it would not help and was
-  wrong. The cost is stated rather than glossed: KMeans cannot refuse a comment, so its 0%
-  outlier rate is a property of the algorithm, not a quality result. HDBSCAN stays reachable
-  via `--kmeans-k 0`, so the failure is reproducible.
-- **One long description per theme embeds badly (D-062).** Assignment first ran against a
-  50–80 word description per theme. The similarity scale came out compressed (median 0.328)
-  and two of ten decile spot-checks were misassigned — **one at the median**, where no
-  confidence floor could have caught it. The cause was in the wording, not the model: a
-  60-word description embeds to the centroid of everything it mentions, and the descriptions
-  borrowed each other's consequences. Short probes fixed it: median 0.328 → **0.424**, p90
-  0.475 → **0.582**, nine of ten deciles correct with the single remaining error at p0.
-
-### The pass mark, and what happened to it
-
-`thresholds.nlp_pass_mark` was committed to [config.yaml](config.yaml) **before the owner
-labelled anything** (gate G7, D-055): Cohen's κ ≥ 0.60 on a 150-comment stratified sample,
-with a named fallback — `score_only` — if it missed. κ rather than raw agreement because the
-commented rows are 59.3% positive, so a model that answers "positive" every time scores 59.3%
-raw agreement and κ = 0.
-
-The owner then labelled 150 comments blind to the model's output **and blind to the star
-rating**, which D-017 does not require but which would otherwise have let the labels inherit
-the signal they were measuring. 263 comments were excluded from the draw because they had
-already been quoted in conversation, several with the model's label attached.
-
-| Signal, same 150 labels | Cohen's κ |
+| Signal | Cohen's κ |
 |---|---:|
-| **The sentiment model** | **0.403** — floor 0.60, **FAIL** |
-| **The customer's star rating alone** | **0.460** |
-| The local LLM, 45 overlapping rows | 0.727 |
+| **The sentiment model** | **0.403 — FAIL** (floor 0.60) |
+| **The star rating alone** | **0.460** |
+| The local LLM (45 overlapping rows) | 0.727 |
 
-**The customer's star rating beat the model.** D-055's pre-committed fallback was applied and
-the bar was not moved (D-065): the rating is the primary signal in every Wave 5 figure, and
-model sentiment appears only beside a rating-based number with its κ stated. PLAN.md §9's stop
-rule — *"NLP misses the pass mark → apply the planned fallback; don't move the bar"* — is the
-rule this followed.
+**The customer's star rating beat the model.** The pre-committed fallback was applied
+(D-065): the rating is the primary signal in every analysis figure. Sentiment appears only
+beside a rating-based number with its κ stated.
 
-**Why it failed, from the confusion matrix. Both causes had been identified before the labels
-existed, which is the part worth noting:**
-
-1. **It over-uses `neutral`.** The owner used neutral **3 times in 150**; the model assigns it
-   to 22.4% of the corpus. 34 of the sample's comments were called neutral by the model while
-   the owner called them negative (22) or positive (12).
-2. **It reads sarcasm and praise-then-complaint as positive** — *"Wow, what a well oiled
-   machine"* on a 1-star. 812 of 5,353 comments (15.2%) carry Australian slang markers, and
-   all eight of the pilot's polarity-inverted cases were irony or idiom (D-063).
-
-**The LLM's κ of 0.727 does not promote it.** It is measured on 45 rows, and those 45 are
-exactly the disagreement cases the LLM was pointed at. It annotates and never overwrites
-`sentiment_label`, so every Wave 5 number reproduces for a reviewer who never starts Ollama.
+**Why it failed:** (1) the model over-uses "neutral" — the owner used it 3 times in 150
+while the model assigns it to 22.4% of the corpus; (2) it reads sarcasm and
+praise-then-complaint as positive — 15.2% of comments carry Australian slang markers and all
+eight polarity-inverted pilot cases were irony (D-063).
 
 ![Agreement between the models and the owner's blind labels](reports/figures/method_model_vs_owner.png)
 
-*Panel A: the three signals against the pass mark committed before the labelling. Panel B:
-where sentiment goes wrong — 34 of 150 called neutral, 15 real negatives called positive.
-Panel C: the full theme confusion matrix behind the 44.1%. Panel D: what the LLM was and was
-not used for.*
+### Theme agreement: 44.1%
 
-### The theme result, and the floor that was retired
+The model agreed with the owner on theme assignment 44.1% of the time (D-065). A planned
+similarity floor was tested and retired (D-066) — no threshold separated the comments the
+owner rejected from the ones they kept. The consequence is a reporting rule enforced in code:
+**theme negative rates are reportable with the 44.1% caveat attached; theme rankings are
+not.** Theme tables are printed in alphabetical order.
 
-Model and owner agreed on a comment's theme **44.1%** of the time. D-056 had planned to set an
-`unassigned` similarity floor from the observed distribution; tested against the owner's
-labels, **no floor works** (D-066):
+### Two methods that did not survive contact with the data
 
-| Floor | Catches the owner's 7 rejections | Marks unassigned |
-|---:|---:|---|
-| 0.259 — reproduces the owner's own 4.7% none-rate | **2 of 7** | 248 (4.6%) |
-| 0.400 — catches all 7 | **7 of 7** | **2,185 (40.8%)** |
-
-Similarity barely predicts correctness either: 38.3% theme agreement below 0.40, 44.8% at
-0.40–0.50, 42.3% at 0.50–0.60. A floor at the 4.7th percentile would have reproduced the
-owner's own none-rate exactly — a figure that reads as validation — while catching two of
-their seven rejections, so **the threshold was retired rather than set**, the way
-`dealer_match_min_confidence` was. The consequence is a reporting rule, enforced in
-[src/analyse.py](src/analyse.py) rather than in prose: **theme negative rates are reportable
-with the 44.1% attached; theme rankings are not.**
+- **BERTopic/HDBSCAN could not cluster this corpus** (D-061). Short service comments
+  averaging 101 characters have no separated density peaks. KMeans replaced it on the
+  owner's suggestion.
+- **Long theme descriptions embed badly** (D-062). Replaced with 6–7 short probe phrases per
+  theme, which raised median similarity from 0.328 to 0.424 and corrected nine of ten decile
+  spot-checks.
 
 ---
 
-## Data analysis
+## Appendix B — Thresholds
 
-[src/analyse.py](src/analyse.py) → [reports/analysis.md](reports/analysis.md), and
-[src/figures.py](src/figures.py) → `reports/figures/`. The working paper carries every table;
-[reports/business_report.md](reports/business_report.md) quotes it and adds nothing of its
-own.
+Gate G7 requires every threshold to be committed to [config.yaml](config.yaml) before any
+result that depends on it exists.
 
-### The four rules the analysis runs under
-
-Each comes from a Wave 4 result, and each is enforced in code rather than left to the prose.
-
-| | Rule | From |
+| Threshold | Value | Basis |
 |---|---|---|
-| 1 | The star rating is primary; sentiment appears only as a labelled method comparison | D-055, D-065 |
-| 2 | Theme tables are **alphabetical** — a rate is reportable, an ordering is not | D-065, D-066 |
-| 3 | No theme × department × dealership cut: 576 cells for 5,353 comments is 9.3 per cell | D-060 |
-| 4 | Every rate names its denominator | D-058 |
+| `negative_score_max_1to5` | 2 | D-004, provisional — ratings of 1–2 are "negative" |
+| `trend_evidence.min_month_responses` | 20 | SD 1.44, so ±0.46 noise at n = 20 |
+| `trend_evidence.min_change_1to5` | 0.5 | Just outside the noise band |
+| `trend_evidence.thin_dealer_basis` | quarterly | 5 sites have median month under 20 |
+| `llm_max_projected_hours` | 2 | Cut-off for the optional LLM step |
+| `nlp_pass_mark.sentiment_min_kappa` | 0.60 | Cohen's κ, committed before labelling |
+| `nlp_pass_mark.fallback` | `score_only` | **Invoked**: measured κ 0.403 (D-065) |
 
-Rule 4 is the one a reader of the raw figures is most likely to get wrong. **28.1% of
-commented rows are negative by rating; 22.5% of all 7,150 are.** Commentless rows average
-**4.40** stars against **3.54** for commented ones, so the commented subset is not
-representative — "28% of feedback is negative" overstates it by 5.6 points by silently
-excluding the group that is overwhelmingly satisfied.
+The trend rule found 33 of 256 consecutive month pairs at 16 of 24 sites — split 16 down
+and 17 up, which is why the group-level trend claim uses the pooled half-year comparison
+rather than site-level movements.
 
-Rule 3's replacement cut is theme × department nationally, theme × dealership for the **19
-sites whose average theme cell clears 20 comments**, and the five thin sites at department
-level. Those five — NSW07, QLD05, QLD07, VIC08, VIC09 — are exactly the five D-052 put on a
-quarterly basis for trends, reached from comment volume rather than month volume.
-
-### The trend, and why it is believable
-
-**The group's mean rating fell from 3.842 (Oct 2025 – Mar 2026) to 3.671 (Apr – Sep 2026),
-and the negative rate rose 19.9% → 24.9%.**
-
-The trend rule was committed before any trend result existed (D-052): 20 responses in a month,
-0.5 stars, thin sites quarterly. Applied here it finds **33 of 256 consecutive dealer-month
-pairs at 16 of 24 sites** — and those 33 split **16 down, 17 up**, so at the grain it was
-calibrated for, *the rule finds no direction at all*. The group claim is therefore made at the
-grain that has the data, and judged by the same rule's own arithmetic rather than by borrowing
-its number:
-
-> `min_change_1to5: 0.5` came from `sd × √(1/n₁ + 1/n₂)` at n = 20 a month, which is ±0.46.
-> The same formula at n = 3,457 against 3,693 gives **±0.034**. The observed fall of 0.171 is
-> five times that band. Welch p = 4.9e-07, Mann–Whitney p = 1.6e-05, and χ² on the
-> negative/not-negative counts p = 4e-07.
-
-Three alternative explanations were tested and none holds: the department mix is stable
-(Service 69.3% → 67.9%), monthly volume is within 7%, and **removing the closed site moves the
-fall from −0.171 to −0.169** (D-005). The decline is concentrated in **Service: 24.0% → 30.2%
-negative, p = 1.8e-06**, against Sales +4.5 points and Parts unchanged.
-
-**And the group figure is an average over three states that did different things** (section
-7.3 of the analysis). Splitting it was the single highest-value thing done to this result:
-
-| | Rating change | Negative rate | Welch p |
-|---|---:|---:|---:|
-| **NSW** (7 sites) | **−0.330** | 18.1% → **26.4%** | **7.9e-08** |
-| VIC (9 sites) | −0.166 | 20.5% → 25.1% | 0.0028 |
-| **QLD** (8 sites) | **−0.015** | 21.0% → 23.3% | **0.80 — no change** |
-
-Reporting only the national figure would have told Queensland's eight sites to fix a problem
-they do not have and understated New South Wales' by more than half. Inside NSW the move is
-**+10.3 points in Service** (p = 3.1e-07) and +8.5 in Sales, while NSW Parts improved.
-
-**Per-site testing, with the multiple-comparison problem handled rather than ignored.**
-Testing 23 sites at p < 0.05 produces roughly one false positive by construction, so a Holm
-step-down correction is applied across the whole family of tests. **Three sites survive it —
-Parramatta (−0.75), Dandenong (−0.72) and Liverpool (−0.58) — and every one is a fall. No
-site improved significantly.** That asymmetry is itself evidence; 23 noisy tests would not
-produce three one-sided results. Uncorrected, five sites clear p < 0.05, and the corrected
-table is what the report publishes. This is the full extent of per-site testing in the
-project: cut-list item 7 makes tests beyond the one trend check cuttable, and the one kept is
-the one the recommendation needs — *which* sites, not *whether* something changed.
-
-![The year's movement split by state](reports/figures/q2_trend_by_state.png)
-
-*The group figure is an average over three states that did different things.*
-
-**Reconciliation against the committed evidence file.**
-[reports/trend_evidence.md](reports/trend_evidence.md) predicted 33 of **257** pairs at 16 of
-24 sites. The flag count and the site count match exactly; the pair count differs by one
-because `scripts/trend_evidence.py` paired each month with the previous *present* month, so
-Penrith's May 2026 was paired with its July across the June gap D-029 excluded.
-`src/analyse.py` requires the two months to be adjacent. 257 − 1 = 256, and nothing else
-differs.
-
-### Coverage
-
-7,150 responses against **278,697 transactions — 2.57%** (200,249 service jobs at 2.45%,
-16,011 vehicles sold at 9.62%, 62,437 parts transactions at 1.13%). Reported as a limitation
-(D-006), and it also bounds every rate in both reports: these are rates *among responders*,
-and D-058 measured response as **not** independent of satisfaction. The analysis therefore
-does **not** extrapolate the negative rate onto the 97.4% of transactions that produced no
-feedback — section 9 of the analysis shows the arithmetic for that extrapolation and then
-explicitly declines to publish it.
-
-### Does satisfaction reach the revenue? A reported null result
-
-`monthly_revenue.csv` (288 dealer-months) is the only behavioural data in the project, and
-the analysis tests it against the feedback. **No link is detectable.**
-
-- The raw cross-site correlation between negative rate and service volume is **+0.22** — the
-  wrong sign, and it is site size, not service. Two-way demeaning by dealer and by month
-  flips it to **−0.19 (p = 0.0018)**, worth about 8 service jobs in a month of 709.
-- **It is contemporaneous, not leading.** The association is strongest at lag 0 and is not
-  significant at ±1, ±2 or ±3 months. A month's negative rate predicts nothing about the
-  next month's volume, which is equally consistent with a struggling branch producing both
-  fewer completed jobs and more complaints.
-- **The natural experiment is flat.** NSW's negative rate rose 8.3 points while QLD's did not
-  move; NSW service volume still **grew 4.9%** against QLD's 6.6%, a per-site difference of
-  1.5 points at **p = 0.41**. Of the three sites whose rating fell by more than chance, one
-  lost volume, one was flat and one outgrew the group.
-
-The null is reported with its own limits rather than as a conclusion: twelve months is
-shorter than a service interval, only **33%** of the variance in a site's monthly negative
-rate is signal rather than sampling noise (which attenuates every correlation shown), and the
-challenge pack is fictional, so the relationship may never have been in the data. What the
-panel *does* establish is that it could have detected **|r| ≥ 0.166** at 80% power, so a
-large short-term effect is ruled out.
-
-![Feedback against revenue: the across-sites correlation, and the lag profile](reports/figures/q3_feedback_vs_revenue.png)
-
-*Left: the correlation a reader reaches for first, which is site size. Right: only the same
-month is significant, so feedback predicts nothing about next month's volume.*
-
-**A free data-quality check falls out of it:** the revenue file records exactly zero activity
-for VIC09 in all six months from April 2026. The feedback and revenue files were produced
-separately, so that is independent corroboration of D-005's closure date rather than an
-assumption carried between them.
-
-### The value model was cut
-
-PLAN.md's third business question asks roughly what it is worth. [reports/benchmarks.md](reports/benchmarks.md)
-exists but **has not been reviewed, D-025 is unset, and the benchmarks themselves state that
-no published source maps a 1–5 rating to dollars.** It is item 1 on the cut list for this wave
-(PLAN.md §10), and both reports state the gap rather than publishing a scenario dressed as a
-measurement.
-
-**The revenue test above is the second and stronger reason.** Retention benchmarks work by
-assuming dissatisfied customers leave and that their leaving costs money. Kestrel's own
-revenue cannot detect that mechanism operating, so a dollar figure derived from those
-benchmarks would rest on an assumption the client's own data declines to corroborate. The
-null result strengthens the decision to cut the value model rather than weakening it.
-
-### Figures and gate G9
-
-`src/figures.py` writes nine PNGs, named for the business question each answers. Gate G9
-makes every chart the owner's to approve before it enters a report; **that approval was
-given on 30 October 2026**, and all nine are now embedded in
-[reports/business_report.md](reports/business_report.md). Until then
-both reports carried a figure index instead, which is the evidence the gate was observed
-rather than asserted.
-
-| Figure | Answers |
-|---|---|
-| `q1_drivers_by_department.png` | which department carries the volume, which the rate |
-| `q1_sites_vs_national.png` | every site as a deviation from the national rate, grouped by state, with Wilson intervals |
-| `q1_themes_by_department.png` | theme mix within each department, beside the negative share of each |
-| `q2_trend_by_state.png` | the year's movement split VIC / NSW / QLD, quarterly with intervals |
-| `q2_sites_that_changed.png` | which sites moved, Holm-corrected across 23 tests |
-| `q3_where_to_focus.png` | negative rate against its own change, bubble-sized by annual service jobs |
-| `q3_feedback_vs_revenue.png` | the across-sites correlation and why it is site size, then the lag profile that shows no predictive link |
-| `q3_coverage.png` | feedback per transaction, nationally and per site |
-| `method_model_vs_owner.png` | both confusion matrices, the three kappas against the committed floor, and what the LLM was used for |
-
-**Two of the nine exist to prevent a conclusion rather than support one.** `q3_feedback_vs_revenue.png` shows the naive across-sites correlation first, because it is positive and it is site size, and a reader who has not seen that cannot judge the rest; its footer says in terms that it is a guard, not a finding. `q3_where_to_focus.png` ranks sites on feedback, so its footer records that the analysis found no link between a site's negative rate and its revenue, and that nothing in the chart establishes a site in the top-right quadrant is losing money.
-
-Three rules are enforced in the plotting code rather than in the captions. **The theme chart
-is alphabetical and prints the 44.1% agreement on its own face**, so a sorted bar chart cannot
-smuggle in the ranking D-065 forbids and the caveat cannot be separated from the picture in a
-slide. **Every figure states its denominator in its own footer**, for the same reason. And
-**no chart is drawn from a number this module computed** — every business figure is imported
-from `src/analyse.py`, so a chart and a table cannot disagree; the method figure recomputes
-the three kappas from the committed labels and `assert`s them against `reports/evaluation.md`
-before it will render.
-
-A twenty-four-line monthly chart was deliberately not drawn. A state-month holds about 190
-responses, so a monthly site line is mostly noise, and twenty-four of them would invite a
-reader to see patterns the data cannot support.
-
-### Run provenance
-
-[reports/run_manifest.json](reports/run_manifest.json) (PLAN.md §6) records the sha256 of
-every input, the row count at each pipeline stage, the thresholds in force, the model and
-prompt tags, the seed, the git commit and the package versions, so a reviewer can tell which
-inputs produced which report.
+One threshold was retired rather than set: D-056's `unassigned` similarity floor for theme
+assignment caught only 2 of 7 owner rejections at the natural threshold, and catching all
+seven required marking 40.8% of the corpus unassigned (D-066).
